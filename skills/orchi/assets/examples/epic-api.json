@@ -1,0 +1,80 @@
+{
+  "acceptance": {
+    "ac-api": "API available"
+  },
+  "acceptance_checks": {
+    "ac-api": [
+      "api"
+    ]
+  },
+  "based_on": "0000000000000000000000000000000000000000",
+  "epic_id": "api",
+  "format": "orchi-epic",
+  "goal": "Expose values",
+  "initiative_id": "feature",
+  "mode": "implementation",
+  "shared_design": "Build on the verified prior epic, not initial canonical implementation",
+  "tasks": [
+    {
+      "acceptance": {
+        "ac-api": "Required value is present"
+      },
+      "allowed_choices": [
+        "Local variable spelling"
+      ],
+      "approach": "Use the existing plain Python module",
+      "context": [
+        {
+          "contract": "",
+          "kind": "code",
+          "path": "src/left.py",
+          "producer": null,
+          "reason": "Actual implementation to change"
+        },
+        {
+          "contract": "",
+          "kind": "knowledge",
+          "path": "docs/architecture.md",
+          "producer": null,
+          "reason": "Relevant architecture constraint"
+        }
+      ],
+      "current_state": "Inspect existing values",
+      "decisions": [
+        "Preserve the module interface"
+      ],
+      "depends_on": [],
+      "edits": [
+        {
+          "action": "create",
+          "how": "Apply the declared value/behavior change",
+          "path": "src/api.py"
+        }
+      ],
+      "escalation": [
+        "Stop if public compatibility must change"
+      ],
+      "exclusive_resources": [],
+      "failure_modes": [
+        "Missing dependency must fail explicitly"
+      ],
+      "goal": "Implement api",
+      "id": "api",
+      "invariants": [
+        "No side effects on import"
+      ],
+      "open_questions": [],
+      "read_paths": [],
+      "verification": [
+        {
+          "checks": [
+            "api"
+          ],
+          "criterion": "ac-api",
+          "expected": "The specified result",
+          "scenario": "Read module"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Orchi Deliver"
+  short_description: "Checkpoint epics then publish the whole request"
+  default_prompt: "Use $orchi-deliver to continue the initiative from its current controller state."
+policy:
+  allow_implicit_invocation: false

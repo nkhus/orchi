@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "enum": [
+        "completed",
+        "blocked"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "summary": {
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "extra_reads": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Extra Reads",
+      "type": "array"
+    },
+    "deviations": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Deviations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "status",
+    "summary"
+  ],
+  "title": "WorkerResult",
+  "type": "object"
+}

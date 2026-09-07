@@ -1,0 +1,135 @@
+{
+  "acceptance": {
+    "ac-values": "Both values available"
+  },
+  "acceptance_checks": {
+    "ac-values": [
+      "left",
+      "right"
+    ]
+  },
+  "based_on": "0000000000000000000000000000000000000000",
+  "epic_id": "values",
+  "format": "orchi-epic",
+  "goal": "Set internal values",
+  "initiative_id": "feature",
+  "mode": "implementation",
+  "shared_design": "Independent value modules; no shared mutable state",
+  "tasks": [
+    {
+      "acceptance": {
+        "ac-left": "Required value is present"
+      },
+      "allowed_choices": [
+        "Local variable spelling"
+      ],
+      "approach": "Use the existing plain Python module",
+      "context": [
+        {
+          "contract": "",
+          "kind": "code",
+          "path": "src/left.py",
+          "producer": null,
+          "reason": "Actual implementation to change"
+        },
+        {
+          "contract": "",
+          "kind": "knowledge",
+          "path": "docs/architecture.md",
+          "producer": null,
+          "reason": "Relevant architecture constraint"
+        }
+      ],
+      "current_state": "Inspect existing values",
+      "decisions": [
+        "Preserve the module interface"
+      ],
+      "depends_on": [],
+      "edits": [
+        {
+          "action": "modify",
+          "how": "Apply the declared value/behavior change",
+          "path": "src/left.py"
+        }
+      ],
+      "escalation": [
+        "Stop if public compatibility must change"
+      ],
+      "exclusive_resources": [],
+      "failure_modes": [
+        "Missing dependency must fail explicitly"
+      ],
+      "goal": "Implement left",
+      "id": "left",
+      "invariants": [
+        "No side effects on import"
+      ],
+      "open_questions": [],
+      "read_paths": [],
+      "verification": [
+        {
+          "checks": [
+            "left"
+          ],
+          "criterion": "ac-left",
+          "expected": "The specified result",
+          "scenario": "Read module"
+        }
+      ]
+    },
+    {
+      "acceptance": {
+        "ac-right": "Required value is present"
+      },
+      "allowed_choices": [
+        "Local variable spelling"
+      ],
+      "approach": "Use the existing plain Python module",
+      "context": [
+        {
+          "contract": "",
+          "kind": "code",
+          "path": "src/right.py",
+          "producer": null,
+          "reason": "Actual implementation to change"
+        }
+      ],
+      "current_state": "Inspect existing values",
+      "decisions": [
+        "Preserve the module interface"
+      ],
+      "depends_on": [],
+      "edits": [
+        {
+          "action": "modify",
+          "how": "Apply the declared value/behavior change",
+          "path": "src/right.py"
+        }
+      ],
+      "escalation": [
+        "Stop if public compatibility must change"
+      ],
+      "exclusive_resources": [],
+      "failure_modes": [
+        "Missing dependency must fail explicitly"
+      ],
+      "goal": "Implement right",
+      "id": "right",
+      "invariants": [
+        "No side effects on import"
+      ],
+      "open_questions": [],
+      "read_paths": [],
+      "verification": [
+        {
+          "checks": [
+            "right"
+          ],
+          "criterion": "ac-right",
+          "expected": "The specified result",
+          "scenario": "Read module"
+        }
+      ]
+    }
+  ]
+}

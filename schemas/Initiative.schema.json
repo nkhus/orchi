@@ -1,0 +1,134 @@
+{
+  "$defs": {
+    "RoadmapEpic": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 80,
+          "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "outcome": {
+          "minLength": 1,
+          "title": "Outcome",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "contributes_to": {
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Contributes To",
+          "type": "array"
+        },
+        "risks": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Risks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "outcome",
+        "contributes_to"
+      ],
+      "title": "RoadmapEpic",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": "orchi-initiative",
+      "default": "orchi-initiative",
+      "title": "Format",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 80,
+      "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "request": {
+      "minLength": 1,
+      "title": "Request",
+      "type": "string"
+    },
+    "outcome": {
+      "minLength": 1,
+      "title": "Outcome",
+      "type": "string"
+    },
+    "acceptance": {
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z0-9]+(?:[-.][a-z0-9]+)*$": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "propertyNames": {
+        "maxLength": 80
+      },
+      "title": "Acceptance",
+      "type": "object"
+    },
+    "constraints": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Constraints",
+      "type": "array"
+    },
+    "direction": {
+      "minLength": 1,
+      "title": "Direction",
+      "type": "string"
+    },
+    "epics": {
+      "items": {
+        "$ref": "#/$defs/RoadmapEpic"
+      },
+      "minItems": 1,
+      "title": "Epics",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "request",
+    "outcome",
+    "acceptance",
+    "constraints",
+    "direction",
+    "epics"
+  ],
+  "title": "Initiative",
+  "type": "object"
+}

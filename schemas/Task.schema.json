@@ -1,0 +1,283 @@
+{
+  "$defs": {
+    "Edit": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "create",
+            "modify",
+            "delete"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "how": {
+          "minLength": 1,
+          "title": "How",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "action",
+        "how"
+      ],
+      "title": "Edit",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "knowledge",
+            "code",
+            "dependency"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "producer": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Producer"
+        },
+        "contract": {
+          "default": "",
+          "title": "Contract",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "path",
+        "reason"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "VerificationCase": {
+      "additionalProperties": false,
+      "properties": {
+        "criterion": {
+          "maxLength": 80,
+          "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+          "title": "Criterion",
+          "type": "string"
+        },
+        "scenario": {
+          "minLength": 1,
+          "title": "Scenario",
+          "type": "string"
+        },
+        "expected": {
+          "minLength": 1,
+          "title": "Expected",
+          "type": "string"
+        },
+        "checks": {
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Checks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "criterion",
+        "scenario",
+        "expected",
+        "checks"
+      ],
+      "title": "VerificationCase",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 80,
+      "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "goal": {
+      "minLength": 1,
+      "title": "Goal",
+      "type": "string"
+    },
+    "acceptance": {
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z0-9]+(?:[-.][a-z0-9]+)*$": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "propertyNames": {
+        "maxLength": 80
+      },
+      "title": "Acceptance",
+      "type": "object"
+    },
+    "depends_on": {
+      "default": [],
+      "items": {
+        "maxLength": 80,
+        "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+        "type": "string"
+      },
+      "title": "Depends On",
+      "type": "array"
+    },
+    "current_state": {
+      "minLength": 1,
+      "title": "Current State",
+      "type": "string"
+    },
+    "approach": {
+      "minLength": 1,
+      "title": "Approach",
+      "type": "string"
+    },
+    "decisions": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Decisions",
+      "type": "array"
+    },
+    "invariants": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Invariants",
+      "type": "array"
+    },
+    "allowed_choices": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Allowed Choices",
+      "type": "array"
+    },
+    "failure_modes": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Failure Modes",
+      "type": "array"
+    },
+    "edits": {
+      "items": {
+        "$ref": "#/$defs/Edit"
+      },
+      "minItems": 1,
+      "title": "Edits",
+      "type": "array"
+    },
+    "context": {
+      "items": {
+        "$ref": "#/$defs/Source"
+      },
+      "minItems": 1,
+      "title": "Context",
+      "type": "array"
+    },
+    "read_paths": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Read Paths",
+      "type": "array"
+    },
+    "exclusive_resources": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Exclusive Resources",
+      "type": "array"
+    },
+    "verification": {
+      "items": {
+        "$ref": "#/$defs/VerificationCase"
+      },
+      "minItems": 1,
+      "title": "Verification",
+      "type": "array"
+    },
+    "escalation": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Escalation",
+      "type": "array"
+    },
+    "open_questions": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Open Questions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "goal",
+    "acceptance",
+    "current_state",
+    "approach",
+    "decisions",
+    "invariants",
+    "allowed_choices",
+    "failure_modes",
+    "edits",
+    "context",
+    "verification",
+    "escalation",
+    "open_questions"
+  ],
+  "title": "Task",
+  "type": "object"
+}

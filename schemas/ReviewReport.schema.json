@@ -1,0 +1,111 @@
+{
+  "$defs": {
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "criterion": {
+          "minLength": 1,
+          "title": "Criterion",
+          "type": "string"
+        },
+        "root_cause": {
+          "minLength": 1,
+          "title": "Root Cause",
+          "type": "string"
+        },
+        "consequence": {
+          "minLength": 1,
+          "title": "Consequence",
+          "type": "string"
+        },
+        "evidence": {
+          "minLength": 1,
+          "title": "Evidence",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "blocker",
+            "unsubstantiated",
+            "advisory",
+            "resolved"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "task_ids": {
+          "default": [],
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "title": "Task Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "path",
+        "criterion",
+        "root_cause",
+        "consequence",
+        "evidence",
+        "disposition"
+      ],
+      "title": "Finding",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "minLength": 1,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "reviewer": {
+      "minLength": 1,
+      "title": "Reviewer",
+      "type": "string"
+    },
+    "complete": {
+      "title": "Complete",
+      "type": "boolean"
+    },
+    "covered_paths": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Covered Paths",
+      "type": "array"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/Finding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "summary": {
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "reviewer",
+    "complete",
+    "covered_paths",
+    "findings",
+    "summary"
+  ],
+  "title": "ReviewReport",
+  "type": "object"
+}

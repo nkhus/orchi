@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "Check": {
+      "additionalProperties": false,
+      "properties": {
+        "argv": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Argv",
+          "type": "array"
+        },
+        "timeout_seconds": {
+          "default": 120,
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "argv"
+      ],
+      "title": "Check",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "canonical_ref": {
+      "default": "refs/heads/main",
+      "title": "Canonical Ref",
+      "type": "string"
+    },
+    "public_key": {
+      "minLength": 1,
+      "title": "Public Key",
+      "type": "string"
+    },
+    "checks": {
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z0-9]+(?:[-.][a-z0-9]+)*$": {
+          "$ref": "#/$defs/Check"
+        }
+      },
+      "propertyNames": {
+        "maxLength": 80
+      },
+      "title": "Checks",
+      "type": "object"
+    },
+    "baseline_checks": {
+      "default": [],
+      "items": {
+        "maxLength": 80,
+        "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+        "type": "string"
+      },
+      "title": "Baseline Checks",
+      "type": "array"
+    },
+    "final_checks": {
+      "items": {
+        "maxLength": 80,
+        "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Final Checks",
+      "type": "array"
+    },
+    "max_workers": {
+      "default": 4,
+      "maximum": 32,
+      "minimum": 1,
+      "title": "Max Workers",
+      "type": "integer"
+    },
+    "max_attempts_per_task": {
+      "default": 3,
+      "maximum": 10,
+      "minimum": 1,
+      "title": "Max Attempts Per Task",
+      "type": "integer"
+    },
+    "max_attempts_per_epic": {
+      "default": 48,
+      "maximum": 1000,
+      "minimum": 1,
+      "title": "Max Attempts Per Epic",
+      "type": "integer"
+    },
+    "max_attempts_total": {
+      "default": 200,
+      "maximum": 10000,
+      "minimum": 1,
+      "title": "Max Attempts Total",
+      "type": "integer"
+    },
+    "max_review_rounds": {
+      "default": 3,
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Max Review Rounds",
+      "type": "integer"
+    },
+    "max_packet_bytes": {
+      "default": 96000,
+      "maximum": 1000000,
+      "minimum": 1024,
+      "title": "Max Packet Bytes",
+      "type": "integer"
+    },
+    "lease_seconds": {
+      "default": 3600,
+      "maximum": 86400,
+      "minimum": 10,
+      "title": "Lease Seconds",
+      "type": "integer"
+    },
+    "max_process_seconds": {
+      "default": 900,
+      "maximum": 7200,
+      "minimum": 1,
+      "title": "Max Process Seconds",
+      "type": "integer"
+    },
+    "max_output_bytes": {
+      "default": 2000000,
+      "maximum": 20000000,
+      "minimum": 1024,
+      "title": "Max Output Bytes",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "public_key",
+    "checks",
+    "final_checks"
+  ],
+  "title": "Policy",
+  "type": "object"
+}

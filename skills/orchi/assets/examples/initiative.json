@@ -1,0 +1,37 @@
+{
+  "acceptance": {
+    "ac-user": "API produces the intended result"
+  },
+  "constraints": [
+    "Keep public compatibility"
+  ],
+  "direction": "Separate persisted values from the API",
+  "epics": [
+    {
+      "contributes_to": [
+        "ac-user"
+      ],
+      "depends_on": [],
+      "id": "values",
+      "outcome": "Set internal values",
+      "risks": [],
+      "title": "Values"
+    },
+    {
+      "contributes_to": [
+        "ac-user"
+      ],
+      "depends_on": [
+        "values"
+      ],
+      "id": "api",
+      "outcome": "Expose verified values",
+      "risks": [],
+      "title": "API"
+    }
+  ],
+  "format": "orchi-initiative",
+  "id": "feature",
+  "outcome": "Feature works with API",
+  "request": "Deliver a working feature"
+}

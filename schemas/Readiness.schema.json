@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "packet_fingerprint": {
+      "minLength": 1,
+      "title": "Packet Fingerprint",
+      "type": "string"
+    },
+    "understood_goal": {
+      "minLength": 1,
+      "title": "Understood Goal",
+      "type": "string"
+    },
+    "fixed_decisions": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Fixed Decisions",
+      "type": "array"
+    },
+    "acceptance_ids": {
+      "items": {
+        "maxLength": 80,
+        "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Acceptance Ids",
+      "type": "array"
+    },
+    "questions": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Questions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "packet_fingerprint",
+    "understood_goal",
+    "fixed_decisions",
+    "acceptance_ids",
+    "questions"
+  ],
+  "title": "Readiness",
+  "type": "object"
+}

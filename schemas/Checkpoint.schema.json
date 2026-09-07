@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "Disposition": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "targets": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "targets",
+        "reason"
+      ],
+      "title": "Disposition",
+      "type": "object"
+    },
+    "KnowledgeEdit": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "replace",
+            "retire",
+            "revalidate"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "content": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content"
+        },
+        "artifacts": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "checks": {
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Checks",
+          "type": "array"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target",
+        "action",
+        "artifacts",
+        "checks",
+        "reason"
+      ],
+      "title": "KnowledgeEdit",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": "orchi-checkpoint",
+      "default": "orchi-checkpoint",
+      "title": "Format",
+      "type": "string"
+    },
+    "epic_id": {
+      "maxLength": 80,
+      "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+      "title": "Epic Id",
+      "type": "string"
+    },
+    "based_on": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Based On",
+      "type": "string"
+    },
+    "report": {
+      "minLength": 1,
+      "title": "Report",
+      "type": "string"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/KnowledgeEdit"
+      },
+      "title": "Entries",
+      "type": "array"
+    },
+    "dispositions": {
+      "items": {
+        "$ref": "#/$defs/Disposition"
+      },
+      "title": "Dispositions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "epic_id",
+    "based_on",
+    "report",
+    "entries",
+    "dispositions"
+  ],
+  "title": "Checkpoint",
+  "type": "object"
+}
