@@ -13,7 +13,8 @@ Read [planning contract](../orchi/references/planning.md) and [authoring](../orc
 ## Initiative direction
 
 Recover the user's original outcome, acceptance, constraints and architectural direction.
-Investigate the relevant repository; distinguish observed facts, approved requirements and open questions.
+Use [retrieval](../orchi/references/retrieval.md) to search Core and read exact sources before code investigation.
+Distinguish observed facts, approved requirements and open questions.
 Create an ordered epic roadmap with outcomes, dependencies, risks and contribution to root acceptance.
 Keep future epics at roadmap level: no task lists, file-level plans or invented future implementation.
 Submit `begin --file initiative.json`; present the returned direction request to the human and stop.
@@ -21,7 +22,8 @@ Submit `begin --file initiative.json`; present the returned direction request to
 ## Next epic
 
 Inspect the actual initiative `head` and verified `knowledge_head`, not merely canonical code.
-Resolve scoped working knowledge, then investigate the exact affected code and tests.
+Search and get with `--initiative <id>`; inspect diagnostics, then the exact affected code and tests.
+Use logical knowledge paths in task context; snippets are discovery aids, not packet sources.
 Choose the shared epic design and contracts before task decomposition.
 Create a task DAG; for every task specify approach, decisions, invariants, failure behavior,
 exact edits, sufficient sources, dependency-output contracts, verification and escalation.

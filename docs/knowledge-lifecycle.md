@@ -19,6 +19,17 @@ Working Knowledge is a sparse overlay addressed by logical `docs/...md` targets,
 
 Unchanged entries inherit from the initiative's canonical baseline. A baseline before-image can be inspected explicitly, but it is not presented as a simultaneous competing rule. Another initiative's proposal or archive is not automatically imported as authority.
 
+## Discovery and exact reads
+
+[Retrieval](retrieval.md) provides ranked section search over the already-resolved authority view. A local,
+disposable SQLite index supplies BM25, substring, and fuzzy candidates; it does not select authority layers.
+Results include heading, source lines, snippet, commit, original path, and content hash. `get` and task
+materialization still read exact authoritative content independently of the cache.
+
+Canonical searches follow the current canonical ref. Initiative searches inherit their fixed baseline and
+last verified checkpoint, not a newer canonical branch or partially integrated active-epic code. Stale and
+retired replacements mask Core before index construction. Querying another initiative by accident fails.
+
 ## Storage
 
 ```text

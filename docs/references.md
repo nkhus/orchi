@@ -4,6 +4,8 @@ The sources below describe external standards and tools used by Orchi. Orchi's o
 
 | Source | Relevance |
 | --- | --- |
+| [OntoShip](https://github.com/vakovalskii/ontoship) | Markdown-first, disposable, heading-aware lexical retrieval patterns |
+| [SQLite FTS5](https://www.sqlite.org/fts5.html) | BM25, Unicode tokenization, trigram substring matching, and MATCH syntax |
 | [Agent Skills specification](https://agentskills.io/specification) | `SKILL.md` metadata, directory structure, scripts, references, and assets |
 | [Using scripts in skills](https://agentskills.io/skill-creation/using-scripts) | Self-contained script dependencies and inline Python metadata |
 | [Skills CLI](https://github.com/vercel-labs/skills) | Git repository installation, project/user scope, agent selection, and copy/symlink handling |

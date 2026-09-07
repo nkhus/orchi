@@ -21,6 +21,12 @@ Contract tests cover exact paths, protected writes, explicit task designs, futur
 
 Execution tests use real Git worktrees, SQLite, signatures, and subprocesses. They cover parallel claims and workers, read assumptions, resource serialization, actual combined-tree verification, process timeout/output limits, recovery, transactional rollback, and content-addressed artifacts. Review tests cover clean passes, causal scope, retained blockers, bounded repair, and incomplete reviews.
 
+Retrieval tests cover heading and line extraction, relevance, prefix/substring/fuzzy matching, Unicode,
+bounded queries and excerpts, scope masking, retirements, stale artifacts, canonical drift, checkpoint
+invalidation, readback hashes, concurrent atomic cache construction, corruption recovery, capability
+fallbacks, standalone CLI use, and unchanged workflow authority. Installed-skill tests execute search from
+the copied bundle; accepted-checkpoint tests use real Git and controller transitions.
+
 Packaging tests cover a fresh installation, user-file preservation, idempotency, explicit replacement backup, symlink refusal, bundled entrypoints, schema parity, and complete skill resources. Diagnostics distinguish local prerequisite checks from live authentication or model validation.
 
 `tools/validate_package.py` checks Python syntax, metadata, local Markdown links, bundled resources, JSON, schema drift, English-only repository text, and absence of product release metadata. It is an offline source validation tool, not a model evaluation.

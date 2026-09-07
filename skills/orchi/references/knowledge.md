@@ -6,6 +6,8 @@ Proposal is the approved design of the active epic and its tasks; it is not curr
 Code is read from the actual task start/accepted dependency commits, not from a fictional target architecture.
 
 Default search/get/owners use only canonical Core. Pass `--initiative <id>` explicitly to use the overlay.
+Use [retrieval](retrieval.md) for heading-level discovery and exact readback. The disposable index neither
+changes authority nor supplies packet content; read diagnostics and resolve sources in the same scope.
 `knowledge` task references are logical docs paths. A verified replacement masks the older Core record;
 a retirement suppresses it; a stale record fails rather than falling back to the superseded text.
 Unchanged documents inherit from the original canonical baseline. Unrelated initiative material never joins.

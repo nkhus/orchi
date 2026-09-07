@@ -89,6 +89,9 @@ orchi next
 
 Use unique request/decision filenames for each gate. Signing refuses an existing decision output. Repeat the protocol for the exact next epic plan submitted with `plan --file /path/to/epic.json`, material amendments, and final acceptance. Never sign an arbitrary request without checking its provenance and actual content. The package does not provide an approval UI or managed operator service.
 
+Use [retrieval](retrieval.md) to find documentation and read exact sources in the intended scope. Indexing
+and lookup do not authorize or advance work.
+
 The planner reads actual internal commits and initiative-scoped knowledge. Use `git show <head>:<path>` when inspecting internal code; do not move the canonical checkout to simulate progress.
 
 ## Configure workers

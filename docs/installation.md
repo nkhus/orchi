@@ -71,6 +71,13 @@ python .agents/skills/orchi/scripts/orchi.py doctor --repo .
 
 Choose a dedicated environment, not the application's environment. Orchi's dependencies do not include your project's compiler, test runner, packages, or services. Those must work inside the verification worktrees under the operator's trusted check configuration.
 
+## Documentation lookup
+
+Search requires Python's SQLite FTS5; trigram support enables substring and fuzzy matching. `doctor` checks
+the linked SQLite rather than assuming features from a Python version. No extra Python package or service
+is required. With `ORCHI_CONTROL` unset, `search "topic" --repo .` works before workflow setup. Controller-backed
+queries use `--control`; initiative knowledge requires explicit `--initiative`. See [retrieval](retrieval.md).
+
 ## Installation from a local checkout
 
 With Node.js/npm available:

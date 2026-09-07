@@ -16,6 +16,8 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--out',required=True,type=Path);a=p.parse_args()
     if a.out.exists(): p.error('--out must be a new directory; demo never uses an existing project')
     a.out.mkdir(parents=True);w=World(a.out)
+    cache=w.e.store.root/'cache/retrieval'
+    initial_search=context.search(w.e.repo,w.e.state(),'zero',cache_root=cache)
     w.begin();w.approve(w.e.plan(w.plan1()))
     # Explicitly a fake deterministic process, not a model benchmark.
     r=run_ready(w.e,{'kind':'command','argv':[sys.executable,str(ROOT/'tests/fake_agent.py')]})
@@ -24,6 +26,9 @@ def main():
     intermediate={'baseline':w.baseline,'head':w.e.state()['head'],
                   'canonical_doc':context.get(w.e.repo,w.e.state(),'docs/architecture.md')['content'],
                   'working_doc':context.get(w.e.repo,w.e.state(),'docs/architecture.md','feature')['content']}
+    working_search=context.search(w.e.repo,w.e.state(),'one','feature',cache_root=cache)
+    assert working_search['results'][0]['layer']=='working'
+    assert not context.search(w.e.repo,w.e.state(),'one',cache_root=cache)['results']
     task=w.task('api','api.py','api',action='create',with_doc=True)
     plan={'initiative_id':'feature','epic_id':'api','based_on':w.e.state()['head'],'goal':'Expose values',
           'shared_design':'Build on the verified prior epic, not initial canonical implementation',
@@ -38,9 +43,14 @@ def main():
     draft=w.e.final_draft();draft['report']='Synthetic cumulative reconciliation: values and API tested, source docs updated only now.'
     w.e.finalize(draft);w.approve(w.pass_review('initiative'));pub=w.e.publication()
     git(w.repo,'merge','--ff-only',pub['candidate']);w.e.record_publication(pub['candidate'])
+    published_search=context.search(w.e.repo,w.e.state(),'answer',cache_root=cache)
+    assert published_search['results'][0]['target']=='docs/api.md'
+    assert published_search['results'][0]['layer']=='canonical'
+    assert published_search['index']['fingerprint']!=initial_search['index']['fingerprint']
     w.e.export(a.out/'audit')
     report={'synthetic':True,'live_model':False,'stages':['direction','epic-values','epic-api','finalization','final-approval','operator-publication'],
             'parallel_outcomes':r['outcomes'],'intermediate':intermediate,'publication':pub,
+            'retrieval':{'initial_core':initial_search,'working':working_search,'published_core':published_search},
             'canonical_commits':len(git(w.repo,'rev-list',w.baseline+'..main').splitlines()),'phase':w.e.state()['phase']}
     (a.out/'demo-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps({'out':str(a.out),'phase':report['phase'],'canonical_commits':report['canonical_commits'],'synthetic':True}))

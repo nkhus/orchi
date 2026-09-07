@@ -20,6 +20,7 @@ Five focused agent skills
 JSON CLI -> Engine
               |-- Strict Pydantic contracts and generated JSON Schemas
               |-- Context resolver and task-packet builder
+              |     `-- Disposable, scoped SQLite FTS5 retrieval projection
               |-- SQLite state and content-addressed audit artifacts
               |-- Git object access, candidate construction, and worktrees
               |-- Trusted check runner
@@ -33,7 +34,7 @@ Human operator -> normal fast-forward publication -> publication receipt
 
 Skills define the reasoning procedure and division of responsibilities. The controller enforces mechanical invariants, persists transitions, and observes checks. It does not call a hidden planning model, choose product requirements, or decide architectural trade-offs on the user's behalf.
 
-The Python modules under `skills/orchi/scripts/orchi_core/` separate contracts, context, persistence, Git operations, subprocess execution, signatures, worker orchestration, and CLI routing. Both executable entrypoints and their dependency declarations are bundled in the installed skill.
+The Python modules under `skills/orchi/scripts/orchi_core/` separate contracts, context, retrieval, persistence, Git operations, subprocess execution, signatures, worker orchestration, and CLI routing. Both executable entrypoints and their dependency declarations are bundled in the installed skill.
 
 ## Commit identities
 
@@ -63,6 +64,10 @@ Git stores exact code and documentation snapshots, accepted definition revisions
 Content-addressed artifacts preserve packets, process observations, checks, reviews, requests, and signatures. A model's completion message is a proposal, not verification evidence. Check results are associated with exact commits, trees, check identifiers, and policy.
 
 A knowledge manifest records source code identity and artifact hashes; its own commit is assigned externally. Final approvals and publication receipts similarly remain outside the commit they identify, avoiding self-referential hashes.
+
+The retrieval SQLite cache is separate from the authoritative workflow SQLite database. It contains only
+a derived search projection and may be deleted and rebuilt. Scope and freshness are resolved before indexing;
+search scores never grant authority. See [retrieval](retrieval.md).
 
 ## Durable local execution
 

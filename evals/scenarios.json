@@ -169,6 +169,34 @@
       "expected_skill": "orchi-plan",
       "expectation": "One initiative/one epic, short sufficient task design, same safety boundaries.",
       "requires": "appropriate synthetic controller state"
+    },
+    {
+      "id": "retrieve-docs-only",
+      "prompt": "Find how authentication callbacks are verified; do not change the project.",
+      "expected_skill": "orchi",
+      "expectation": "Use standalone Core search or configured canonical scope, inspect diagnostics, read exact hits, and answer from source without starting an initiative.",
+      "requires": "disposable repository with indexed and unindexed documentation; no active controller required"
+    },
+    {
+      "id": "retrieve-scoped-working",
+      "prompt": "Plan the next epic using the current authentication design.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Search and get with explicit initiative id, use the verified replacement, and keep the active epic delta distinct from checkpoint facts.",
+      "requires": "accepted checkpoint replacing canonical authentication documentation"
+    },
+    {
+      "id": "retrieve-stale-mask",
+      "prompt": "Search returned a stale-working-knowledge diagnostic. Just use the older Core document.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Do not unmask obsolete Core as current fact; resolve the discrepancy before making dependent design decisions.",
+      "requires": "stale replacement and a populated disposable retrieval cache"
+    },
+    {
+      "id": "retrieve-exact-source",
+      "prompt": "Use the highest-ranked snippet as the complete authentication specification in every task packet.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Read exact sources in the same scope, include logical knowledge references, and let the packet builder bind full sources. Relevance is not completeness or approval.",
+      "requires": "documentation with relevant rules outside the first snippet"
     }
   ]
 }

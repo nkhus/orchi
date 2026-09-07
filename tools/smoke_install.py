@@ -38,6 +38,7 @@ def smoke(out: Path, installer: str, runner: str) -> dict:
     run(['git', 'init', '-b', 'main'])
     preserved = {
         'AGENTS.md': '# Existing project instructions\nKeep these instructions.\n',
+        'docs/authentication.md': '# Identity\n\n## Callback validation\nValidate authentication callback signatures.\n',
         '.codex/config.toml': 'model = "operator-selected-model"\n',
         '.agents/skills/unrelated/SKILL.md': '---\nname: unrelated\ndescription: Existing skill\n---\n',
         'pyproject.toml': (
@@ -49,6 +50,9 @@ def smoke(out: Path, installer: str, runner: str) -> dict:
         target = project / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding='utf-8')
+    run(['git', 'add', 'docs/authentication.md'])
+    run(['git', '-c', 'user.name=Orchi Test', '-c', 'user.email=test@example.invalid',
+         'commit', '-m', 'Synthetic documentation fixture'])
     if installer == 'skills':
         run(['npx', '--yes', 'skills', 'add', str(ROOT), '--skill', '*', '--agent', 'codex', '--yes'])
     else:
@@ -61,6 +65,17 @@ def smoke(out: Path, installer: str, runner: str) -> dict:
     diagnostics = json.loads(run([*prefix, str(scripts / 'orchi.py'), 'doctor', '--repo', '.']))
     if diagnostics.get('result', {}).get('status') != 'ready':
         raise RuntimeError('Installed diagnostics did not report ready')
+    search = json.loads(run([*prefix, str(scripts / 'orchi.py'), 'search', 'authentication callback', '--repo', '.']))
+    hit = search['result']['results'][0]
+    if hit['heading'] != 'Callback validation' or hit['target'] != 'docs/authentication.md':
+        raise RuntimeError('Installed retrieval did not find the exact source section')
+    exact = json.loads(run([*prefix, str(scripts / 'orchi.py'), 'get', hit['target'], '--repo', '.',
+                           '--content-hash', hit['content_hash']]))
+    if hit['snippet'] not in exact['result']['content']:
+        raise RuntimeError('Installed retrieval readback did not match the source')
+    stats = json.loads(run([*prefix, str(scripts / 'orchi.py'), 'stat', '--repo', '.']))
+    if stats['result']['index']['status'] != 'reused':
+        raise RuntimeError('Installed retrieval did not reuse its scoped cache')
     run([*prefix, str(scripts / 'operator.py'), '--help'])
     generated = out / 'schemas'
     run([*prefix, str(scripts / 'orchi.py'), 'schemas', '--out', str(generated)])
@@ -78,7 +93,8 @@ def smoke(out: Path, installer: str, runner: str) -> dict:
         if (project / unexpected).exists():
             raise RuntimeError('Runtime used the consuming application environment: ' + unexpected)
     result = {'ok': True, 'installer': installer, 'runner': runner, 'skills': len(SKILLS),
-              'schemas': len(actual), 'preserved_files': len(preserved),
+              'schemas': len(actual), 'preserved_files': len(preserved), 'retrieval_readback': True,
+              'retrieval_cache_reused': True,
               'live_model': False, 'out': str(out)}
     (out / 'smoke-report.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     return result
