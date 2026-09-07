@@ -30,6 +30,18 @@ Use an operator-owned external directory with restrictive permissions. `operator
 
 Keep private keys and active state out of Git and worker-visible prompts. Audit exports may contain full source and process output. Apply access, retention, and backup controls accordingly. Do not assume Git alone contains the complete execution audit.
 
+## Retrieval projections
+
+Search indexes contain private source text even though they are disposable. Controller-backed caches belong
+in the operator-owned control directory. Standalone caches live inside Git metadata, which is not itself an
+access-control boundary. Apply the repository's confidentiality and retention controls to both locations.
+Only the retrieval cache may be safely removed, not workflow state, audit data, or Git objects.
+
+Queries are bounded, quoted, and bound as SQL parameters. Search validates returned cached chunks against
+resolved authoritative sources and rebuilds mismatches. A ranking score, missing search hit, or intact
+cache is not proof of semantic correctness or complete knowledge coverage. Retrieval does not grant a
+worker permission to query the operator's controller or expand its packet's read scope.
+
 ## Supported operating scope
 
 The controller is local and POSIX-dependent. It manages one repository and one initiative per control directory, with parallel tasks inside one active epic. It is not a distributed or multi-tenant service. Native Windows execution, automatic baseline rebasing, automatic deployment, protected-branch pull-request orchestration, and autonomous operator approval are outside the implementation.

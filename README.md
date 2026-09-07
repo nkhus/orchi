@@ -15,7 +15,7 @@ uv run .agents/skills/orchi/scripts/orchi.py doctor --repo .
 
 Install **all five skills together**. The controller, Python dependency declarations, operator tools, references, and example templates travel with the skills. You do not need a separate Orchi clone, npm package, or Python package installation in the target project. `uv` manages Orchi's Python environment without adding dependencies to the application's environment.
 
-Requirements: Git, a POSIX environment, and `uv`; Python 3.11 or newer is required by the scripts. Node.js/npm is needed for the `npx` installation command, not for the controller. A live Codex run also needs an installed and authenticated Codex CLI. Use Linux, macOS, or a Linux environment under WSL; native Windows execution is not supported by the process controller.
+Requirements: Git, a POSIX environment, and `uv`; Python 3.11 or newer is required by the scripts. Documentation search requires Python's SQLite FTS5; trigram support enables substring and fuzzy matching. Node.js/npm is needed for the `npx` installation command, not for the controller. A live Codex run also needs an installed and authenticated Codex CLI. Use Linux, macOS, or a Linux environment under WSL; native Windows execution is not supported by the process controller.
 
 Installation does **not** authorize execution. Before starting an initiative, a human operator configures an external control directory, signing key, trusted project checks, and worker access boundaries. Follow the [operator guide](skills/orchi/references/operator-guide.md). `doctor` checks local prerequisites; it does not certify authentication or isolation.
 
@@ -65,6 +65,27 @@ Use `$orchi` to start or continue. The other skills are explicit stages, not com
 
 Workers receive the last knowledge checkpoint, the approved active-epic design, and actual accepted dependency results. At finalization, Orchi produces a coherent cumulative Core update and verifies the exact code-and-docs tree. It does not publish intermediate epics or automatically deploy anything.
 
+## Search project documentation
+
+Search committed Core without initializing an initiative (run with `ORCHI_CONTROL` unset):
+
+```bash
+uv run .agents/skills/orchi/scripts/orchi.py search "authentication callback" --repo . --format text
+```
+
+Standalone lookup defaults to `refs/heads/main`; use `--ref` for another canonical branch. For an active
+initiative, use its accepted knowledge scope explicitly:
+
+```bash
+uv run .agents/skills/orchi/scripts/orchi.py --control "$ORCHI_CONTROL" search "authentication callback" --initiative <id>
+uv run .agents/skills/orchi/scripts/orchi.py --control "$ORCHI_CONTROL" get docs/authentication.md --initiative <id> --content-hash <hash-from-hit>
+```
+
+Retrieval combines heading-aware BM25, substring matching, and typo-tolerant candidates. Hits contain
+bounded snippets, exact line ranges, and source provenance. Its local SQLite index is automatically built
+and disposable; Git, verified Working Knowledge, and the controller remain authoritative. Stale or retired
+replacements never fall back to obsolete Core. [Retrieval](docs/retrieval.md) explains commands and limits.
+
 ## Repository layout
 
 ```text
@@ -104,6 +125,7 @@ See [contributing](CONTRIBUTING.md) and [testing](docs/testing.md) for validatio
 | [Architecture](docs/architecture.md) | Domain model, components, storage, and publication boundary |
 | [Planning and task packets](docs/planning-and-packets.md) | Iterative design, context, task contracts, and parallelism |
 | [Knowledge lifecycle](docs/knowledge-lifecycle.md) | Core, Working Knowledge, reconciliation, and provenance |
+| [Retrieval](docs/retrieval.md) | Scoped documentation search, source-bound excerpts, and disposable indexes |
 | [Protocol](docs/protocol.md) | State transitions, approvals, checks, review, and recovery |
 | [Operator guide](skills/orchi/references/operator-guide.md) | End-to-end setup, approvals, execution, and publication |
 | [Security](docs/security.md) | Trust boundaries and explicit operational limitations |

@@ -8,6 +8,8 @@ import shutil
 import subprocess
 import sys
 
+from .retrieval import capabilities
+
 SKILLS = ("orchi", "orchi-plan", "orchi-work", "orchi-review", "orchi-deliver")
 
 
@@ -27,6 +29,8 @@ def doctor(repo: str | None = None, require_codex: bool = False) -> dict:
     add("python", sys.version_info >= (3, 11), sys.executable)
     git = shutil.which("git")
     add("git", git is not None, git or "Install Git and make it available on PATH")
+    search_caps = capabilities()
+    add("sqlite:fts5", search_caps["fts5"], "SQLite FTS5 is required for documentation search")
     for module in ("pydantic", "cryptography", "yaml"):
         add("dependency:" + module, importlib.util.find_spec(module) is not None, module)
     for name in SKILLS:
@@ -48,6 +52,8 @@ def doctor(repo: str | None = None, require_codex: bool = False) -> dict:
     if require_codex:
         add("codex", codex is not None, codex or "Install and authenticate Codex before a live run")
     warnings = ["This check does not verify authentication, trusted policy, worker isolation, or model behavior."]
+    if search_caps["fts5"] and not search_caps["trigram"]:
+        warnings.append("SQLite trigram is unavailable; search uses token/prefix BM25 without substring or fuzzy matching.")
     if not codex and not require_codex:
         warnings.append("Codex is absent; command/manual adapters and deterministic tests remain available.")
     return {"status": "ready" if all(item["passed"] for item in checks) else "blocked",

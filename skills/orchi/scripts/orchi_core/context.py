@@ -2,12 +2,13 @@
 from __future__ import annotations
 import fnmatch
 import json
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 import posixpath
 import re
 import yaml
 from .common import canonical, digest, sha, require, path, safe_text, secret_path, OrchiError
 from .repository import Repository
+from . import retrieval
 
 
 def frontmatter(text: str) -> dict:
@@ -66,28 +67,55 @@ def effective(repo: Repository, s: dict, initiative_id: str | None = None) -> di
     return result
 
 
-def get(repo: Repository, s: dict, target: str, initiative_id: str | None = None) -> dict:
+def get(repo: Repository, s: dict, target: str, initiative_id: str | None = None,
+        content_hash: str | None = None) -> dict:
     record = effective(repo, s, initiative_id).get(path(target))
     require(record is not None, "MISSING_KNOWLEDGE", target)
     require(not record.get("stale"), "STALE_WORKING_KNOWLEDGE", target)
     require(record["layer"] != "retired", "RETIRED_KNOWLEDGE", target)
+    if content_hash is not None:
+        require(re.fullmatch(r"[0-9a-f]{64}", content_hash) is not None, "INVALID_CONTENT_HASH", "Expected a SHA256 digest")
+        require(record["content_hash"] == content_hash, "KNOWLEDGE_CHANGED", "Search again before reading changed knowledge: " + target)
     return record
 
 
-def search(repo: Repository, s: dict, query: str, initiative_id: str | None = None) -> dict:
-    terms = query.lower().split()
-    hits, diagnostics = [], []
-    for p, rec in effective(repo, s, initiative_id).items():
-        if rec.get("stale"):
-            diagnostics.append({"target": p, "code": "STALE_WORKING_KNOWLEDGE"})
-            continue
-        if rec["layer"] == "retired":
-            continue
-        score = sum((p.lower() + " " + rec["content"].lower()).count(t) for t in terms)
-        if score or not terms:
-            hits.append({"target": p, "layer": rec["layer"], "source_commit": rec["source_commit"],
-                         "source_path": rec["source_path"], "content_hash": rec["content_hash"], "score": score})
-    return {"scope": initiative_id or "canonical", "results": sorted(hits, key=lambda r: (-r["score"], r["target"])), "diagnostics": diagnostics}
+def retrieval_snapshot(repo: Repository, s: dict, initiative_id: str | None = None) -> retrieval.Snapshot:
+    """Resolve authority before indexing, including freshness checks on every request."""
+    if initiative_id is None:
+        canonical_commit = repo.resolve(s["policy"]["canonical_ref"])
+        # Resolve a mutable ref once; all reads and identity describe the same snapshot.
+        frozen = {**s, "policy": {**s["policy"], "canonical_ref": canonical_commit}}
+    else:
+        require(s.get("spec") is not None and initiative_id == s["spec"]["id"],
+                "INITIATIVE_SCOPE", "Explicit initiative id does not match controller")
+        canonical_commit, frozen = s["baseline"], s
+    records, diagnostics = {}, []
+    for target, record in effective(repo, frozen, initiative_id).items():
+        if record.get("stale"):
+            diagnostics.append({"target": target, "code": "STALE_WORKING_KNOWLEDGE"})
+        elif record["layer"] != "retired":
+            records[target] = record
+    identity = {"repository": str(repo.root), "kind": "initiative" if initiative_id else "canonical",
+                "scope": initiative_id or "canonical", "initiative_id": initiative_id,
+                "canonical_ref": s["policy"]["canonical_ref"], "canonical_commit": canonical_commit}
+    if initiative_id is not None:
+        identity.update(knowledge_head=s["knowledge_head"], knowledge_revision=s["knowledge_revision"],
+                        knowledge_manifest_digest=digest(s["knowledge"]))
+    return retrieval.Snapshot(records, identity, diagnostics)
+
+
+def search(repo: Repository, s: dict, query: str, initiative_id: str | None = None, *,
+           limit: int = 8, cache_root: Path | None = None) -> dict:
+    # Reject excessive input before reading the authority corpus.
+    retrieval.query_terms(query)
+    require(isinstance(limit, int) and not isinstance(limit, bool) and 1 <= limit <= retrieval.MAX_RESULTS,
+            "INVALID_LIMIT", "limit must be between 1 and 100")
+    return retrieval.search(retrieval_snapshot(repo, s, initiative_id), query, limit, cache_root)
+
+
+def index(repo: Repository, s: dict, initiative_id: str | None = None, *,
+          cache_root: Path | None = None, force: bool = False) -> dict:
+    return retrieval.index(retrieval_snapshot(repo, s, initiative_id), cache_root, force)
 
 
 def owners(repo: Repository, s: dict, artifact: str, initiative_id: str | None = None) -> dict:

@@ -1,6 +1,6 @@
 ---
 name: orchi
-description: "Coordinate a user request through iterative epics, designed task packets, parallel workers, scoped working knowledge, and final publication. Use for Orchi planning, execution, continuation, or delivery. Route through controller state instead of guessing a stage."
+description: "Coordinate a user request through iterative epics, designed task packets, parallel workers, scoped working knowledge, and final publication. Use for Orchi planning, execution, continuation, delivery, or project documentation search. Route through controller state instead of guessing a stage."
 compatibility: "Requires Git and POSIX; use uv or Python with bundled dependencies. Install all five Orchi skills together."
 ---
 
@@ -10,7 +10,8 @@ If this session is an assigned packet worker (prepare/execute phase), do not run
 Follow TASK.md in the assigned checkout and return the phase result; controller commands belong to its operator.
 The remaining procedure applies to a coordinator handling the user request.
 
-Use one Initiative for the full user request; use Epics as internal milestones, not releases.
+For a documentation-only question, follow [retrieval](references/retrieval.md); do not start an initiative.
+For implementation work, use one Initiative for the full user request; Epics are internal milestones, not releases.
 Run `uv run <skills>/orchi/scripts/orchi.py --control "$ORCHI_CONTROL" next` first.
 `<skills>` is the installed directory containing this skill and its four sibling skills.
 If no control directory exists, read [setup](references/setup.md); do not fabricate policy or approvals.
