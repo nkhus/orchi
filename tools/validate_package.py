@@ -85,8 +85,24 @@ def validate() -> dict:
                 errors.append('Dependency metadata drift: ' + entrypoint)
         except ValueError as exc: errors.append(str(exc))
     config = tomllib.loads((ROOT / 'pyproject.toml').read_text())
-    if 'project' in config or 'build-system' in config or (ROOT / 'package.json').exists():
-        errors.append('The distribution must not require a separately published application package')
+    if 'project' in config or 'build-system' in config:
+        errors.append('The installed runtime must not require a Python application package')
+    try:
+        package = json.loads((ROOT / 'package.json').read_text())
+        if package.get('name') != '@nkhus/orchi' or package.get('bin') != {'orchi': 'bin/orchi.js'}:
+            errors.append('Invalid npm installer identity or executable')
+        expected_files = ['bin/orchi.js', 'tools/install.py', 'skills/*/SKILL.md',
+                          'skills/*/agents/openai.yaml', 'skills/orchi/assets',
+                          'skills/orchi/references', 'skills/orchi/scripts/**/*.py',
+                          'skills/orchi/scripts/requirements.txt', 'README.md']
+        if package.get('files') != expected_files:
+            errors.append('The npm publish allowlist must contain only installer resources')
+        if package.get('dependencies') or package.get('devDependencies'):
+            errors.append('The npm installer must remain dependency-free')
+        if {'preinstall', 'install', 'postinstall'} & package.get('scripts', {}).keys():
+            errors.append('The npm installer must not use lifecycle installation scripts')
+    except (OSError, ValueError, TypeError) as exc:
+        errors.append('package.json: ' + str(exc))
     for unwanted in ('CHANGELOG.md', 'docs/migration.md', 'docs/target-design.md', 'CHECKSUMS.json'):
         if (ROOT / unwanted).exists(): errors.append('Unexpected source artifact: ' + unwanted)
     return {'ok': not errors, 'errors': errors, 'python_files_compiled': compiled,

@@ -14,17 +14,25 @@ relations:
 
 ## Complete skill bundle
 
-Install all five sibling directories: `orchi`, `orchi-plan`, `orchi-work`, `orchi-review`, `orchi-deliver`. `orchi` contains the shared runtime, operator tooling, references and assets. No separately published Python/npm application is required. The receiving project's language and package manager do not determine the Orchi runtime.
+Install all five sibling directories: `orchi`, `orchi-plan`, `orchi-work`, `orchi-review`, `orchi-deliver`. `orchi` contains the shared runtime, operator tooling, references and assets. The npm package is an installation wrapper, not the Orchi runtime. The receiving project's language and package manager do not determine the Orchi runtime.
 
-For this source package, extract it and use the bundled local installer:
+Install the bundle with the dependency-free npm wrapper:
 
 ```bash
-python /absolute/path/to/orchi/tools/install.py --project /absolute/path/to/project
+npx --yes github:nkhus/orchi --project /absolute/path/to/project
 python -m pip install -r /absolute/path/to/project/.agents/skills/orchi/scripts/requirements.txt
 python /absolute/path/to/project/.agents/skills/orchi/scripts/orchi.py doctor --repo /absolute/path/to/project
 ```
 
-Provision Python dependencies in a dedicated environment or approved wheelhouse, not by changing application dependencies. The copy installer is offline, preserves existing project instructions/configuration/unrelated skills, refuses symlink installation paths and refuses silent overwrite of modified Orchi skills. `--dry-run` previews; `--replace` explicitly backs up and replaces an existing installation. Review the resulting diff before committing installed skills.
+Omit `--project` to install into the current directory. `--dry-run` previews the operation. `--replace-orchi` explicitly backs up and replaces differing Orchi skill directories. The npm package has no dependencies or lifecycle installation scripts; it invokes the bundled Python copy installer and does not modify the consuming project's package metadata.
+
+For a source checkout or an offline archive, invoke the same installer directly:
+
+```bash
+python /absolute/path/to/orchi/tools/install.py --project /absolute/path/to/project
+```
+
+Provision Python dependencies in a dedicated environment or approved wheelhouse, not by changing application dependencies. The copy installer preserves existing project instructions, configuration and unrelated skills, refuses symlink installation paths, and refuses silent overwrite of modified Orchi skills. Review the resulting diff before committing installed skills.
 
 The Skills CLI can also discover the source directory:
 
@@ -43,7 +51,7 @@ uv run .agents/skills/orchi/scripts/orchi.py doctor --repo .
 uv run .agents/skills/orchi/scripts/operator.py --help
 ```
 
-The scripts require Python 3.11+, Git, POSIX process support and the pinned dependencies in `scripts/requirements.txt`. FTS5 is required for search; optional trigram support adds substring/fuzzy retrieval. Node/npm is needed only for the optional Skills CLI install command, not controller execution. A live Codex adapter additionally needs the actual CLI, authentication and an operator-validated isolation policy.
+The scripts require Python 3.11+, Git, POSIX process support and the pinned dependencies in `scripts/requirements.txt`. FTS5 is required for search; optional trigram support adds substring/fuzzy retrieval. Node/npm is needed only for npm or Skills CLI installation, not controller execution. A live Codex adapter additionally needs the actual CLI, authentication and an operator-validated isolation policy.
 
 A managed Python environment with the bundled requirements can run `python <installed-script>` directly. Orchi does not install target-project build/test dependencies, initialize services or certify authentication. `doctor --require-codex` checks executable availability, not a live model call.
 
