@@ -8,11 +8,10 @@ Install all five sibling skills into the target project with `npx`:
 
 ```bash
 npx --yes github:nkhus/orchi --project /absolute/path/to/project
-python -m pip install -r /absolute/path/to/project/.agents/skills/orchi/scripts/requirements.txt
-python /absolute/path/to/project/.agents/skills/orchi/scripts/orchi.py doctor --repo /absolute/path/to/project
+uv run /absolute/path/to/project/.agents/skills/orchi/scripts/orchi.py doctor --repo /absolute/path/to/project
 ```
 
-Run the installer without `--project` to target the current directory. Use a dedicated Python environment. Both main entrypoints also support provisioned `uv run` environments. Node 18+ is needed only for the installer; Python 3.11+, POSIX, Git with SHA-1 objects and SQLite FTS5 are required by Orchi. Installation preserves unrelated skills and project instructions. See [installation](docs/installation.md) and the bundled [operator guide](skills/orchi/references/operator-guide.md) for keys, checks and real worker isolation. The npm package is only an installation wrapper; the installed runtime does not depend on Node or a separately published Python application.
+Run the installer without `--project` to target the current directory. The wrapper uses `uv run --no-project` so installation does not inherit the consuming project's Python package metadata. The installed entrypoints use their inline `uv` dependency metadata. Node 18+, `uv`, Python 3.11+, POSIX, Git with SHA-1 objects and SQLite FTS5 are required. Installation preserves unrelated skills and project instructions. See [installation](docs/installation.md) and the bundled [operator guide](skills/orchi/references/operator-guide.md) for keys, checks and real worker isolation. The npm package is only an installation wrapper; the installed runtime does not depend on Node or a separately published Python application.
 
 ## One development cycle
 

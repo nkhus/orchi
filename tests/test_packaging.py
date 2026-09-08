@@ -41,7 +41,7 @@ def test_npm_package_is_a_dependency_free_installer():
     assert not any(name in package.get('scripts', {}) for name in ('install', 'preinstall', 'postinstall'))
 
 
-def test_node_installer_uses_current_directory_and_preserves_python_contract(tmp_path):
+def test_node_installer_uses_uv_and_current_directory(tmp_path):
     result = subprocess.run(['node', str(ROOT / 'bin/orchi.js'), '--dry-run'], cwd=tmp_path,
                             capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stdout + result.stderr

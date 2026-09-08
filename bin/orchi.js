@@ -12,17 +12,17 @@ const argumentsForInstaller = hasProject
   ? supplied
   : ["--project", process.cwd(), ...supplied];
 
-for (const python of ["python3", "python"]) {
-  const result = spawnSync(python, [installer, ...argumentsForInstaller], {
-    stdio: "inherit",
-  });
-  if (result.error?.code === "ENOENT") continue;
-  if (result.error) {
-    process.stderr.write(`Unable to run ${python}: ${result.error.message}\n`);
-    process.exit(1);
-  }
-  process.exit(result.status ?? 1);
+const result = spawnSync(
+  "uv",
+  ["run", "--no-project", "--python", ">=3.11", installer, ...argumentsForInstaller],
+  { stdio: "inherit" },
+);
+if (result.error?.code === "ENOENT") {
+  process.stderr.write("Orchi installation requires uv on PATH.\n");
+  process.exit(1);
 }
-
-process.stderr.write("Orchi requires Python 3.11 or newer (python3 or python on PATH).\n");
-process.exit(1);
+if (result.error) {
+  process.stderr.write(`Unable to run uv: ${result.error.message}\n`);
+  process.exit(1);
+}
+process.exit(result.status ?? 1);
