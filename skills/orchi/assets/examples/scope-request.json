@@ -1,0 +1,10 @@
+{
+  "edit": {
+    "path": "src/helper.py",
+    "action": "create",
+    "how": "Add a local helper without changing public behavior"
+  },
+  "choice": "Local helper structure",
+  "reason": "The accepted implementation needs a local helper; fixed interfaces stay unchanged",
+  "change_kind": "local"
+}

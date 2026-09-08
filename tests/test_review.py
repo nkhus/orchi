@@ -5,7 +5,7 @@ from orchi_core.common import OrchiError
 
 
 def ready(w):
-    w.begin(); w.approve(w.e.plan(w.plan1()))
+    w.begin(); w.approve(w.propose_plan(w.plan1()))
     w.perform('left',{'src/left.py':'VALUE = 1\n'}); w.perform('right',{'src/right.py':'VALUE = 2\n'})
 
 

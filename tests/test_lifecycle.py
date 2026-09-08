@@ -23,7 +23,7 @@ def test_two_epics_then_one_canonical_publication(world):
     assert w.e.state()["phase"] == "FINALIZING"
     assert w.e.repo.resolve("main") == w.baseline
     assert w.e.repo.read(w.e.state()["head"], "docs/architecture.md") == original
-    draft = w.e.final_draft()
+    draft = w.final()
     draft["report"] = "Reconciled the cumulative actual implementation and end-to-end acceptance"
     result = w.e.finalize(draft)
     assert result["status"] == "final_review_required"
@@ -45,29 +45,29 @@ def test_future_epic_cannot_be_materialized(world):
     world.begin()
     plan = world.plan1(); plan["epic_id"] = "api"
     with pytest.raises(OrchiError, match="next selected epic"):
-        world.e.plan(plan)
+        world.propose_plan(plan)
 
 
 def test_second_epic_must_use_actual_checkpoint_not_initial_baseline(world):
     world.finish_first()
     plan = world.plan1(); plan["epic_id"] = "api"; plan["based_on"] = world.baseline
     with pytest.raises(OrchiError) as e:
-        world.e.plan(plan)
+        world.propose_plan(plan)
     assert e.value.code == "STALE_PLAN"
 
 
 def test_checkpoint_is_mandatory_before_next_epic(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     world.perform("left", {"src/left.py": "VALUE = 1\n"})
     world.perform("right", {"src/right.py": "VALUE = 2\n"})
     world.pass_review()
     assert world.e.next()["action"] == "checkpoint_epic"
     with pytest.raises(OrchiError):
-        world.e.plan(world.plan1())
+        world.propose_plan(world.plan1())
 
 
 def test_core_writes_rejected_in_worker_candidate(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     t = world.e.claim("left"); world.activate(t)
     (Path(t["workspace"]) / "src/left.py").write_text("VALUE=1\n")
     (Path(t["workspace"]) / "docs/architecture.md").write_text("Future falsely current")
@@ -77,7 +77,7 @@ def test_core_writes_rejected_in_worker_candidate(world):
 
 
 def test_checkpoint_requires_actual_impact_dispositions(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     world.perform("left", {"src/left.py": "VALUE = 1\n"}); world.perform("right", {"src/right.py": "VALUE = 2\n"})
     world.pass_review()
     cp = world.checkpoint1(); cp["dispositions"].pop()
@@ -87,7 +87,7 @@ def test_checkpoint_requires_actual_impact_dispositions(world):
 
 
 def test_known_core_ownership_cannot_be_hidden_as_nonsemantic(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     world.perform("left", {"src/left.py": "VALUE = 1\n"}); world.perform("right", {"src/right.py": "VALUE = 2\n"})
     world.pass_review()
     cp = world.checkpoint1(); cp["dispositions"][0]["targets"] = []
@@ -99,13 +99,13 @@ def test_known_core_ownership_cannot_be_hidden_as_nonsemantic(world):
 def test_no_finalization_before_all_epics(world):
     world.finish_first()
     with pytest.raises(OrchiError):
-        world.e.final_draft()
+        world.final()
 
 
 def test_canonical_movement_blocks_publication(world):
     world.finish_first(); world.finish_second()
     git(world.repo, "commit", "--allow-empty", "-m", "unrelated canonical update")
-    draft = world.e.final_draft(); draft["report"] = "Reviewed cumulative result"
+    draft = world.final(); draft["report"] = "Reviewed cumulative result"
     with pytest.raises(OrchiError) as e:
         world.e.finalize(draft)
     assert e.value.code == "CANONICAL_MOVED"

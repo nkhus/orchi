@@ -1,37 +1,41 @@
 {
-  "acceptance": {
-    "ac-user": "API produces the intended result"
+  "format": "orchi-initiative",
+  "id": "feature",
+  "outcome": "Expose the verified combined value through a plain Python API",
+  "intent": {
+    "revision": 1,
+    "digest": "51f476557e67bf4dbab80197b05085e2fd8d348e6ddd534a236641f6c6474df3"
   },
-  "constraints": [
-    "Keep public compatibility"
-  ],
-  "direction": "Separate persisted values from the API",
   "epics": [
     {
-      "contributes_to": [
-        "ac-user"
-      ],
-      "depends_on": [],
       "id": "values",
-      "outcome": "Set internal values",
+      "title": "Values",
+      "outcome": "Provide independent verified internal values",
+      "depends_on": [],
+      "contributes_to": [
+        "req-user"
+      ],
       "risks": [],
-      "title": "Values"
+      "realizes": [
+        "intent/architecture/README.md"
+      ]
     },
     {
-      "contributes_to": [
-        "ac-user"
-      ],
+      "id": "api",
+      "title": "API",
+      "outcome": "Expose the verified combined result",
       "depends_on": [
         "values"
       ],
-      "id": "api",
-      "outcome": "Expose verified values",
-      "risks": [],
-      "title": "API"
+      "contributes_to": [
+        "req-user"
+      ],
+      "risks": [
+        "Verify the actual accepted values before choosing API implementation"
+      ],
+      "realizes": [
+        "intent/architecture/README.md"
+      ]
     }
-  ],
-  "format": "orchi-initiative",
-  "id": "feature",
-  "outcome": "Feature works with API",
-  "request": "Deliver a working feature"
+  ]
 }

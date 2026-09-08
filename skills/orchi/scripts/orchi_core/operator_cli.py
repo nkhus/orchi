@@ -20,9 +20,35 @@ def main(argv: list[str] | None = None) -> int:
     approval.add_argument("--decision", choices=["approve", "reject"], required=True)
     approval.add_argument("--operator", required=True)
     approval.add_argument("--out", required=True, type=Path)
+    inspect = sub.add_parser("inspect", help="Inspect a pending exact gate without signing")
+    inspect.add_argument("--control", required=True); inspect.add_argument("--format", choices=["text", "json"], default="text")
+    decide = sub.add_parser("decide", help="Sign and apply the exact request ID the human reviewed")
+    decide.add_argument("--control", required=True); decide.add_argument("--request-id", required=True)
+    decide.add_argument("--private", required=True, type=Path); decide.add_argument("--operator", required=True)
+    decide.add_argument("--decision", choices=["approve", "reject"], required=True)
+    publish = sub.add_parser("publish", help="Publish an approved candidate using an atomic Git ref update")
+    publish.add_argument("--control", required=True)
     args = parser.parse_args(argv)
     try:
-        if args.command == "keygen":
+        if args.command in {"inspect", "decide", "publish"}:
+            from .engine import Engine
+            from . import views
+            engine = Engine(args.control)
+            if args.command == "inspect":
+                result = views.gate(engine)
+                if args.format == "text":
+                    print(views.render_gate(result))
+                    return 0
+            elif args.command == "decide":
+                request = (engine.state().get("pending") or {}).get("request")
+                require(request is not None and request["id"] == args.request_id, "STALE_APPROVAL", "Inspect the current request; do not sign a different latest gate")
+                require(not args.private.resolve().is_relative_to(engine.repo.root) and not args.private.resolve().is_relative_to(engine.workspaces),
+                        "KEY_BOUNDARY", "The private key must not be in a project or worker worktree")
+                result = engine.approve(sign(request, args.private, args.decision, args.operator))
+            else:
+                from .publication import publish_local
+                result = publish_local(engine)
+        elif args.command == "keygen":
             require(args.private.resolve() != args.public.resolve(), "INVALID_KEY_PATH", "Private and public paths must differ")
             for path in (args.private, args.public):
                 require(not path.exists() and not path.is_symlink(), "KEY_EXISTS", "Refusing to overwrite " + str(path))

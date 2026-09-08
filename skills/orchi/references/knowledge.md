@@ -1,27 +1,23 @@
 # Knowledge authority
 
-Canonical Core is docs/ at the canonical branch. It stays unchanged for the full initiative.
-Verified Working Knowledge is a sparse, initiative-scoped overlay at the last closed epic checkpoint.
-Proposal is the approved design of the active epic and its tasks; it is not current knowledge.
-Code is read from the actual task start/accepted dependency commits, not from a fictional target architecture.
+| Role | Meaning |
+| --- | --- |
+| Core | Published current system under docs/ |
+| Intent | Exact accepted requirements, target architecture and target decisions |
+| Epic Design | Exact detailed design of the selected epic |
+| Working Knowledge | Last verified checkpoint's sparse Current overlay |
+| Evidence | Checks, review, observations, proposals and acceptance; never automatically Current |
 
-Default search/get/owners use only canonical Core. Pass `--initiative <id>` explicitly to use the overlay.
-Use [retrieval](retrieval.md) for heading-level discovery and exact readback. The disposable index neither
-changes authority nor supplies packet content; read diagnostics and resolve sources in the same scope.
-`knowledge` task references are logical docs paths. A verified replacement masks the older Core record;
-a retirement suppresses it; a stale record fails rather than falling back to the superseded text.
-Unchanged documents inherit from the original canonical baseline. Unrelated initiative material never joins.
+Current(initiative) = accepted integration-base Core + verified Working overlay. Original baseline remains provenance; it does not have to equal the accepted integration base after a checked sync. Target = exact accepted Intent. All preserves both roles. Canonical defaults to Current; greenfield may start with empty Current.
 
-After an epic passes integrated checks and review, reconcile actual changed paths into Working Knowledge.
-Changes to already mapped artifacts require update/revalidate/retire. A report cannot omit known impact.
-Working claims carry source commit, artifact hashes and passed verification IDs. Their semantic correctness
-is still a reviewer/reconciler responsibility; schema validity is not a proof that prose matches behavior.
+Replacement/retirement masks the logical Core target first. Stale Working never falls back to obsolete Core. `knowledge_head` remains the last checked checkpoint while `head` advances through tasks. Explicit code sources use task dispatch snapshots; partial implementation is not a reason to publish premature Core.
 
-During the next active epic, the working layer still describes the last checkpoint. Apply the approved
-epic delta and actual dependency outputs explicitly. Do not promote partial task notes into verified knowledge.
-Workers return findings/deviations in results; the coordinator can preserve them in the signed amendment
-or audit artifacts. Avoid a second mutable informal wiki.
+Search discovers; exact reads bind role, source commit/path/hash. On-demand task sources remain bound even when fetched later. Target requirements are not proof the behavior exists. Workers can return observations and proposed documentation; those stay Evidence until reconciled at a verified checkpoint/final boundary.
 
-A discrepancy is not permission to rewrite a requirement to match buggy code. Determine whether it is
-stale descriptive prose, a code defect, or a changed requirement; require a human amendment for the latter.
-After the full initiative, reconcile cumulative verified semantics into Core, then verify exact code + docs.
+Original `intent/source.md` is immutable provenance and excluded from Target search. Accepted revisions retain source and completed history; only the current accepted Intent is Target. A past epic may refer to a reorganized historical Target node without making it effective again. Future roadmap references must resolve to the currently accepted Target.
+
+At sync, reconcile both upstream code and affected Core/Working. A Working replacement cannot hide a new upstream edit through an automatic overlay or revalidation shortcut. Prospective code/knowledge is not Current before checks/review/signature. A required Target revision blocks later design/finalization.
+
+At finalization, dispose every requirement/architecture/Working node and author Core from actual implementation. Archive Target/Working/evidence outside Core. Exact final attestation is exported as sidecars; preserve the export for full replay. `views --out /new/external/path` creates a read-only IDE projection, not editable authority.
+
+Use [ontology](ontology.md), [retrieval](retrieval.md), [bootstrap](bootstrap.md) and [synchronization](synchronization.md). Ontology cannot assign authority roles or invent another document lifecycle.

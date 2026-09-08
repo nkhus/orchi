@@ -1,0 +1,80 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": "orchi-intent",
+      "default": "orchi-intent",
+      "title": "Format",
+      "type": "string"
+    },
+    "initiative_id": {
+      "maxLength": 80,
+      "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+      "title": "Initiative Id",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "documents": {
+      "additionalProperties": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "minProperties": 3,
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Documents",
+      "type": "object"
+    },
+    "requirements": {
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z0-9]+(?:[-.][a-z0-9]+)*$": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "propertyNames": {
+        "maxLength": 80
+      },
+      "title": "Requirements",
+      "type": "object"
+    },
+    "architecture": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Architecture",
+      "type": "array"
+    },
+    "resolved_requirements": {
+      "default": {},
+      "patternProperties": {
+        "^[a-z0-9]+(?:[-.][a-z0-9]+)*$": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "propertyNames": {
+        "maxLength": 80
+      },
+      "title": "Resolved Requirements",
+      "type": "object"
+    }
+  },
+  "required": [
+    "initiative_id",
+    "revision",
+    "documents",
+    "requirements",
+    "architecture"
+  ],
+  "title": "IntentManifest",
+  "type": "object"
+}

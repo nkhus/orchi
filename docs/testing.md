@@ -1,65 +1,42 @@
-# Testing
+---
+kind: guide
+area: orchi
+artifacts:
+  - tests/**
+  - tools/validate_package.py
+  - tools/demo.py
+  - tools/smoke_install.py
+relations:
+  part_of: [docs/README.md]
+---
+# Testing and validation
 
-## Deterministic validation
-
-Run from the Orchi repository, not from a production initiative:
+Run the source validator, full deterministic suite, synthetic lifecycle demo and installed-runtime smoke in an environment with `requirements-dev.txt`. Exact commands, platform, counts and limitations belong in the delivery report; do not copy pass counts from an input archive.
 
 ```bash
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -r requirements-dev.txt
 python tools/validate_package.py
-python -m pytest -q
-python tools/demo.py --out /tmp/orchi-demo
+python -m pytest -q --junitxml=/private/reports/pytest.xml
+python tools/demo_development.py --out /new/disposable/moving-main-demo
+python tools/demo.py --out /new/disposable/demo
+python tools/smoke_install.py --installer local --runner python --out /new/disposable/install
 ```
 
-The output directory for the demo must not exist. The demo creates a disposable Git repository, synthetic process workers, and a test-only signing key. It exercises two epics, intermediate Working Knowledge, final Core reconciliation, and a single canonical publication. Its generated packet, audit export, and report are local evidence, not source files to commit.
+## Deterministic coverage
 
-## Coverage
+The suite covers strict contracts/signatures, progressive planning, exact Current/Target snapshots, greenfield, ontology/graph/retrieval, review/repair, final traceability, scope protection, budgets, worktrees and process termination. It additionally exercises compact combined approval, on-demand reads, fixed versus snapshot assumptions, delegated additions, handoff/import, investigation evidence, knowledge-only publication, targeted amendment and read-only materialized views.
 
-Contract tests cover exact paths, protected writes, explicit task designs, future-epic boundaries, acceptance coverage, safe context parsing, and generated schemas. State-machine tests cover approvals, signature replay, readiness, knowledge scoping, mandatory checkpoints, retained budgets, finalization, and canonical drift.
+Concurrency tests force simultaneous candidates through barriers, observe actual isolated and combined verification, and require a losing combination to recompose without a new worker attempt. A command-adapter fixture exercises ticket-bound read/scope requests without a control-store environment. Resource tests cover contention, timeout and release. These establish protocol behavior, not hostile-container security.
 
-Execution tests use real Git worktrees, SQLite, signatures, and subprocesses. They cover parallel claims and workers, read assumptions, resource serialization, actual combined-tree verification, process timeout/output limits, recovery, transactional rollback, and content-addressed artifacts. Review tests cover clean passes, causal scope, retained blockers, bounded repair, and incomplete reviews.
+Synchronization tests cover code conflicts, Core/Working collisions, newly inherited Core that documents local changes, unchanged authority on failure, upstream movement during approval, rewritten history, required target revisions, final invalidation and two independent initiatives publishing in sequence. Publication tests cover exact, equivalent-tree squash, two-parent merge, later canonical advances, wrong trees and checked-out branch refusal.
 
-Retrieval tests cover heading and line extraction, relevance, prefix/substring/fuzzy matching, Unicode,
-bounded queries and excerpts, scope masking, retirements, stale artifacts, canonical drift, checkpoint
-invalidation, readback hashes, concurrent atomic cache construction, corruption recovery, capability
-fallbacks, standalone CLI use, and unchanged workflow authority. Installed-skill tests execute search from
-the copied bundle; accepted-checkpoint tests use real Git and controller transitions.
+Existing recovery assertions use per-ticket validation state for task checks and aggregate operation state for checkpoint/final/sync checks. Both require explicit stop/recovery and preserve candidate evidence. A test must not restore a coarse global task lock just to match an obsolete implementation expectation.
 
-Packaging tests cover a fresh installation, user-file preservation, idempotency, explicit replacement backup, symlink refusal, bundled entrypoints, schema parity, and complete skill resources. Diagnostics distinguish local prerequisite checks from live authentication or model validation.
+## Schemas and packaging
 
-`tools/validate_package.py` checks Python syntax, metadata, local Markdown links, bundled resources, JSON, schema drift, English-only repository text, and absence of product release metadata. It is an offline source validation tool, not a model evaluation.
+Regenerate with `python skills/orchi/scripts/orchi.py schemas --out schemas`. Schema files must equal the Pydantic contracts. The source validator checks five installed siblings, concise skill entrypoints, English source, valid local links, syntax and dependency metadata. All installed references/tools must work without a separate source checkout. Installation into an unrelated project tests runtime independence from application package metadata.
 
-## Installed-skill smoke test
+## Live-agent boundary
 
-Validate installation into a disposable project rather than only running from this repository:
+`evals/scenarios.json` defines behavioral scenarios, not pytest passes. Assess routing, unnecessary intervention, semantic task design, context provenance, scopes, review quality and final accepted outcomes with actual traces. Model authentication, actual Codex IPC/sandbox permissions, hosted queues and cross-machine behavior require their real environment. Synthetic keys/review reports are strictly test fixtures.
 
-```bash
-ORCHI_SOURCE="$PWD"
-TARGET="$(mktemp -d)"
-git -C "$TARGET" init -b main
-(
-  cd "$TARGET"
-  npx skills add "$ORCHI_SOURCE" --skill '*' --agent codex --yes
-  uv run .agents/skills/orchi/scripts/orchi.py doctor --repo .
-  uv run .agents/skills/orchi/scripts/operator.py --help
-  uv run .agents/skills/orchi/scripts/orchi.py schemas --out "$TARGET/generated-schemas"
-)
-```
-
-The same checks, including preservation of existing user files and isolation from an incompatible application manifest, are automated by `python tools/smoke_install.py --out /tmp/orchi-installation`. Its `--installer local --runner python` mode checks a pre-provisioned offline environment. Both modes require a new output directory.
-
-The first invocation may need network access to obtain the external CLI and Python packages. In a provisioned offline environment, use the bundled copying tool and managed Python environment instead. The installed runtime must work without importing from the source checkout or the target application's package configuration.
-
-## Continuous integration
-
-The included GitHub Actions workflow runs source validation and the deterministic suite. The installation job invokes the actual Skills CLI against a local checkout, then executes the bundled scripts in an isolated target project using `uv`. No production keys or live model credentials are used.
-
-## Live model evaluation
-
-`evals/scenarios.json` defines model-behavior scenarios separately from pytest. A scenario needs an appropriate controller state, repository, model/CLI configuration, and observed evidence; a prompt alone cannot validate state routing.
-
-Assess correct next action, forbidden writes, unsupported approvals, source-selection mistakes, unnecessary interventions, review-loop waste, and actual root acceptance. Semantic assessment is required for task design and knowledge prose. Record traces, tool calls, final state, outcomes, cost, and intervention rate in a private report as appropriate.
-
-Synthetic workers validate protocol execution, not coding intelligence. A green test suite does not establish correct live skill selection, design quality, sandbox isolation, authentication, or production readiness. Do not report the live scenarios as passed unless they have actually been executed and assessed.
+CI configuration is not evidence every Python/platform/network combination ran locally. Record executed offline checks separately from network installs and live models. Do not count unexecuted scenarios as passed or skipped deterministic tests.

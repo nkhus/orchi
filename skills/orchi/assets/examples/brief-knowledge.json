@@ -1,0 +1,22 @@
+{
+  "format": "orchi-brief",
+  "id": "knowledge",
+  "request": "Document the existing verified module without changing product code.",
+  "outcome": "A checked guide to the existing module",
+  "result_kind": "knowledge",
+  "requirements": {
+    "req-guide": "A readable guide describes the actual verified module without future-state claims."
+  },
+  "architecture": "This investigation does not add a system architecture. Existing components are inspected, not redesigned.",
+  "design": "Read the actual code, independently review the description and reconcile a verified knowledge checkpoint.",
+  "decisions": [
+    "Do not change product files"
+  ],
+  "invariants": [
+    "Current truth remains the previously verified snapshot"
+  ],
+  "checks": [
+    "baseline"
+  ],
+  "tasks": []
+}

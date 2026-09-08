@@ -1,21 +1,25 @@
-# Two different completion boundaries
+# Checked boundaries and atomic publication
 
-Epic completion: tasks integrated → checks → bounded review → checkpoint proposal → Working Knowledge update.
-No Core edits, canonical merge, deployment or initiative archive. Internal head is preserved for the next epic.
-Checkpoint dispositions cover every and only actual changed executable path. No-impact is an explicit claim,
-not an inference from a missing ownership mapping. Existing known mappings must all be addressed.
+## Epic checkpoint
 
-Initiative completion: all epics close → cumulative reconciliation → final candidate tests → final review →
-human approval → operator fast-forward publication → record actual canonical commit.
-`final-draft` produces inputs, not permission to publish: replace its marker report with actual reconciliation.
-Every working target needs a final disposition. The final candidate changes code + docs + initiative archive
-and has exactly the original canonical baseline as its sole parent; intermediate commits stay internal.
+Accepted tasks integrate, joint checks pass, independent review completes, then a checkpoint reconciles actual changes and known knowledge impact. No task success alone updates Current. Replace/retire/revalidate Working entries with artifact hashes and registered checks; dispose every changed product path and known affected mapping. Documentation-only work can have no product artifacts. Proposed/Target prose is not copied into Current as implemented fact.
 
-Reconciliation must describe the actual cumulative result, not copy successive designs into Core.
-Check cross-epic naming, retired concepts, artifact references, operational consequences and root acceptance.
-Checks are rerun on the exact final candidate. Any changed final tree needs renewed checks/review/approval.
-Final human approval binds the candidate and verification, not a movable branch name.
+## Moving canonical
 
-`publication` is an instruction, not a write. If canonical moved, stop; automatic rebasing is not supported.
-An operator may merge only the exact approved candidate with normal fast-forward semantics, then call
-`record-publication`. No deployment is implied. Back up/export the external audit store along with Git refs.
+At a closed boundary, `sync-status` reports actual upstream drift. Follow [synchronization](synchronization.md) to compose code and knowledge, run checks, review and obtain exact signed acceptance. The old Current stays effective until then. A ready final candidate/approval is invalidated by accepted sync and must be rebuilt, rechecked, reviewed and approved. Do not silently update a base pointer.
+
+## Final reconciliation
+
+After every epic closes, inspect coverage and final-draft. Replace markers with substantive requirement, architecture and Working dispositions. Satisfied requirements cite registered candidate checks; changed requirements need accepted Intent history. Unresolved policy exceptions stay explicit, never presented as satisfaction.
+
+Software architecture may be realized, intentionally deviated, unchanged or unresolved under policy. Unchanged still references existing artifacts/checks. Not-applicable is limited to accepted knowledge/investigation outcomes and also requires checks. Review must assess semantic truth; a graph edge or filled JSON field is not proof.
+
+Author Core from the actual result, including interfaces, operational behavior, deviations and valid links/indexes. Final Core cannot carry Target-only kinds or lifecycle authority metadata. `finalize` runs accumulated checks, final policy checks and every declared disposition check on the exact code/docs/archive candidate.
+
+## Publication
+
+Final review leads to human acceptance of that exact candidate. `publication` returns identity and local/PR handoff only. The operator policy selects exact commit (default), equivalent-tree one-parent squash or exact-tree two-parent merge. Every shape binds the accepted integration base; none permits extra code or incremental publication of this request.
+
+The local operator publish helper uses compare-and-swap and refuses target branches checked out anywhere. An existing hosting workflow may instead create the permitted commit, then `record-publication` verifies its tree/parents and canonical visibility. A later unrelated canonical commit does not prevent recording this valid publication in ancestry. A queue recomposition with a different base/tree needs new sync and acceptance.
+
+The active subtree is archived with accepted source, designs, observations, checkpoint/sync history and audit metadata. Final check/review/signature sidecars cannot be embedded into their own signed tree; retain `export`. Internal objects/full source packets may require that export for replay. Publication is not deployment, a remote PR creation claim or an atomic multi-repository release.

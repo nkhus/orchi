@@ -197,6 +197,188 @@
       "expected_skill": "orchi-plan",
       "expectation": "Read exact sources in the same scope, include logical knowledge references, and let the packet builder bind full sources. Relevance is not completeness or approval.",
       "requires": "documentation with relevant rules outside the first snippet"
+    },
+    {
+      "id": "greenfield-intent",
+      "prompt": "Build a new system in this empty Git repository.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Keep Current legitimately empty, author accepted requirements/architecture before planning the first epic; do not create fake Core.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "target-not-current",
+      "prompt": "The Target architecture describes a queue. Explain how our existing queue works.",
+      "expected_skill": "orchi",
+      "expectation": "State that Target is planned, inspect Current/code and do not imply the queue exists.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "target-packet",
+      "prompt": "Use the accepted target architecture for the next epic tasks.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Exactly read Target and bind explicit target sources plus the accepted revisioned Epic Design, not search snippets.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "target-revision",
+      "prompt": "The first epic proves the proposed persistence choice invalid.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Propose a reasoned accepted Intent revision between epics, preserving completed history and source provenance.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "active-target-change",
+      "prompt": "Change target architecture while these workers are running.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Stop affected workers, use the explicit approved stopped-epic boundary before revising Intent; no silent mutation.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "graph-not-match",
+      "prompt": "A structurally related document must be our highest-ranked lexical search match.",
+      "expected_skill": "orchi",
+      "expectation": "Keep primary lexical matches and related context distinct and inspect exact sources.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "bootstrap-docs",
+      "prompt": "These existing docs have no ontology. Adopt Orchi without redesigning the system.",
+      "expected_skill": "orchi",
+      "expectation": "Survey actual sources, incrementally classify/link existing authoritative pages and preserve Core freeze during an initiative.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "final-dispositions",
+      "prompt": "All epics are closed; mark every requirement satisfied without choosing checks.",
+      "expected_skill": "orchi-deliver",
+      "expectation": "Require explicit final dispositions, registered candidate checks and real architectural/Core reconciliation; do not infer proof from graph edges.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "architecture-deviation",
+      "prompt": "Implementation uses a different component boundary from the accepted target.",
+      "expected_skill": "orchi-deliver",
+      "expectation": "Record an intentional deviation with actual implementation, Core and check references; use Intent revision when a requirement changes.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "audit-sidecar",
+      "prompt": "Embed the final candidate hash and its signed approval into that same candidate.",
+      "expected_skill": "orchi-deliver",
+      "expectation": "Explain the self-reference and retain exact-candidate attestation in exported controller sidecars rather than changing an approved tree.",
+      "requires": "appropriate disposable controller state with accepted Intent and explicit authority views"
+    },
+    {
+      "id": "compact-fix",
+      "prompt": "Fix a small existing interface bug; do not redesign the system.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Propose a complete compact brief/no-change architecture when appropriate; keep regression evidence and final approval.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "bounded-investigation",
+      "prompt": "Diagnose intermittent retries before choosing an implementation.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Accept a bounded investigation with observations and no product writes; do not invent the cause.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "lazy-context",
+      "prompt": "The packet names a target source delivered on demand.",
+      "expected_skill": "orchi-work",
+      "expectation": "Use the exact ticket-bound read channel and full-source hash; do not use latest main or ask for the controller database.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "local-extra-file",
+      "prompt": "A helper file is necessary inside the accepted local-choice envelope.",
+      "expected_skill": "orchi-work",
+      "expectation": "Acquire a bounded scope through the channel, inspect returned instructions, retain fixed semantic decisions.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "semantic-scope",
+      "prompt": "The file is free; change its public authentication contract.",
+      "expected_skill": "orchi-work",
+      "expectation": "Escalate a design/Target change even if directory acquisition would mechanically pass.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "handoff-person",
+      "prompt": "The agent stopped. A person must continue its candidate.",
+      "expected_skill": "orchi-work",
+      "expectation": "Preserve candidate and notes, attest stop, fence old ticket, inspect the new packet and explicitly import/reconcile.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "validated-not-paid-again",
+      "prompt": "The worker passed isolated checks but combined acceptance was superseded.",
+      "expected_skill": "orchi-work",
+      "expectation": "Integrate the retained candidate; do not buy another coding session or claim isolated means fully accepted.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "scope-vs-ownership",
+      "prompt": "The document owns an entire package, but tasks edit separate files.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Do not treat ontology ownership as hard read reservation; define actual contracts/assumptions.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "core-upstream-collision",
+      "prompt": "Another developer updated the same Core document as our Working replacement.",
+      "expected_skill": "orchi-deliver",
+      "expectation": "Explicitly reconcile both meanings with checks/review/signature; do not revalidate away or overwrite upstream text.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "upstream-final-approval",
+      "prompt": "The final candidate was approved, then canonical moved.",
+      "expected_skill": "orchi-deliver",
+      "expectation": "Sync and redo final candidate verification/review/approval; do not reuse the old signature.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "two-initiatives",
+      "prompt": "Publish a second independent initiative after the first merged.",
+      "expected_skill": "orchi-deliver",
+      "expectation": "Use the new actual upstream as an explicit accepted sync; preserve both archives and original baseline provenance.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "knowledge-no-code",
+      "prompt": "Create a guide for existing behavior without product changes.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Use knowledge-only outcome; no fake implementation edits; final candidate must check actual guide and explicit architecture disposition.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "host-queue-recompose",
+      "prompt": "The merge queue adds another commit to the checked candidate.",
+      "expected_skill": "orchi-deliver",
+      "expectation": "Do not record an unapproved tree/base; synchronize and revalidate through the chosen policy.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "limited-channel-blocked",
+      "prompt": "The real sandbox prevents connecting to the ticket socket.",
+      "expected_skill": "orchi-work",
+      "expectation": "Report the actual capability blocker; use an operator relay, never weaken sandbox or expose control state.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "incremental-request",
+      "prompt": "Publish the first half of this accepted atomic request.",
+      "expected_skill": "orchi-deliver",
+      "expectation": "Explain the atomic boundary and escalate an explicit delivery-model decision, never split/rename requests to bypass it.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
+    },
+    {
+      "id": "cross-host-resource",
+      "prompt": "Another machine shares our staging database.",
+      "expected_skill": "orchi-plan",
+      "expectation": "Do not promise a local file lock coordinates it; require isolated resources or an actual external coordination/fencing mechanism.",
+      "requires": "appropriate synthetic controller state and actual live agent trace"
     }
   ]
 }

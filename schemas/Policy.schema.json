@@ -18,6 +18,16 @@
           "minimum": 1,
           "title": "Timeout Seconds",
           "type": "integer"
+        },
+        "resources": {
+          "default": [],
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "title": "Resources",
+          "type": "array"
         }
       },
       "required": [
@@ -71,6 +81,81 @@
       "minItems": 1,
       "title": "Final Checks",
       "type": "array"
+    },
+    "publication_mode": {
+      "default": "exact",
+      "enum": [
+        "exact",
+        "squash",
+        "merge"
+      ],
+      "title": "Publication Mode",
+      "type": "string"
+    },
+    "verification_strategy": {
+      "default": "cumulative",
+      "enum": [
+        "cumulative",
+        "scoped"
+      ],
+      "title": "Verification Strategy",
+      "type": "string"
+    },
+    "integration_checks": {
+      "default": [],
+      "items": {
+        "maxLength": 80,
+        "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+        "type": "string"
+      },
+      "title": "Integration Checks",
+      "type": "array"
+    },
+    "sync_checks": {
+      "default": [],
+      "items": {
+        "maxLength": 80,
+        "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+        "type": "string"
+      },
+      "title": "Sync Checks",
+      "type": "array"
+    },
+    "max_integration_retries": {
+      "default": 8,
+      "maximum": 64,
+      "minimum": 1,
+      "title": "Max Integration Retries",
+      "type": "integer"
+    },
+    "resource_directory": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Resource Directory"
+    },
+    "resource_wait_seconds": {
+      "default": 120,
+      "maximum": 3600,
+      "minimum": 1,
+      "title": "Resource Wait Seconds",
+      "type": "integer"
+    },
+    "allow_unresolved_requirements": {
+      "default": false,
+      "title": "Allow Unresolved Requirements",
+      "type": "boolean"
+    },
+    "allow_unrealized_architecture": {
+      "default": false,
+      "title": "Allow Unrealized Architecture",
+      "type": "boolean"
     },
     "max_workers": {
       "default": 4,

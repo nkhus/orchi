@@ -87,3 +87,8 @@ def write_json(file: str | Path, value: Any) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
     require(not p.is_symlink(), "UNSAFE_PATH", str(p))
     p.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def integration_base(state: dict) -> str:
+    """The original baseline never changes; this is the last accepted upstream snapshot."""
+    return state.get("integration_base") or state["baseline"]

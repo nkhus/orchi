@@ -31,6 +31,46 @@
       "title": "Edit",
       "type": "object"
     },
+    "ScopeRule": {
+      "additionalProperties": false,
+      "description": "An accepted directory envelope, not a wildcard permission to change semantics.",
+      "properties": {
+        "directory": {
+          "minLength": 1,
+          "title": "Directory",
+          "type": "string"
+        },
+        "actions": {
+          "items": {
+            "enum": [
+              "create",
+              "modify",
+              "delete"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Actions",
+          "type": "array"
+        },
+        "choices": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Choices",
+          "type": "array"
+        }
+      },
+      "required": [
+        "directory",
+        "actions",
+        "choices"
+      ],
+      "title": "ScopeRule",
+      "type": "object"
+    },
     "Source": {
       "additionalProperties": false,
       "properties": {
@@ -53,6 +93,22 @@
           "title": "Reason",
           "type": "string"
         },
+        "view": {
+          "anyOf": [
+            {
+              "enum": [
+                "current",
+                "target"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "View"
+        },
         "producer": {
           "anyOf": [
             {
@@ -70,6 +126,24 @@
         "contract": {
           "default": "",
           "title": "Contract",
+          "type": "string"
+        },
+        "delivery": {
+          "default": "inline",
+          "enum": [
+            "inline",
+            "on-demand"
+          ],
+          "title": "Delivery",
+          "type": "string"
+        },
+        "consistency": {
+          "default": "fixed",
+          "enum": [
+            "fixed",
+            "snapshot"
+          ],
+          "title": "Consistency",
           "type": "string"
         }
       },
@@ -128,6 +202,40 @@
       "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
       "title": "Id",
       "type": "string"
+    },
+    "kind": {
+      "default": "implementation",
+      "enum": [
+        "implementation",
+        "investigation"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "executor": {
+      "default": "agent",
+      "enum": [
+        "agent",
+        "human",
+        "pair"
+      ],
+      "title": "Executor",
+      "type": "string"
+    },
+    "write_scope": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ScopeRule"
+      },
+      "title": "Write Scope",
+      "type": "array"
+    },
+    "max_scope_additions": {
+      "default": 8,
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Max Scope Additions",
+      "type": "integer"
     },
     "goal": {
       "minLength": 1,
@@ -203,18 +311,18 @@
       "type": "array"
     },
     "edits": {
+      "default": [],
       "items": {
         "$ref": "#/$defs/Edit"
       },
-      "minItems": 1,
       "title": "Edits",
       "type": "array"
     },
     "context": {
+      "default": [],
       "items": {
         "$ref": "#/$defs/Source"
       },
-      "minItems": 1,
       "title": "Context",
       "type": "array"
     },
@@ -272,8 +380,6 @@
     "invariants",
     "allowed_choices",
     "failure_modes",
-    "edits",
-    "context",
     "verification",
     "escalation",
     "open_questions"

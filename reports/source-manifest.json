@@ -1,0 +1,541 @@
+{
+  "format": "orchi-source-manifest",
+  "algorithm": "sha256",
+  "root": "orchi",
+  "source_files": 132,
+  "excludes": [
+    "reports (delivery evidence)",
+    "Git metadata",
+    "generated caches and environments"
+  ],
+  "files": {
+    ".github/workflows/ci.yml": {
+      "sha256": "3ac6d9c21cba7ade198891ebbffc350aa4c18a3d9855f0e78c8880a21d520a5b",
+      "bytes": 2325
+    },
+    ".gitignore": {
+      "sha256": "e01d0d25f994a5960e717b34c4ca4fbdd61a76a21dcd6553de4d81413ddb3529",
+      "bytes": 175
+    },
+    "AGENTS.md": {
+      "sha256": "41b01c6c7aa577898240c790e6d3cebce775cbb6d5b461f4703aae2025e7b99e",
+      "bytes": 1184
+    },
+    "CONTRIBUTING.md": {
+      "sha256": "8e36e81b6f2b87b59d36f92ba15f88e51b432fd7a9776b8e5fd8897b7c621889",
+      "bytes": 2956
+    },
+    "README.md": {
+      "sha256": "6d9379c9bf2e5cdee794d7e976bd8516e819757f5ecc148b330f67b09142ad6a",
+      "bytes": 7307
+    },
+    "docs/README.md": {
+      "sha256": "d19f78b59b8a318a4976843b23fdf684d77caafb98276e304399d8743d331956",
+      "bytes": 1145
+    },
+    "docs/architecture.md": {
+      "sha256": "ca5bf6f8a4609bd50fb0dce8d65f852f5cd5a75b981815598906c45c6431fc39",
+      "bytes": 4626
+    },
+    "docs/concurrency.md": {
+      "sha256": "65fbed6c22559d61fdf0cc0b4a0df8432f6b6a673e02f1f026e4080d7897223b",
+      "bytes": 4379
+    },
+    "docs/development-flows.md": {
+      "sha256": "b3331a3557b42bafb3eac0d9f1258df6a9d32c6ded59a46488d0c61ca1be01c2",
+      "bytes": 4769
+    },
+    "docs/installation.md": {
+      "sha256": "28d9d9da13be975758bce8da616d0431cbc561ca7dcaabe682dcd5a819f82ea9",
+      "bytes": 4390
+    },
+    "docs/knowledge-model.md": {
+      "sha256": "0b53cf30d554d94acd217dd2d28f2ffd528b4109ba73b401475bb526291f715f",
+      "bytes": 3927
+    },
+    "docs/ontology-and-graph.md": {
+      "sha256": "91c5b496915189c4eac92a357f448c632dd78cec57f4694cd5d0fa0e3af4d1df",
+      "bytes": 5174
+    },
+    "docs/planning.md": {
+      "sha256": "a4eab98a663121c414a55f3386eafdc112758101e20874efbf0b1df9020694a8",
+      "bytes": 4455
+    },
+    "docs/retrieval.md": {
+      "sha256": "9f6595e7e33151571f2287edb82ac11bffd3ea0f38fc5ebfc4580dc56faa6dc1",
+      "bytes": 4787
+    },
+    "docs/security.md": {
+      "sha256": "86be233b0b1565cf98d6f51f736cf38aece6e5a2ecd52c54c8a11a0288cd8d3b",
+      "bytes": 4984
+    },
+    "docs/synchronization.md": {
+      "sha256": "4d605c870fcc8bbe73a2c97188ca8201e11f28623f7ffbfc9679074cd7038bbb",
+      "bytes": 4491
+    },
+    "docs/testing.md": {
+      "sha256": "d14c33cd504c71d2d6b5069f09a11d3dcb23e63a24565e6b4ebf0fd79852ed85",
+      "bytes": 3659
+    },
+    "docs/verification-and-finalization.md": {
+      "sha256": "93ef1e8ea7ad59680d05c8d2230ec5fd331ef8af5140788ae4a760afcb69880e",
+      "bytes": 4526
+    },
+    "docs/workflow.md": {
+      "sha256": "c4cc081b0a881f8a5b18421c4e31602cfcfb602bf6f3b0541e8fe111ed1e7e92",
+      "bytes": 4432
+    },
+    "evals/README.md": {
+      "sha256": "8be2c24f8c4ddc7b16e64b3d633c96117b08d3c0528f8d3fd8653d8039e40d61",
+      "bytes": 1666
+    },
+    "evals/scenarios.json": {
+      "sha256": "10b99750d56aa428d5f7657dc66b3a63bc82a426eb66d336692718331e2f2d04",
+      "bytes": 19344
+    },
+    "examples/README.md": {
+      "sha256": "7f02ef7ff89e491015335ae4f1b3606db85c0e36dd5a1709579c6e0ce4f82be9",
+      "bytes": 1501
+    },
+    "pyproject.toml": {
+      "sha256": "4d980db465f25edb06700d692b41c6abd17c0d95a8e7411a499d524dbc0383bc",
+      "bytes": 102
+    },
+    "requirements-dev.txt": {
+      "sha256": "b038de673523683d0d19acd2cd6a2553bb2da6e163772a6f7557d47b014887b5",
+      "bytes": 55
+    },
+    "schemas/ChangeBrief.schema.json": {
+      "sha256": "b65d5677059b4d3eb19957a54e704edabe85f98a590f0d7618686e8e392659f2",
+      "bytes": 7748
+    },
+    "schemas/Checkpoint.schema.json": {
+      "sha256": "174e3dcf4ba8bc90f5b28db7a3cbbc1256b729ca52e973d1cd578b67bb928497",
+      "bytes": 3000
+    },
+    "schemas/EpicPlan.schema.json": {
+      "sha256": "d72bb7a6210aa66315c91a99fa7d6ace03fa7fac570ae296d14b959a5c62b43c",
+      "bytes": 11620
+    },
+    "schemas/Finalization.schema.json": {
+      "sha256": "d636ab530edf867302b775b0b8f91f7c1fefff8fa205ebbffc2cbac6a6d43925",
+      "bytes": 5428
+    },
+    "schemas/Initiative.schema.json": {
+      "sha256": "41032593f33c1650d81133651e45eaaa20102172a4708ed1220e67b354ac8b9f",
+      "bytes": 3141
+    },
+    "schemas/IntentManifest.schema.json": {
+      "sha256": "71d61e1a17ddf03d2e6f2629b4b1377b1cac8dd7740f0558c151b89551a02e66",
+      "bytes": 1686
+    },
+    "schemas/Policy.schema.json": {
+      "sha256": "f30efac24da71b2075e7575d155d871c3f3e33d313e831b68da69ee7802d13b7",
+      "bytes": 5114
+    },
+    "schemas/Readiness.schema.json": {
+      "sha256": "0ceea81827365c66b72730c2584318724851e63c7799dd7a9ea6b30d7626d1a6",
+      "bytes": 1031
+    },
+    "schemas/ReviewReport.schema.json": {
+      "sha256": "293e5fc8df7eac6a1d086445bbd29e9465282a783ecbfc2b022cd8ca041d228e",
+      "bytes": 2282
+    },
+    "schemas/ScopeRequest.schema.json": {
+      "sha256": "16401235e8cbff5190a61d6d6eecfad7d1e78df95f4d1fcb9df548da87b47f67",
+      "bytes": 1214
+    },
+    "schemas/SyncProposal.schema.json": {
+      "sha256": "293d80f2615b0275da75d896e965544df8349d99b15378211832ddeba02dfbb1",
+      "bytes": 4191
+    },
+    "schemas/Task.schema.json": {
+      "sha256": "649c85827364a9809d44b6079f9b700cfe8e73a9a79952b8ad15eaf471616d06",
+      "bytes": 8113
+    },
+    "schemas/WorkerResult.schema.json": {
+      "sha256": "3a646c7d861be53fd564ff7add71522a889fff90c6ba69d4518a27bd773f6067",
+      "bytes": 1720
+    },
+    "skills/orchi/SKILL.md": {
+      "sha256": "2c5cdefc8d60ef51870cf7885e83cd8dd0a438f0a36e33fd29383370f64f703d",
+      "bytes": 2293
+    },
+    "skills/orchi/agents/openai.yaml": {
+      "sha256": "4b159f57679000f598a8e468bc1821c57d169743337ffdd2a35ad9683e77cc26",
+      "bytes": 232
+    },
+    "skills/orchi/assets/codex-adapter.json": {
+      "sha256": "4b2b301cfad1cf6b6523488c6eb0b30b1c7f90387a713edc9eb52582b1026bfb",
+      "bytes": 97
+    },
+    "skills/orchi/assets/examples/brief-fix.json": {
+      "sha256": "57aae48f5869e83bb289c02bdba4438c5bf5cbb5ac87f32e4c6d982cc3668602",
+      "bytes": 1543
+    },
+    "skills/orchi/assets/examples/brief-investigation.json": {
+      "sha256": "9eb62b9efe902b2b6b978afd67205fd47e7c11adcdbfa1f7957ca47af02a6811",
+      "bytes": 1203
+    },
+    "skills/orchi/assets/examples/brief-knowledge.json": {
+      "sha256": "39b0763fe8b49d7599228a8f32b62faa3e77d57aa43acf58dfb45b0fadd75c52",
+      "bytes": 785
+    },
+    "skills/orchi/assets/examples/design-api.md": {
+      "sha256": "a29b889bb6ad3c99e27bdc98d890f4644ea9e3da15e92db4d36994a02dd153c4",
+      "bytes": 527
+    },
+    "skills/orchi/assets/examples/design-values.md": {
+      "sha256": "eb4c567071b405a48dc0df25e0e4ed2fe28399b8e02031ce1caf37184f95d3f6",
+      "bytes": 456
+    },
+    "skills/orchi/assets/examples/epic-api.json": {
+      "sha256": "9d3e58976557bc6954919812a5484415caacc95c22a2761f0a3c9a880e782960",
+      "bytes": 2457
+    },
+    "skills/orchi/assets/examples/epic-values.json": {
+      "sha256": "5f63ca795ae8030b328e518f8dff40fc4fda605a05b489ad1f7bec46ea723e50",
+      "bytes": 4081
+    },
+    "skills/orchi/assets/examples/initiative.json": {
+      "sha256": "0ea445b958100a03deb2f5bf8d62f9be8b3ddcbe9e42ee2bd9f1d9a09e184f63",
+      "bytes": 943
+    },
+    "skills/orchi/assets/examples/intent/architecture/README.md": {
+      "sha256": "dbfa0f769a1e6d9bb884a9ce4d37e0f7aa6dc599364d60027898243046daa024",
+      "bytes": 703
+    },
+    "skills/orchi/assets/examples/intent/manifest.json": {
+      "sha256": "7bc688cda42230598cd84906063f268e67d750e64d3a5601efc721e7b6e47421",
+      "bytes": 540
+    },
+    "skills/orchi/assets/examples/intent/requirements.md": {
+      "sha256": "e08c182ccda335a08fdb0388a0a06468379b619250ae1b5ec72564b6a32ae251",
+      "bytes": 387
+    },
+    "skills/orchi/assets/examples/intent/source.md": {
+      "sha256": "b95a024a3e08f1273ee9713a447cc0b40c5b531ff2f84c5a3bf9fa4cc3862ba9",
+      "bytes": 215
+    },
+    "skills/orchi/assets/examples/scope-request.json": {
+      "sha256": "b2858c4b2e720cbc4c75ff1eec3340151efeb167e93691401dbff58a5e0dc40f",
+      "bytes": 299
+    },
+    "skills/orchi/assets/policy.example.json": {
+      "sha256": "a01121af9ea378cb208d875d51d253f11de80107b8cbd92ddc4045eed04bfff4",
+      "bytes": 490
+    },
+    "skills/orchi/references/authoring.md": {
+      "sha256": "a332322358841597af99cea6e287e7daaf8b5c78c18aa5229477568820651ff1",
+      "bytes": 4962
+    },
+    "skills/orchi/references/bootstrap.md": {
+      "sha256": "54e950bd3470c44d90011768cf42da62e85e31c8c4efbefbedbc634ab81c833e",
+      "bytes": 2583
+    },
+    "skills/orchi/references/delivery.md": {
+      "sha256": "0061db7c67ef0bd568cc5d894d19dbf0627fbbea6ba534ce01ecbfb0ed27270b",
+      "bytes": 3166
+    },
+    "skills/orchi/references/execution.md": {
+      "sha256": "bde7cd07613923643ef7eb11c34c79093acddcc4bec7c1f16299cd671c384107",
+      "bytes": 3599
+    },
+    "skills/orchi/references/knowledge.md": {
+      "sha256": "082ac1f757b3c14ebad5c4fd2d5803822d71c950d92722d7068a76032847d41c",
+      "bytes": 2595
+    },
+    "skills/orchi/references/ontology.md": {
+      "sha256": "476a1ab0b744ca634ce730b5d4545748535ef3c07b96348b17c5131e92204365",
+      "bytes": 2986
+    },
+    "skills/orchi/references/operator-guide.md": {
+      "sha256": "0e436bd393b5c9cd7eb8d806bd0f7d1242badfe8739c7551221f4120d0aa264b",
+      "bytes": 14999
+    },
+    "skills/orchi/references/planning.md": {
+      "sha256": "cd01ae2c3b4116d5999de83768358f412d4608aefe12d39310faad22a1aad41d",
+      "bytes": 3324
+    },
+    "skills/orchi/references/recovery.md": {
+      "sha256": "940f99ec6c88557c6b671eeb59829e060d799ef478b5415e8a460e7cb1fb610c",
+      "bytes": 2700
+    },
+    "skills/orchi/references/retrieval.md": {
+      "sha256": "772aeab79b61a3693ac4b2a9093bf8846aa17788d4460f38544372fb17d8efa9",
+      "bytes": 5406
+    },
+    "skills/orchi/references/review.md": {
+      "sha256": "8788799f8d6c3ede691e4de48079483881bd794086ad553e1530a2f8b3e7538e",
+      "bytes": 2478
+    },
+    "skills/orchi/references/setup.md": {
+      "sha256": "5df00a3e799078d2a780a995bf11d92fd265fdf2d88c83f3b0d54fb426afb863",
+      "bytes": 2035
+    },
+    "skills/orchi/references/synchronization.md": {
+      "sha256": "663b351807e2487178b72c04349710b97b0ac03ed7c80dd38b3a4a00fdbb6440",
+      "bytes": 2263
+    },
+    "skills/orchi/scripts/operator.py": {
+      "sha256": "5d1dfbbf7376b5446ece39bbc20ff2cb134d679995e23635d5da30dd02fff132",
+      "bytes": 373
+    },
+    "skills/orchi/scripts/orchi.py": {
+      "sha256": "23c8f16ea5e74ae98d348123ce3357054fdb8b172491c03612d9ab88a5217891",
+      "bytes": 344
+    },
+    "skills/orchi/scripts/orchi_core/__init__.py": {
+      "sha256": "a37922f4229ef3c40226e8f0b47502d7abdb58cd43078de28b62ecf460b063e7",
+      "bytes": 75
+    },
+    "skills/orchi/scripts/orchi_core/authoring.py": {
+      "sha256": "6f1c1812ba408a477d57679cf5f2736bcdc14fb8e6a2c84853c59f642b90df0e",
+      "bytes": 3107
+    },
+    "skills/orchi/scripts/orchi_core/cli.py": {
+      "sha256": "58394d8c04f8dd2555fc42f2889a441b3855888da6c2c64747d9d5dc0594f98c",
+      "bytes": 19257
+    },
+    "skills/orchi/scripts/orchi_core/common.py": {
+      "sha256": "6e3ed1ee3f4f4969e8b11ffe20919da1c6591d62c03699da2f566db268083e7e",
+      "bytes": 3506
+    },
+    "skills/orchi/scripts/orchi_core/context.py": {
+      "sha256": "a2df44002f1c9a5f5b482aa5afeb7375bfdd959020cc9026d314bc19091169b6",
+      "bytes": 20971
+    },
+    "skills/orchi/scripts/orchi_core/diagnostics.py": {
+      "sha256": "3d957e8420974e6d7095fc77fbe9dd89c3e27f5f16c546fb8d4a19b667cfb530",
+      "bytes": 3312
+    },
+    "skills/orchi/scripts/orchi_core/engine.py": {
+      "sha256": "4f8fd77763117a6ba0fc599010f38b63342041fa5152561c93431e19d54324a5",
+      "bytes": 72214
+    },
+    "skills/orchi/scripts/orchi_core/execution.py": {
+      "sha256": "28f0ebe02be54928102f6bc5fad5e06e6cdca7d215ef73e9d2f671bf1ca9ee6d",
+      "bytes": 26281
+    },
+    "skills/orchi/scripts/orchi_core/graph.py": {
+      "sha256": "f2461cbaaa8730ab7647de86a5111170de740536489a1a700e0ca3ceeb9fc491",
+      "bytes": 23943
+    },
+    "skills/orchi/scripts/orchi_core/intent.py": {
+      "sha256": "45e43dac5a9c33b22bdf1f23431e165ab4686101f46eb7804301b71429d412b9",
+      "bytes": 11606
+    },
+    "skills/orchi/scripts/orchi_core/models.py": {
+      "sha256": "52626f076f0f61207fdac8b0fc3461c78a8f032f6c25534129e4d69b69d4b64c",
+      "bytes": 18751
+    },
+    "skills/orchi/scripts/orchi_core/ontology.py": {
+      "sha256": "9b35fa639ada8bdc59e015ed1dcdbf24847be220794d7ea8e4149a663e65dff9",
+      "bytes": 12698
+    },
+    "skills/orchi/scripts/orchi_core/operator_cli.py": {
+      "sha256": "06bb15fdbe40d2b023dde0ee3e26bf10ac2b983363f9e37fa1f64994590a97f3",
+      "bytes": 5048
+    },
+    "skills/orchi/scripts/orchi_core/preflight.py": {
+      "sha256": "2092f2762b6267196ea748db66eadb724259ff8d6c758f8eea8df5c1e33f7a11",
+      "bytes": 1930
+    },
+    "skills/orchi/scripts/orchi_core/process.py": {
+      "sha256": "7de7e59c8fb78498b4ace4da14bc93ed6e30224004a49e4152731ad08925933e",
+      "bytes": 2271
+    },
+    "skills/orchi/scripts/orchi_core/publication.py": {
+      "sha256": "d1035e8f7d90439ce3ba476f712bfcc257bd0f58ecadfda8513a8f149d441a44",
+      "bytes": 3872
+    },
+    "skills/orchi/scripts/orchi_core/reconciliation.py": {
+      "sha256": "b55d238542f1b33c66a4d01c56dd3c4a1a570ab756b0924917b63314558f4de8",
+      "bytes": 5393
+    },
+    "skills/orchi/scripts/orchi_core/relay.py": {
+      "sha256": "311723bea5d660c455582d8dbc574944c79afda1a4cf5f41b0845f3e56de5ba1",
+      "bytes": 4761
+    },
+    "skills/orchi/scripts/orchi_core/repository.py": {
+      "sha256": "ca52c0064c5dce823f99438fc3f08bb70d3bdc694a8217e59d48f96a779eb8c4",
+      "bytes": 9356
+    },
+    "skills/orchi/scripts/orchi_core/resources.py": {
+      "sha256": "051d85d6aaf9efbdc6b125dea87fd66b414c37d05a572eee1da367a1843c60c6",
+      "bytes": 1643
+    },
+    "skills/orchi/scripts/orchi_core/retrieval.py": {
+      "sha256": "d4cb48e8dce49c8f9bfed43cce398fd4843a5d5ac87f72c18d335703df5ebe49",
+      "bytes": 21684
+    },
+    "skills/orchi/scripts/orchi_core/runner.py": {
+      "sha256": "e912175f4bb8c479e1d2fb41e77d2df1cdc18403c33f727dbdb05b1222c5f40a",
+      "bytes": 8135
+    },
+    "skills/orchi/scripts/orchi_core/signing.py": {
+      "sha256": "eae5504787f09759b632c5a210e8efc49d4d7612a7e341061cf0349bc4332850",
+      "bytes": 2478
+    },
+    "skills/orchi/scripts/orchi_core/store.py": {
+      "sha256": "c41d787fffb633f38f0c1f5aa46466130a428dbac15e842d88745c0ed2ba547d",
+      "bytes": 4023
+    },
+    "skills/orchi/scripts/orchi_core/synchronization.py": {
+      "sha256": "40c08b5ebb8c21461d4451a99d107cbd5a0365d776bd8a27d0340fe68e53b7bb",
+      "bytes": 17795
+    },
+    "skills/orchi/scripts/orchi_core/views.py": {
+      "sha256": "926a542102c081eb726192a615a3795f82095afe768660d97bd7ff42fa52c227",
+      "bytes": 7474
+    },
+    "skills/orchi/scripts/requirements.txt": {
+      "sha256": "b86cf3884587a9b639e78620e3eb39250c98e2af2475f1a80a5fc6b98d88bc54",
+      "bytes": 52
+    },
+    "skills/orchi/scripts/worker_request.py": {
+      "sha256": "9570095d92bc5ede04fbfc7613bff6a2784ef21166b3ab1b8103ed80aa2e865b",
+      "bytes": 2613
+    },
+    "skills/orchi-deliver/SKILL.md": {
+      "sha256": "0c972da5b34a194716e6f9779976f1ede5ae44db62f29297bc152ed6197ed761",
+      "bytes": 2279
+    },
+    "skills/orchi-deliver/agents/openai.yaml": {
+      "sha256": "1e3b2a2d0a7cc742b803d4d2ea68c9fa7c36f5815a90dbb049ef3e0ee49e6f60",
+      "bytes": 258
+    },
+    "skills/orchi-plan/SKILL.md": {
+      "sha256": "4b2ad55b805237e1b16f81b882642e1607044de800ead5a95c39afe733653bb7",
+      "bytes": 2637
+    },
+    "skills/orchi-plan/agents/openai.yaml": {
+      "sha256": "52951bd42f9e0ccd627c490d6d7d543651755d1c1a48f7a19b29815998f9e3dd",
+      "bytes": 241
+    },
+    "skills/orchi-review/SKILL.md": {
+      "sha256": "83f4f5376aba126db703e55e6b9e9a99e8ac6dc358ba1b510f08467f13d9edc5",
+      "bytes": 2259
+    },
+    "skills/orchi-review/agents/openai.yaml": {
+      "sha256": "dd5f53f15c94425155b38b056c5dd78fc6ff499b46560b51278484f3c810c241",
+      "bytes": 252
+    },
+    "skills/orchi-work/SKILL.md": {
+      "sha256": "efd499e769a9d7fbce14b745791158f31f706d187e361a3a2f8c1575948b4ed0",
+      "bytes": 2298
+    },
+    "skills/orchi-work/agents/openai.yaml": {
+      "sha256": "91f31cb7c9f55519e1dae92a8fc2a8e76b96f2cb93de19a00f54f261e474e5d8",
+      "bytes": 246
+    },
+    "tests/conftest.py": {
+      "sha256": "aa7fb51050eac3ab6e06cea5554d3ff54135a67974aa24bdf762e00ea41e5789",
+      "bytes": 10720
+    },
+    "tests/fake_agent.py": {
+      "sha256": "7c43ebaf45ad5dca6c5ff0afbf3db68daf5a49a8ba3f9575efdb6c630df86ba1",
+      "bytes": 1569
+    },
+    "tests/test_contracts.py": {
+      "sha256": "bf90c641a188b98c349a826bed5c6313b3f26f3f2e59bb47f068d51a8dd33d75",
+      "bytes": 2711
+    },
+    "tests/test_development_flows.py": {
+      "sha256": "0f6cb83c13fb32382ad022ded2f6d940e22a8b144c58ed50cb5e5ec4d5f45643",
+      "bytes": 17064
+    },
+    "tests/test_gates_context.py": {
+      "sha256": "0e179529876cb070a015c9056c1f38da19991b15e774fa67720c2d9e69159a65",
+      "bytes": 4441
+    },
+    "tests/test_greenfield.py": {
+      "sha256": "9c70423bfd64b0e708c3b02f24a68ecb7d18b691a525608fc2c69cad8bcb33c5",
+      "bytes": 9260
+    },
+    "tests/test_install_skills.py": {
+      "sha256": "540ec487bcf1af4a38ea62d43085d0cc47b8dbf5bde09c84eeea676937cda38d",
+      "bytes": 3039
+    },
+    "tests/test_intent.py": {
+      "sha256": "bfcff23be27a0266be7ebdbf9435002596be77b3637d2b0846215ce50c15169f",
+      "bytes": 14457
+    },
+    "tests/test_knowledge_cli.py": {
+      "sha256": "18fe3565a6f1fe53e91c2431a69398915cd451a91cec8876662db7c7afa44a56",
+      "bytes": 2913
+    },
+    "tests/test_lifecycle.py": {
+      "sha256": "e6b754f6db2bbe3a614bb1afe7f270b4966d30dab2c715840a5066b0056f98dc",
+      "bytes": 4807
+    },
+    "tests/test_ontology_graph.py": {
+      "sha256": "580b6c649240eb608d2cedec82234297e7ee4846d5a9ad4f60a91ec1385fe273",
+      "bytes": 6472
+    },
+    "tests/test_packaging.py": {
+      "sha256": "ce25178f222a34e70e78a8d475eb2f74c6b1b8fb3d1cf0b13cd6e86cb58b5ab4",
+      "bytes": 7023
+    },
+    "tests/test_parallel.py": {
+      "sha256": "b362ce91e12e8417928025af90cf8f64259a85bfbeca91772ba5c38f8534f928",
+      "bytes": 5063
+    },
+    "tests/test_process_store.py": {
+      "sha256": "eba4cd3421b0d16543a77141d8e94065a0aa97e78cc75930bf118ca80a0d405e",
+      "bytes": 1953
+    },
+    "tests/test_reconciliation.py": {
+      "sha256": "f834581c8a808407e3a4ff0a3c8ac53c92520b9dd38e8e0924bbd02aae5381cb",
+      "bytes": 5582
+    },
+    "tests/test_recovery_and_final.py": {
+      "sha256": "fd739c27ecfb9be44820479a91dc597568ad073334435156b4e1d7efb2435e2e",
+      "bytes": 4702
+    },
+    "tests/test_retrieval.py": {
+      "sha256": "57b2fc6b186cd0b4422de7e2fb543f1527602fbc0ecea9434f29a1158dd353c3",
+      "bytes": 16808
+    },
+    "tests/test_retrieval_cli.py": {
+      "sha256": "ffa37cccb0399cb7f6c07d8652a358e71bdbdac5e14f88861bbb0b9578316893",
+      "bytes": 7120
+    },
+    "tests/test_review.py": {
+      "sha256": "23464f5ca7bd0152da8c473c7db2ce6dd7a8de975ca01ea3bbe4bfcff607a98b",
+      "bytes": 3352
+    },
+    "tests/test_synchronization_publication.py": {
+      "sha256": "513c79227eb5acf16e76e4dbb2bcd7830ecef50114edb2d10922d61afdc70228",
+      "bytes": 17027
+    },
+    "tests/test_workflow_boundaries.py": {
+      "sha256": "a3a09c138846a5f3c14fb08770be563cfdeb6d3c1f1b445ef6e687b360913586",
+      "bytes": 10533
+    },
+    "tools/demo.py": {
+      "sha256": "374b5f889d86418e362d0dd35e7c2d6d1ccbbca45a1704fc4f61cecdf30b802e",
+      "bytes": 4850
+    },
+    "tools/demo_development.py": {
+      "sha256": "200f4461757584a46dac9725328ce255a64a5f3a2bead32a3971e34401342ff2",
+      "bytes": 2383
+    },
+    "tools/install.py": {
+      "sha256": "3462bd305eac20f5921f4a5330c0810d476d3221ad41d7dc4461fce3aa0f75e8",
+      "bytes": 3875
+    },
+    "tools/orchi.py": {
+      "sha256": "7b37fc631d53c30bf716bd877b57d7051d27c1455631275dd6d6f6310e398204",
+      "bytes": 233
+    },
+    "tools/smoke_install.py": {
+      "sha256": "ac1a88f0dbfbb81b6fb95d7c6082c3be629a3de5207c53dc747ff74b8a586a0a",
+      "bytes": 10065
+    },
+    "tools/validate_package.py": {
+      "sha256": "de583dfa95c246a9feff6a4db152c1b518823c3f63c6d8acb423382b61d9f23c",
+      "bytes": 5466
+    }
+  }
+}

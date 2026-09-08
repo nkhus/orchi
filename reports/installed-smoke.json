@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "installer": "local",
+  "runner": "python",
+  "skills": 5,
+  "schemas": 13,
+  "preserved_files": 5,
+  "retrieval_readback": true,
+  "retrieval_cache_reused": true,
+  "target_exact_readback": true,
+  "graph_map_lint_coverage": true,
+  "live_model": false
+}

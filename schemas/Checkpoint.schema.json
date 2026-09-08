@@ -60,11 +60,11 @@
           "title": "Content"
         },
         "artifacts": {
+          "default": [],
           "items": {
             "minLength": 1,
             "type": "string"
           },
-          "minItems": 1,
           "title": "Artifacts",
           "type": "array"
         },
@@ -87,7 +87,6 @@
       "required": [
         "target",
         "action",
-        "artifacts",
         "checks",
         "reason"
       ],

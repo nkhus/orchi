@@ -1,4 +1,15 @@
 {
+  "format": "orchi-epic",
+  "initiative_id": "feature",
+  "epic_id": "values",
+  "based_on": "0000000000000000000000000000000000000000",
+  "goal": "Set internal values",
+  "shared_design": "Independent value modules; no shared mutable state",
+  "design": {
+    "path": "design/1.md",
+    "content_hash": "eb4c567071b405a48dc0df25e0e4ed2fe28399b8e02031ce1caf37184f95d3f6"
+  },
+  "intent_digest": "51f476557e67bf4dbab80197b05085e2fd8d348e6ddd534a236641f6c6474df3",
   "acceptance": {
     "ac-values": "Both values available"
   },
@@ -8,128 +19,141 @@
       "right"
     ]
   },
-  "based_on": "0000000000000000000000000000000000000000",
-  "epic_id": "values",
-  "format": "orchi-epic",
-  "goal": "Set internal values",
-  "initiative_id": "feature",
   "mode": "implementation",
-  "shared_design": "Independent value modules; no shared mutable state",
   "tasks": [
     {
+      "id": "left",
+      "goal": "Implement left",
       "acceptance": {
         "ac-left": "Required value is present"
       },
-      "allowed_choices": [
-        "Local variable spelling"
-      ],
-      "approach": "Use the existing plain Python module",
-      "context": [
-        {
-          "contract": "",
-          "kind": "code",
-          "path": "src/left.py",
-          "producer": null,
-          "reason": "Actual implementation to change"
-        },
-        {
-          "contract": "",
-          "kind": "knowledge",
-          "path": "docs/architecture.md",
-          "producer": null,
-          "reason": "Relevant architecture constraint"
-        }
-      ],
+      "depends_on": [],
       "current_state": "Inspect existing values",
+      "approach": "Use the existing plain Python module",
       "decisions": [
         "Preserve the module interface"
       ],
-      "depends_on": [],
+      "invariants": [
+        "No side effects on import"
+      ],
+      "allowed_choices": [
+        "Local variable spelling"
+      ],
+      "failure_modes": [
+        "Missing dependency must fail explicitly"
+      ],
       "edits": [
         {
+          "path": "src/left.py",
           "action": "modify",
-          "how": "Apply the declared value/behavior change",
-          "path": "src/left.py"
+          "how": "Apply the declared value/behavior change"
+        }
+      ],
+      "context": [
+        {
+          "kind": "code",
+          "path": "src/left.py",
+          "reason": "Actual implementation to change",
+          "view": null,
+          "producer": null,
+          "contract": ""
+        },
+        {
+          "kind": "knowledge",
+          "path": "docs/architecture.md",
+          "reason": "Relevant architecture constraint",
+          "view": "current",
+          "producer": null,
+          "contract": ""
+        },
+        {
+          "kind": "knowledge",
+          "path": "req-user",
+          "reason": "Accepted observable outcome and invariants",
+          "view": "target",
+          "producer": null,
+          "contract": ""
+        }
+      ],
+      "read_paths": [],
+      "exclusive_resources": [],
+      "verification": [
+        {
+          "criterion": "ac-left",
+          "scenario": "Read module",
+          "expected": "The specified result",
+          "checks": [
+            "left"
+          ]
         }
       ],
       "escalation": [
         "Stop if public compatibility must change"
       ],
-      "exclusive_resources": [],
-      "failure_modes": [
-        "Missing dependency must fail explicitly"
-      ],
-      "goal": "Implement left",
-      "id": "left",
-      "invariants": [
-        "No side effects on import"
-      ],
-      "open_questions": [],
-      "read_paths": [],
-      "verification": [
-        {
-          "checks": [
-            "left"
-          ],
-          "criterion": "ac-left",
-          "expected": "The specified result",
-          "scenario": "Read module"
-        }
-      ]
+      "open_questions": []
     },
     {
+      "id": "right",
+      "goal": "Implement right",
       "acceptance": {
         "ac-right": "Required value is present"
       },
-      "allowed_choices": [
-        "Local variable spelling"
-      ],
-      "approach": "Use the existing plain Python module",
-      "context": [
-        {
-          "contract": "",
-          "kind": "code",
-          "path": "src/right.py",
-          "producer": null,
-          "reason": "Actual implementation to change"
-        }
-      ],
+      "depends_on": [],
       "current_state": "Inspect existing values",
+      "approach": "Use the existing plain Python module",
       "decisions": [
         "Preserve the module interface"
       ],
-      "depends_on": [],
+      "invariants": [
+        "No side effects on import"
+      ],
+      "allowed_choices": [
+        "Local variable spelling"
+      ],
+      "failure_modes": [
+        "Missing dependency must fail explicitly"
+      ],
       "edits": [
         {
+          "path": "src/right.py",
           "action": "modify",
-          "how": "Apply the declared value/behavior change",
-          "path": "src/right.py"
+          "how": "Apply the declared value/behavior change"
+        }
+      ],
+      "context": [
+        {
+          "kind": "code",
+          "path": "src/right.py",
+          "reason": "Actual implementation to change",
+          "view": null,
+          "producer": null,
+          "contract": ""
+        },
+        {
+          "kind": "knowledge",
+          "path": "req-user",
+          "reason": "Accepted observable outcome and invariants",
+          "view": "target",
+          "producer": null,
+          "contract": ""
+        }
+      ],
+      "read_paths": [],
+      "exclusive_resources": [],
+      "verification": [
+        {
+          "criterion": "ac-right",
+          "scenario": "Read module",
+          "expected": "The specified result",
+          "checks": [
+            "right"
+          ]
         }
       ],
       "escalation": [
         "Stop if public compatibility must change"
       ],
-      "exclusive_resources": [],
-      "failure_modes": [
-        "Missing dependency must fail explicitly"
-      ],
-      "goal": "Implement right",
-      "id": "right",
-      "invariants": [
-        "No side effects on import"
-      ],
-      "open_questions": [],
-      "read_paths": [],
-      "verification": [
-        {
-          "checks": [
-            "right"
-          ],
-          "criterion": "ac-right",
-          "expected": "The specified result",
-          "scenario": "Read module"
-        }
-      ]
+      "open_questions": []
     }
   ]
 }

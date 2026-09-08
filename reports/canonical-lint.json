@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "result": {
+    "ok": true,
+    "documents": 14,
+    "diagnostics": [],
+    "scope": "canonical",
+    "view": "current",
+    "status": "ready"
+  }
+}
