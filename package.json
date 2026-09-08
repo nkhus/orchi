@@ -1,0 +1,47 @@
+{
+  "name": "@nkhus/orchi",
+  "version": "0.1.0",
+  "description": "Install the complete Orchi agent-skill bundle into a project.",
+  "type": "module",
+  "bin": {
+    "orchi": "bin/orchi.js"
+  },
+  "files": [
+    "bin/orchi.js",
+    "tools/install.py",
+    "skills/*/SKILL.md",
+    "skills/*/agents/openai.yaml",
+    "skills/orchi/assets",
+    "skills/orchi/references",
+    "skills/orchi/scripts/**/*.py",
+    "skills/orchi/scripts/requirements.txt",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "python tools/validate_package.py && python -m pytest -q"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nkhus/orchi.git"
+  },
+  "homepage": "https://github.com/nkhus/orchi#readme",
+  "bugs": {
+    "url": "https://github.com/nkhus/orchi/issues"
+  },
+  "keywords": [
+    "agent-skills",
+    "codex",
+    "orchestration"
+  ],
+  "license": "UNLICENSED",
+  "publishConfig": {
+    "access": "public"
+  }
+}

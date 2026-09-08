@@ -12,7 +12,7 @@ python tools/validate_package.py
 python -m pytest -q
 ```
 
-The repository is a skill distribution, not an independently published Python or npm application. `pyproject.toml` contains test configuration. Target projects run the bundled scripts with `uv` or a separately provisioned Python environment.
+The repository is a skill distribution with a dependency-free npm installation wrapper, not a separately packaged runtime application. `pyproject.toml` contains test configuration. Target projects run the bundled scripts with `uv` or a separately provisioned Python environment; installed Orchi does not depend on Node.
 
 ## Source ownership
 

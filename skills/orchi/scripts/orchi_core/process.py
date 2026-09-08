@@ -40,10 +40,11 @@ def run(argv: list[str], cwd: Path, timeout: int, output_limit: int,
             elif proc.poll() is None:
                 proc.kill()
             proc.wait(timeout=10)
-        out.seek(0); err.seek(0)
-        stdout, stderr = out.read(output_limit), err.read(output_limit)
-        if len(stdout) + len(stderr) > output_limit:
+        if os.fstat(out.fileno()).st_size + os.fstat(err.fileno()).st_size > output_limit:
             stopped = "output_limit"
+        out.seek(0); err.seek(0)
+        stdout = out.read(output_limit)
+        stderr = err.read(max(0, output_limit - len(stdout)))
         return {"argv": argv, "returncode": proc.returncode, "stopped": stopped,
                 "stdout": stdout.decode(errors="replace"), "stderr": stderr.decode(errors="replace"),
                 "seconds": round(time.monotonic() - start, 4),

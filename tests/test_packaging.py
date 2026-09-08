@@ -27,10 +27,35 @@ def test_source_validation():
     assert report['ok'], report['errors']
 
 
-def test_runtime_has_no_application_package_metadata():
+def test_npm_package_is_a_dependency_free_installer():
     config = tomllib.loads((ROOT / 'pyproject.toml').read_text())
     assert 'project' not in config and 'build-system' not in config
-    assert not (ROOT / 'package.json').exists()
+    package = json.loads((ROOT / 'package.json').read_text())
+    assert package['name'] == '@nkhus/orchi'
+    assert package['bin'] == {'orchi': 'bin/orchi.js'}
+    assert package['files'] == [
+        'bin/orchi.js', 'tools/install.py', 'skills/*/SKILL.md', 'skills/*/agents/openai.yaml',
+        'skills/orchi/assets', 'skills/orchi/references', 'skills/orchi/scripts/**/*.py',
+        'skills/orchi/scripts/requirements.txt', 'README.md']
+    assert 'dependencies' not in package and 'devDependencies' not in package
+    assert not any(name in package.get('scripts', {}) for name in ('install', 'preinstall', 'postinstall'))
+
+
+def test_node_installer_uses_current_directory_and_preserves_python_contract(tmp_path):
+    result = subprocess.run(['node', str(ROOT / 'bin/orchi.js'), '--dry-run'], cwd=tmp_path,
+                            capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stdout + result.stderr
+    report = json.loads(result.stdout)
+    assert report['project'] == str(tmp_path.resolve()) and report['dry_run'] is True
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_node_installer_installs_complete_bundle(tmp_path):
+    result = subprocess.run(['node', str(ROOT / 'bin/orchi.js')], cwd=tmp_path,
+                            capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert sorted(path.name for path in (tmp_path / '.agents/skills').iterdir()) == sorted(
+        ('orchi', 'orchi-plan', 'orchi-work', 'orchi-review', 'orchi-deliver'))
 
 
 def test_entrypoints_declare_same_isolated_dependencies():

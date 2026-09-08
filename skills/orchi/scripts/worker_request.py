@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """Use a foreground task's bounded read/scope channel, never a control store."""
 from __future__ import annotations
+import sys
+# Prevent the sibling operator.py entrypoint from shadowing Python's stdlib module.
+script_directory = sys.path.pop(0)
+try:
+    import operator as _stdlib_operator
+finally:
+    sys.path.insert(0, script_directory)
 import argparse
 import json
 import os
 from pathlib import Path
 import socket
-import sys
 import uuid
 
 

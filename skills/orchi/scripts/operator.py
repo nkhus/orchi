@@ -6,6 +6,12 @@
 """Human-operated signing tools. Never give a worker access to the private key."""
 import sys
 sys.dont_write_bytecode = True
+# Prevent this entrypoint from shadowing Python's stdlib module during imports.
+script_directory = sys.path.pop(0)
+try:
+    import operator as _stdlib_operator
+finally:
+    sys.path.insert(0, script_directory)
 from orchi_core.operator_cli import main
 
 if __name__ == "__main__":

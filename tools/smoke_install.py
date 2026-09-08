@@ -55,6 +55,8 @@ def smoke(out: Path, installer: str, runner: str) -> dict:
          'commit', '-m', 'Synthetic documentation fixture'])
     if installer == 'skills':
         run(['npx', '--yes', 'skills', 'add', str(ROOT), '--skill', '*', '--agent', 'codex', '--yes'])
+    elif installer == 'npx':
+        run(['npx', '--yes', '--package', str(ROOT), 'orchi', '--project', str(project)])
     else:
         run([sys.executable, str(ROOT / 'tools/install.py'), '--project', str(project)])
     for name in SKILLS:
@@ -148,7 +150,7 @@ def smoke(out: Path, installer: str, runner: str) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, required=True, help='A new disposable output directory')
-    parser.add_argument('--installer', choices=('skills', 'local'), default='skills')
+    parser.add_argument('--installer', choices=('skills', 'npx', 'local'), default='skills')
     parser.add_argument('--runner', choices=('uv', 'python'), default='uv')
     args = parser.parse_args()
     try:

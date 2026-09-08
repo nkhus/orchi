@@ -4,15 +4,15 @@ A local, Git-native controller that takes an accepted development request to a c
 
 ## Install
 
-Extract this pack, then copy all five sibling skills into the target project:
+Install all five sibling skills into the target project with `npx`:
 
 ```bash
-python /absolute/path/to/orchi/tools/install.py --project /absolute/path/to/project
+npx --yes github:nkhus/orchi --project /absolute/path/to/project
 python -m pip install -r /absolute/path/to/project/.agents/skills/orchi/scripts/requirements.txt
 python /absolute/path/to/project/.agents/skills/orchi/scripts/orchi.py doctor --repo /absolute/path/to/project
 ```
 
-Use a dedicated Python environment. Both main entrypoints also support provisioned `uv run` environments. Python 3.11+, POSIX, Git with SHA-1 objects and SQLite FTS5 are required. Installation preserves unrelated skills and project instructions. See [installation](docs/installation.md) and the bundled [operator guide](skills/orchi/references/operator-guide.md) for keys, checks and real worker isolation. No separately published application package is needed.
+Run the installer without `--project` to target the current directory. Use a dedicated Python environment. Both main entrypoints also support provisioned `uv run` environments. Node 18+ is needed only for the installer; Python 3.11+, POSIX, Git with SHA-1 objects and SQLite FTS5 are required by Orchi. Installation preserves unrelated skills and project instructions. See [installation](docs/installation.md) and the bundled [operator guide](skills/orchi/references/operator-guide.md) for keys, checks and real worker isolation. The npm package is only an installation wrapper; the installed runtime does not depend on Node or a separately published Python application.
 
 ## One development cycle
 

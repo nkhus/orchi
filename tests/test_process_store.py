@@ -18,6 +18,7 @@ def test_process_timeout(tmp_path):
 def test_process_output_limit(tmp_path):
     r=run([sys.executable,'-c','print("X"*20000)'],tmp_path,5,1024)
     assert r['stopped']=='output_limit' and not r['passed']
+    assert len(r['stdout'].encode())+len(r['stderr'].encode())<=1024
 
 
 def test_environment_not_inherited(tmp_path,monkeypatch):

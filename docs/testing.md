@@ -19,6 +19,7 @@ python -m pytest -q --junitxml=/private/reports/pytest.xml
 python tools/demo_development.py --out /new/disposable/moving-main-demo
 python tools/demo.py --out /new/disposable/demo
 python tools/smoke_install.py --installer local --runner python --out /new/disposable/install
+python tools/smoke_install.py --installer npx --runner python --out /new/disposable/npm-install
 ```
 
 ## Deterministic coverage
