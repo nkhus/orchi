@@ -1,17 +1,9 @@
-# Examples
+# Authoring examples
 
-The examples are bundled with the installable skill so they remain available in a consuming project:
+The installed bundle contains [compact fix](../skills/orchi/assets/examples/brief-fix.json), [read-only investigation](../skills/orchi/assets/examples/brief-investigation.json), [knowledge-only](../skills/orchi/assets/examples/brief-knowledge.json) and [scope request](../skills/orchi/assets/examples/scope-request.json) examples. They are inputs, not approvals; check IDs must exist in the actual operator registry. The software brief is directly usable in the synthetic value-module fixture, not an arbitrary project.
 
-| Example | Purpose |
-| --- | --- |
-| [Initiative](../skills/orchi/assets/examples/initiative.json) | A complete request with an ordered two-epic roadmap |
-| [Values epic](../skills/orchi/assets/examples/epic-values.json) | An active epic with two independent designed tasks |
-| [API epic](../skills/orchi/assets/examples/epic-api.json) | A later epic planned against actual accepted state |
-| [Policy template](../skills/orchi/assets/policy.example.json) | Operator-selected canonical branch, public key, checks, and limits |
-| [Codex adapter](../skills/orchi/assets/codex-adapter.json) | Native Codex worker execution configuration |
+Full Intent and progressively selected design examples remain under `skills/orchi/assets/examples`. The values and API designs illustrate separate selection moments; do not preplan both against a fictitious unchanged head. Shared-contract parallelism uses a task DAG, not multiple active epics.
 
-The all-zero `based_on` values are explicit placeholders. Replace them with the current accepted head when authoring a plan, and replace every source path, check identifier, and requirement with project-specific content. The examples do not authorize work and must not be submitted unchanged to an unrelated controller.
+Sync proposals are generated from actual state with `sync-draft`; static fake Git hashes would not describe the actual conflict set. [Synchronization](../docs/synchronization.md) explains how to fill its decisions. The deterministic tests include same-document Core/Working conflicts, new upstream docs and two independently published initiatives.
 
-The policy template requires a real operator public key and trusted test command. Adapter credentials and `HOME`/`CODEX_HOME` must belong to the intended worker identity, not to a privileged operator.
-
-For an executable demonstration, run `python tools/demo.py --out /tmp/orchi-demo` from a provisioned Orchi checkout. Use a new output directory. The demo emits a task packet bound to its disposable checkout and an audit report. Neither its synthetic workers nor its automatic test approvals are production components.
+An investigation returns observations; its brief does not guarantee observation quality. The operator must select meaningful final checks for the actual research outcome. Knowledge-only work needs checkpoint/finalization inputs and review; it does not create current documentation merely by accepting this brief.

@@ -1,0 +1,362 @@
+{
+  "$defs": {
+    "CompactTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 80,
+          "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "goal": {
+          "minLength": 1,
+          "title": "Goal",
+          "type": "string"
+        },
+        "edits": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Edit"
+          },
+          "title": "Edits",
+          "type": "array"
+        },
+        "checks": {
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Checks",
+          "type": "array"
+        },
+        "kind": {
+          "default": "implementation",
+          "enum": [
+            "implementation",
+            "investigation"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "executor": {
+          "default": "agent",
+          "enum": [
+            "agent",
+            "human",
+            "pair"
+          ],
+          "title": "Executor",
+          "type": "string"
+        },
+        "context": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Source"
+          },
+          "title": "Context",
+          "type": "array"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "allowed_choices": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Allowed Choices",
+          "type": "array"
+        },
+        "write_scope": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ScopeRule"
+          },
+          "title": "Write Scope",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "goal",
+        "checks"
+      ],
+      "title": "CompactTask",
+      "type": "object"
+    },
+    "Edit": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "create",
+            "modify",
+            "delete"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "how": {
+          "minLength": 1,
+          "title": "How",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "action",
+        "how"
+      ],
+      "title": "Edit",
+      "type": "object"
+    },
+    "ScopeRule": {
+      "additionalProperties": false,
+      "description": "An accepted directory envelope, not a wildcard permission to change semantics.",
+      "properties": {
+        "directory": {
+          "minLength": 1,
+          "title": "Directory",
+          "type": "string"
+        },
+        "actions": {
+          "items": {
+            "enum": [
+              "create",
+              "modify",
+              "delete"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Actions",
+          "type": "array"
+        },
+        "choices": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Choices",
+          "type": "array"
+        }
+      },
+      "required": [
+        "directory",
+        "actions",
+        "choices"
+      ],
+      "title": "ScopeRule",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "knowledge",
+            "code",
+            "dependency"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "view": {
+          "anyOf": [
+            {
+              "enum": [
+                "current",
+                "target"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "View"
+        },
+        "producer": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Producer"
+        },
+        "contract": {
+          "default": "",
+          "title": "Contract",
+          "type": "string"
+        },
+        "delivery": {
+          "default": "inline",
+          "enum": [
+            "inline",
+            "on-demand"
+          ],
+          "title": "Delivery",
+          "type": "string"
+        },
+        "consistency": {
+          "default": "fixed",
+          "enum": [
+            "fixed",
+            "snapshot"
+          ],
+          "title": "Consistency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "path",
+        "reason"
+      ],
+      "title": "Source",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": "orchi-brief",
+      "default": "orchi-brief",
+      "title": "Format",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 80,
+      "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "request": {
+      "minLength": 1,
+      "title": "Request",
+      "type": "string"
+    },
+    "outcome": {
+      "minLength": 1,
+      "title": "Outcome",
+      "type": "string"
+    },
+    "result_kind": {
+      "default": "software",
+      "enum": [
+        "software",
+        "knowledge",
+        "investigation"
+      ],
+      "title": "Result Kind",
+      "type": "string"
+    },
+    "requirements": {
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z0-9]+(?:[-.][a-z0-9]+)*$": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "propertyNames": {
+        "maxLength": 80
+      },
+      "title": "Requirements",
+      "type": "object"
+    },
+    "architecture": {
+      "minLength": 1,
+      "title": "Architecture",
+      "type": "string"
+    },
+    "design": {
+      "minLength": 1,
+      "title": "Design",
+      "type": "string"
+    },
+    "decisions": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Decisions",
+      "type": "array"
+    },
+    "invariants": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Invariants",
+      "type": "array"
+    },
+    "checks": {
+      "items": {
+        "maxLength": 80,
+        "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Checks",
+      "type": "array"
+    },
+    "tasks": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CompactTask"
+      },
+      "title": "Tasks",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "request",
+    "outcome",
+    "requirements",
+    "architecture",
+    "design",
+    "decisions",
+    "invariants",
+    "checks"
+  ],
+  "title": "ChangeBrief",
+  "type": "object"
+}

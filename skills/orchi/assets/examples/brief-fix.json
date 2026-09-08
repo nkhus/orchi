@@ -1,0 +1,59 @@
+{
+  "format": "orchi-brief",
+  "id": "bounded-fix",
+  "request": "Correct the existing value while preserving the public module interface.",
+  "outcome": "The module returns the accepted value",
+  "result_kind": "software",
+  "requirements": {
+    "req-value": "The existing module returns the specified value and retains import compatibility."
+  },
+  "architecture": "Keep the existing plain module boundaries; no additional persistence, service or public interface.",
+  "design": "Inspect the current module, change the bounded behavior, and run the registered regression check.",
+  "decisions": [
+    "Preserve the existing public variable and import path"
+  ],
+  "invariants": [
+    "No import-time side effects"
+  ],
+  "checks": [
+    "left"
+  ],
+  "tasks": [
+    {
+      "id": "fix",
+      "goal": "Set the existing module value to one",
+      "edits": [
+        {
+          "path": "src/left.py",
+          "action": "modify",
+          "how": "Set VALUE to one while preserving interface"
+        }
+      ],
+      "checks": [
+        "left"
+      ],
+      "context": [
+        {
+          "kind": "code",
+          "path": "src/left.py",
+          "reason": "Exact existing implementation",
+          "delivery": "on-demand"
+        }
+      ],
+      "allowed_choices": [
+        "Local helper structure"
+      ],
+      "write_scope": [
+        {
+          "directory": "src",
+          "actions": [
+            "create"
+          ],
+          "choices": [
+            "Local helper structure"
+          ]
+        }
+      ]
+    }
+  ]
+}

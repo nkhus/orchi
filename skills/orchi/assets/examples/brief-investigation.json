@@ -1,0 +1,40 @@
+{
+  "format": "orchi-brief",
+  "id": "investigation",
+  "request": "Establish the existing value and its caller contract before choosing a fix.",
+  "outcome": "Preserve observations of current behavior",
+  "result_kind": "investigation",
+  "requirements": {
+    "req-observation": "Record reproducible observations and unresolved questions; do not change product behavior."
+  },
+  "architecture": "This investigation does not add a system architecture. Existing components are inspected, not redesigned.",
+  "design": "Inspect the actual module and run the existing baseline check; return concrete observations.",
+  "decisions": [
+    "Do not change product files"
+  ],
+  "invariants": [
+    "Current truth remains the previously verified snapshot"
+  ],
+  "checks": [
+    "baseline"
+  ],
+  "tasks": [
+    {
+      "id": "inspect",
+      "kind": "investigation",
+      "goal": "Inspect existing behavior and preserve observations",
+      "edits": [],
+      "checks": [
+        "baseline"
+      ],
+      "context": [
+        {
+          "kind": "code",
+          "path": "src/left.py",
+          "reason": "Actual implementation to inspect",
+          "delivery": "on-demand"
+        }
+      ]
+    }
+  ]
+}

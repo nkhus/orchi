@@ -1,4 +1,15 @@
 {
+  "format": "orchi-epic",
+  "initiative_id": "feature",
+  "epic_id": "api",
+  "based_on": "0000000000000000000000000000000000000000",
+  "goal": "Expose values",
+  "shared_design": "Build on the verified prior epic, not initial canonical implementation",
+  "design": {
+    "path": "design/1.md",
+    "content_hash": "a29b889bb6ad3c99e27bdc98d890f4644ea9e3da15e92db4d36994a02dd153c4"
+  },
+  "intent_digest": "51f476557e67bf4dbab80197b05085e2fd8d348e6ddd534a236641f6c6474df3",
   "acceptance": {
     "ac-api": "API available"
   },
@@ -7,74 +18,78 @@
       "api"
     ]
   },
-  "based_on": "0000000000000000000000000000000000000000",
-  "epic_id": "api",
-  "format": "orchi-epic",
-  "goal": "Expose values",
-  "initiative_id": "feature",
   "mode": "implementation",
-  "shared_design": "Build on the verified prior epic, not initial canonical implementation",
   "tasks": [
     {
+      "id": "api",
+      "goal": "Implement api",
       "acceptance": {
         "ac-api": "Required value is present"
       },
-      "allowed_choices": [
-        "Local variable spelling"
-      ],
-      "approach": "Use the existing plain Python module",
-      "context": [
-        {
-          "contract": "",
-          "kind": "code",
-          "path": "src/left.py",
-          "producer": null,
-          "reason": "Actual implementation to change"
-        },
-        {
-          "contract": "",
-          "kind": "knowledge",
-          "path": "docs/architecture.md",
-          "producer": null,
-          "reason": "Relevant architecture constraint"
-        }
-      ],
+      "depends_on": [],
       "current_state": "Inspect existing values",
+      "approach": "Use the existing plain Python module",
       "decisions": [
         "Preserve the module interface"
       ],
-      "depends_on": [],
+      "invariants": [
+        "No side effects on import"
+      ],
+      "allowed_choices": [
+        "Local variable spelling"
+      ],
+      "failure_modes": [
+        "Missing dependency must fail explicitly"
+      ],
       "edits": [
         {
+          "path": "src/api.py",
           "action": "create",
-          "how": "Apply the declared value/behavior change",
-          "path": "src/api.py"
+          "how": "Apply the declared value/behavior change"
+        }
+      ],
+      "context": [
+        {
+          "kind": "code",
+          "path": "src/left.py",
+          "reason": "Actual implementation to change",
+          "view": null,
+          "producer": null,
+          "contract": ""
+        },
+        {
+          "kind": "knowledge",
+          "path": "docs/architecture.md",
+          "reason": "Relevant architecture constraint",
+          "view": "current",
+          "producer": null,
+          "contract": ""
+        },
+        {
+          "kind": "knowledge",
+          "path": "req-user",
+          "reason": "Accepted observable outcome and invariants",
+          "view": "target",
+          "producer": null,
+          "contract": ""
+        }
+      ],
+      "read_paths": [],
+      "exclusive_resources": [],
+      "verification": [
+        {
+          "criterion": "ac-api",
+          "scenario": "Read module",
+          "expected": "The specified result",
+          "checks": [
+            "api"
+          ]
         }
       ],
       "escalation": [
         "Stop if public compatibility must change"
       ],
-      "exclusive_resources": [],
-      "failure_modes": [
-        "Missing dependency must fail explicitly"
-      ],
-      "goal": "Implement api",
-      "id": "api",
-      "invariants": [
-        "No side effects on import"
-      ],
-      "open_questions": [],
-      "read_paths": [],
-      "verification": [
-        {
-          "checks": [
-            "api"
-          ],
-          "criterion": "ac-api",
-          "expected": "The specified result",
-          "scenario": "Read module"
-        }
-      ]
+      "open_questions": []
     }
   ]
 }

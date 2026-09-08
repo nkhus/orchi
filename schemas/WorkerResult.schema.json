@@ -1,4 +1,33 @@
 {
+  "$defs": {
+    "DocumentationProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        },
+        "content": {
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target",
+        "content",
+        "reason"
+      ],
+      "title": "DocumentationProposal",
+      "type": "object"
+    }
+  },
   "additionalProperties": false,
   "properties": {
     "status": {
@@ -30,6 +59,23 @@
         "type": "string"
       },
       "title": "Deviations",
+      "type": "array"
+    },
+    "observations": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Observations",
+      "type": "array"
+    },
+    "documentation_proposals": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/DocumentationProposal"
+      },
+      "title": "Documentation Proposals",
       "type": "array"
     }
   },

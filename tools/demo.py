@@ -9,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'skills/orchi/scripts'),str(ROOT/'tests')]
 from conftest import World, git
 from orchi_core.runner import run_ready
-from orchi_core import context
+from orchi_core import context, graph
 
 
 def main():
@@ -18,7 +18,9 @@ def main():
     a.out.mkdir(parents=True);w=World(a.out)
     cache=w.e.store.root/'cache/retrieval'
     initial_search=context.search(w.e.repo,w.e.state(),'zero',cache_root=cache)
-    w.begin();w.approve(w.e.plan(w.plan1()))
+    w.begin();target_search=context.search(w.e.repo,w.e.state(),"API","feature",view="target",cache_root=cache)
+    assert target_search["primary_matches"] and all(h["role"]=="target" for h in target_search["primary_matches"])
+    w.approve(w.propose_plan(w.plan1()))
     # Explicitly a fake deterministic process, not a model benchmark.
     r=run_ready(w.e,{'kind':'command','argv':[sys.executable,str(ROOT/'tests/fake_agent.py')]})
     assert all(x['status']=='integrated' for x in r['outcomes'])
@@ -33,24 +35,29 @@ def main():
     plan={'initiative_id':'feature','epic_id':'api','based_on':w.e.state()['head'],'goal':'Expose values',
           'shared_design':'Build on the verified prior epic, not initial canonical implementation',
           'acceptance':{'ac-api':'API available'},'acceptance_checks':{'ac-api':['api']},'tasks':[task]}
-    w.approve(w.e.plan(plan));ticket=w.e.claim('api')
+    w.approve(w.propose_plan(w.bind_design(plan)));ticket=w.e.claim('api')
     shutil.copytree(Path(ticket['packet']).parent,a.out/'task-packet')
     w.activate(ticket);(Path(ticket['workspace'])/'src/api.py').write_text('ANSWER = 3\n')
     w.e.submit(ticket['id'],{'status':'completed','summary':'Synthetic implementation'})
     w.pass_review();w.e.checkpoint({'epic_id':'api','based_on':w.e.state()['head'],'report':'Verified new API',
-        'entries':[{'target':'docs/api.md','action':'replace','content':'# API\nThe answer is three.\n','artifacts':['src/api.py'],'checks':['api'],'reason':'Verified interface'}],
+        'entries':[{'target':'docs/api.md','action':'replace','content':'---\nkind: component\n---\n# API\nThe answer is three.\n','artifacts':['src/api.py'],'checks':['api'],'reason':'Verified interface'}],
         'dispositions':[{'path':'src/api.py','targets':['docs/api.md'],'reason':'Interface changed'}]})
-    draft=w.e.final_draft();draft['report']='Synthetic cumulative reconciliation: values and API tested, source docs updated only now.'
+    draft=w.final();draft['report']='Synthetic cumulative reconciliation: values and API tested, source docs updated only now.'
     w.e.finalize(draft);w.approve(w.pass_review('initiative'));pub=w.e.publication()
     git(w.repo,'merge','--ff-only',pub['candidate']);w.e.record_publication(pub['candidate'])
     published_search=context.search(w.e.repo,w.e.state(),'answer',cache_root=cache)
     assert published_search['results'][0]['target']=='docs/api.md'
     assert published_search['results'][0]['layer']=='canonical'
     assert published_search['index']['fingerprint']!=initial_search['index']['fingerprint']
+    coverage=graph.coverage(w.e.repo,w.e.state(),'feature')
+    assert all(r['state']=='verified' for r in coverage['requirements'])
+    projection=graph.project(w.e.repo,w.e.state(),context.retrieval_snapshot(w.e.repo,w.e.state(),'feature','all'))
+    graph.write_map(projection,a.out/'knowledge-map.html')
     w.e.export(a.out/'audit')
     report={'synthetic':True,'live_model':False,'stages':['direction','epic-values','epic-api','finalization','final-approval','operator-publication'],
             'parallel_outcomes':r['outcomes'],'intermediate':intermediate,'publication':pub,
-            'retrieval':{'initial_core':initial_search,'working':working_search,'published_core':published_search},
+            'coverage':coverage,'graph':{'nodes':len(projection['nodes']),'edges':len(projection['edges']),'map':'knowledge-map.html'},
+            'retrieval':{'target':target_search,'initial_core':initial_search,'working':working_search,'published_core':published_search},
             'canonical_commits':len(git(w.repo,'rev-list',w.baseline+'..main').splitlines()),'phase':w.e.state()['phase']}
     (a.out/'demo-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps({'out':str(a.out),'phase':report['phase'],'canonical_commits':report['canonical_commits'],'synthetic':True}))

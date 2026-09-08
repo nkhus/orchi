@@ -1,0 +1,198 @@
+{
+  "validation_date": "2026-09-08",
+  "environment": {
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5",
+    "git": "git version 2.47.3",
+    "sqlite": "3.46.1",
+    "dependencies": {
+      "pydantic": "2.13.4",
+      "cryptography": "46.0.4",
+      "PyYAML": "6.0.3",
+      "pytest": "9.0.2"
+    },
+    "tested_python_versions": [
+      "3.13.5"
+    ],
+    "hosted_ci_executed": false,
+    "network_install_executed": false
+  },
+  "input_sha256": {
+    "Orchi-Target-Pack.zip": "137137c9472473d15d03338a00b0f2da96cc81223041de501d3b4cd004c648f9",
+    "Orchi Target Vision.txt": "fee1fa24bb473f13c8c187e5f1a7f13b897424017c13f0bb324a41a332458670",
+    "Orchi Target Implementation Plan.txt": "5e210b1f122f0bb5ef267ec099b67a3f0a3092f524a8d97d4cc3e31b16fffc45"
+  },
+  "pytest": {
+    "tests": 276,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 276,
+    "seconds": 516.352
+  },
+  "pytest_by_module": {
+    "tests.test_contracts": 38,
+    "tests.test_development_flows": 24,
+    "tests.test_gates_context": 11,
+    "tests.test_greenfield": 1,
+    "tests.test_install_skills": 11,
+    "tests.test_intent": 21,
+    "tests.test_knowledge_cli": 2,
+    "tests.test_lifecycle": 9,
+    "tests.test_ontology_graph": 18,
+    "tests.test_packaging": 14,
+    "tests.test_parallel": 7,
+    "tests.test_process_store": 7,
+    "tests.test_reconciliation": 20,
+    "tests.test_recovery_and_final": 7,
+    "tests.test_retrieval": 45,
+    "tests.test_retrieval_cli": 10,
+    "tests.test_review": 5,
+    "tests.test_synchronization_publication": 16,
+    "tests.test_workflow_boundaries": 10
+  },
+  "new_parameterized_test_cases": 50,
+  "source_validation": {
+    "ok": true,
+    "errors": [],
+    "python_files_compiled": 56,
+    "schemas": 13,
+    "skills": 5,
+    "files": 132
+  },
+  "canonical_lint": {
+    "ok": true,
+    "documents": 14,
+    "diagnostics": [],
+    "scope": "canonical",
+    "view": "current",
+    "status": "ready"
+  },
+  "installed_runtime": {
+    "ok": true,
+    "installer": "local",
+    "runner": "python",
+    "skills": 5,
+    "schemas": 13,
+    "preserved_files": 5,
+    "retrieval_readback": true,
+    "retrieval_cache_reused": true,
+    "target_exact_readback": true,
+    "graph_map_lint_coverage": true,
+    "live_model": false
+  },
+  "multi_epic_demo": {
+    "synthetic": true,
+    "live_model": false,
+    "stages": [
+      "direction",
+      "epic-values",
+      "epic-api",
+      "finalization",
+      "final-approval",
+      "operator-publication"
+    ],
+    "parallel_outcomes": [
+      {
+        "task_id": "right",
+        "status": "integrated",
+        "head": "7d1daa28a4154f3256e66a0e8cf7e8c8861c75c3",
+        "evidence": "28c2d9b623d108500b5921e2a37d46ed7786cfb04ab653580fb96ebd3bf1fa47",
+        "isolated": "f9198eb9815ccbe8b45d1675601bcc0c229cc284f37744c62e16abc82fa3dd92",
+        "recompositions": 0
+      },
+      {
+        "task_id": "left",
+        "status": "integrated",
+        "head": "37a845e451a02f615f86108e3c3d61cce23bd50e",
+        "evidence": "a388472acda1f10fb8deefa6e5f57b0632d746bf59ded59c52841a9b275fad4e",
+        "isolated": "b960fe339948bb31347c8203d26fb64ebcacbbb2e6e54188ca0f0f6b9e4766f7",
+        "recompositions": 1
+      }
+    ],
+    "publication": {
+      "canonical_ref": "refs/heads/main",
+      "expected_parent": "281024c28ea3a3ea1b46a4a48596718e484ab3f1",
+      "origin_baseline": "281024c28ea3a3ea1b46a4a48596718e484ab3f1",
+      "candidate": "38fecb35b8bf61bdf74b5b8400c140eb3f551b75",
+      "tree": "20294508357474493ee55b8997a151d8983b7ade",
+      "mode": "exact",
+      "action": "Publish through the operator's local Git or existing PR/MR workflow, then record-publication. No remote PR or deployment is created by this handoff.",
+      "acceptance": "Exact checked tree and approved integration base are mandatory. Queue recomposition with additional code requires synchronization and new final approval."
+    },
+    "canonical_commits": 1,
+    "phase": "PUBLISHED",
+    "coverage": {
+      "requirements": [
+        {
+          "id": "req-user",
+          "state": "verified",
+          "disposition": "satisfied"
+        }
+      ],
+      "architecture": [
+        {
+          "target": "intent/architecture/README.md",
+          "state": "verified",
+          "disposition": "realized"
+        }
+      ]
+    },
+    "core_unchanged_at_intermediate_checkpoint": true
+  },
+  "two_initiative_demo": {
+    "synthetic": true,
+    "live_model": false,
+    "original_baseline": "281024c28ea3a3ea1b46a4a48596718e484ab3f1",
+    "first": {
+      "phase": "PUBLISHED",
+      "publication": "ae385b2584b1584127ffb9b6397ed3391e351a1b"
+    },
+    "second": {
+      "phase": "PUBLISHED",
+      "publication": "256b6427815a3fc5a2361b73b525267c13060c78",
+      "old_integration_base": "281024c28ea3a3ea1b46a4a48596718e484ab3f1",
+      "accepted_integration_base": "ae385b2584b1584127ffb9b6397ed3391e351a1b",
+      "origin_baseline": "281024c28ea3a3ea1b46a4a48596718e484ab3f1"
+    },
+    "synchronizations": 1,
+    "canonical_commits": 2,
+    "left": "VALUE = 1\n",
+    "right": "VALUE = 2\n",
+    "external_pr": false,
+    "deployment": false,
+    "derived_view": {
+      "status": "ready",
+      "derived": true,
+      "records": 5,
+      "manifest_digest": "51f8cfc9ea18f710017a9286271628f732f9b495272bc5c89724827e564f8ce9",
+      "diagnostics": []
+    }
+  },
+  "live_agent_evaluations": {
+    "cases": 54,
+    "executed": 0,
+    "status": "not_executed_live"
+  },
+  "package_boundary": {
+    "root": "orchi",
+    "fresh_controller_required": true,
+    "state_version": 2,
+    "delivery": "atomic",
+    "active_epics_per_initiative": 1
+  },
+  "validation_limits": [
+    "Linux/Python 3.13.5 only executed locally",
+    "No live coding model or authentication evaluation",
+    "No hosted PR/merge queue or deployment execution",
+    "No network npx/uv installation",
+    "No multi-host resource fencing or production sandbox certification"
+  ],
+  "final_packaging_test_rerun": {
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "additional_unique_cases": 0,
+    "notice": "These cases are included in the complete 276-case suite, not another 14 unique tests."
+  }
+}

@@ -11,22 +11,22 @@ from pathlib import Path
 import time
 import uuid
 from typing import Any
-from . import context
-from .common import OrchiError, canonical, core_target, digest, path, protected, require, safe_text, write_json
+from . import context, intent, ontology, reconciliation, preflight, authoring
+from .common import OrchiError, canonical, core_target, digest, path, protected, require, safe_text, sha, write_json, integration_base
 from .models import Policy, Initiative, EpicPlan, Checkpoint, Finalization, Readiness, WorkerResult, ReviewReport
 from .process import run
 from .repository import Repository
 from .signing import verify as verify_signature
 from .store import Store
 
-ACTIVE_TICKETS = {"claimed", "running", "checking"}
+ACTIVE_TICKETS = {"claimed", "running", "checking", "validated", "integrating"}
 
 
 class Engine:
     def __init__(self, control: str | Path):
         self.store = Store(control)
         s = self.store.read()
-        require(s["format"] == "orchi-state", "UNSUPPORTED_STATE", "Unrecognized control-state format; use the matching control directory")
+        require(s["format"] == "orchi-state" and s.get("state_version") == 2, "UNSUPPORTED_STATE", "Use a fresh control directory for these contracts; active older stores are not converted automatically")
         self.repo = Repository(s["repository"])
         self.policy = Policy.model_validate(s["policy"])
         self.workspaces = Path(s["workspaces"])
@@ -40,11 +40,15 @@ class Engine:
         work = c.parent / (c.name + "-workspaces")
         require(not work.is_relative_to(r.root), "CONTROL_BOUNDARY", str(work))
         r.resolve(p.canonical_ref)
-        Store(c).initialize({"format": "orchi-state", "repository": str(r.root), "workspaces": str(work),
+        if p.resource_directory is not None:
+            resource = Path(p.resource_directory).resolve()
+            require(not resource.is_relative_to(r.root), "CONTROL_BOUNDARY", "Shared check locks must be outside the target repository")
+        Store(c).initialize({"format": "orchi-state", "state_version": 2, "controller_id": uuid.uuid4().hex, "repository": str(r.root), "workspaces": str(work),
                             "policy": p.model_dump(), "phase": "EMPTY", "spec": None, "pending": None,
                             "operation": None, "evidence": [], "approvals": [], "epoch": 0,
                             "tickets": {}, "attempts": {}, "epic_attempts": {}, "total_attempts": 0,
-                            "reviews": {}, "epic_revisions": {}, "completed": [], "plan_history": []})
+                            "reviews": {}, "epic_revisions": {}, "completed": [], "plan_history": [],
+                            "sync_history": [], "final_history": [], "sync": None, "target_revision_required": False})
         return cls(c)
 
     def state(self) -> dict:
@@ -54,32 +58,54 @@ class Engine:
         return "initiatives/active/" + s["spec"]["id"] + "/"
 
     def _assert_core(self, s: dict, ref: str):
-        changed = [p for p in self.repo.diff(s["baseline"], ref) if p.startswith("docs/")]
+        changed = [p for p in self.repo.diff(integration_base(s), ref) if p.startswith("docs/")]
         require(not changed, "EARLY_CORE_WRITE", "Core may change only in final initiative reconciliation: " + ", ".join(changed))
+        if s.get("intent"):
+            prefix = self._prefix(s) + "intent/"
+            expected = {p: v for p, v in self.repo.files(s["intent"]["commit"]).items() if p.startswith(prefix)}
+            actual = {p: v for p, v in self.repo.files(ref).items() if p.startswith(prefix)}
+            require(actual == expected, "UNACCEPTED_INTENT_WRITE", "Accepted Intent is immutable during execution")
 
     def _request(self, s: dict, kind: str, inputs: dict) -> dict:
         require(s["pending"] is None, "PENDING_APPROVAL", "Resolve the existing approval first")
         request = {"format": "orchi-gate", "id": uuid.uuid4().hex, "kind": kind,
-                   "initiative_id": s["spec"]["id"], "baseline": s["baseline"], "head": s["head"],
+                   "initiative_id": s["spec"]["id"], "baseline": s["baseline"], "integration_base": integration_base(s), "head": s["head"],
                    "policy_digest": digest(s["policy"]), "inputs": inputs, "expires_at": int(time.time()) + 86400}
         s["pending"] = {"request": request, "previous_phase": s["phase"]}
         s["phase"] = "AWAITING_APPROVAL"
         self.store.artifact(request)
         return request
 
-    def begin(self, spec: dict) -> dict:
+    def begin(self, spec: dict, bundle: dict, first_plan: dict | None = None, design: str | None = None) -> dict:
         spec = Initiative.model_validate(spec).model_dump()
         s0 = self.state()
         require(s0["phase"] == "EMPTY", "INITIATIVE_EXISTS", "Each control directory runs one initiative")
         baseline = self.repo.resolve(self.policy.canonical_ref)
+        require(not any(p.startswith(("initiatives/active/" + spec["id"] + "/", "initiatives/archive/" + spec["id"] + "/"))
+                        for p in self.repo.files(baseline)), "INITIATIVE_ID_COLLISION", "Use a new initiative ID; canonical provenance is immutable")
+        bundle = intent.validate(bundle, spec, context.core(self.repo, baseline), self.repo.files(baseline))
+        require(bundle["manifest"]["revision"] == 1 and not bundle["manifest"]["resolved_requirements"],
+                "INVALID_INTENT_REVISION", "Initial acceptance starts at revision one without historical resolutions")
         evidence = self._checks(baseline, self.policy.baseline_checks, "baseline")
         require(evidence["passed"], "BASELINE_FAILED", "Baseline checks failed; inspect evidence " + evidence["id"])
+        frozen = self.store.artifact(bundle)
         with self.store.transaction("initiative.propose") as s:
             require(s["phase"] == "EMPTY", "STATE_CHANGED", "Initiative already created")
-            s.update(spec=spec, spec_revision=1, spec_history=[], baseline=baseline, head=baseline,
-                     knowledge_head=baseline, knowledge={}, knowledge_revision=0, active=None, final=None)
+            s.update(spec=spec, spec_revision=1, spec_history=[], baseline=baseline, origin_baseline=baseline, integration_base=baseline, head=baseline,
+                     knowledge_head=baseline, knowledge={}, knowledge_revision=0, active=None, final=None,
+                     intent=None, intent_history=[])
             s["evidence"].append(evidence)
-            return self._request(s, "direction", {"spec": spec})
+            inputs = {"spec": spec, "intent_bundle": frozen, "intent_manifest_digest": spec["intent"]["digest"]}
+            if first_plan is not None:
+                require(design is not None, "DESIGN_REQUIRED", "A combined initial gate needs exact Epic Design")
+                first_plan = EpicPlan.model_validate(first_plan).model_dump()
+                preview = copy.deepcopy(s)
+                provisional = self.repo.write(baseline, intent.commit_contents(bundle, self._prefix(s)), "Orchi unaccepted target preview")
+                preview["intent"] = {"commit": provisional, "digest": spec["intent"]["digest"], "revision": 1}
+                self._validate_plan(preview, first_plan, design)
+                inputs.update(first_plan=first_plan, design_artifact=self.store.artifact({"content": design}),
+                              preflight=preflight.inspect(self, preview, first_plan, design))
+            return self._request(s, "direction", inputs)
 
     def approve(self, approval: dict) -> dict:
         with self.store.transaction("human.decision") as s:
@@ -92,35 +118,61 @@ class Engine:
             previous = s["pending"]["previous_phase"]
             s["pending"] = None
             if approval["decision"] == "reject":
-                back = previous if previous in {"EMPTY", "PLANNING", "FINALIZING"} else ("FINALIZING" if req["kind"] == "final" else "PAUSED")
+                back = previous if previous in {"EMPTY", "PLANNING", "FINALIZING", "SYNC_REVIEW"} else ("FINALIZING" if req["kind"] == "final" else "PAUSED")
+                if req["kind"] == "tasks-amend":
+                    back = "EXECUTING"
                 s.update(phase=back, paused_from=previous, reason="Human rejected " + req["kind"])
                 return {"phase": s["phase"]}
             kind, inputs = req["kind"], req["inputs"]
-            if kind in {"direction", "roadmap"}:
-                if kind == "roadmap":
+            if kind in {"direction", "intent"}:
+                bundle = self.store.get_artifact(inputs["intent_bundle"])
+                current = context.core(self.repo, integration_base(s)) if kind == "direction" else context.retrieval_snapshot(self.repo, s, s["spec"]["id"], "current").records
+                intent.validate(bundle, inputs["spec"], current, self.repo.files(s["knowledge_head"]),
+                                evidence=[e["id"] for e in s["evidence"]], completed=s["completed"])
+                previous_bundle = intent.accepted(self.repo, s) if kind == "intent" else None
+                if kind == "intent":
+                    intent.validate_revision(previous_bundle, bundle)
                     s["spec_history"].append(s["spec"])
+                    s["intent_history"].append({**s["intent"], "revision_record": inputs["revision"]})
                     s["spec_revision"] += 1
-                    s["spec"] = inputs["spec"]
                     s["final"] = None
-                s["head"] = self.repo.write(s["head"], {self._prefix(s) + "initiative.json": canonical(s["spec"])}, "Orchi accepted initiative direction")
-                s["phase"] = "PLANNING"
+                    s["target_revision_required"] = False
+                s["spec"] = inputs["spec"]
+                contents = intent.commit_contents(bundle, self._prefix(s), previous_bundle)
+                contents[self._prefix(s) + "initiative.json"] = canonical(s["spec"])
+                # Revision snapshots survive a normal clone of the final one-parent publication.
+                history = self._prefix(s) + "intent-history/" + str(bundle["manifest"]["revision"]) + "/"
+                contents.update({history + p: text.encode() for p, text in bundle["documents"].items()})
+                contents[history + "manifest.json"] = canonical(bundle["manifest"])
+                contents[history + "initiative.json"] = canonical(s["spec"])
+                contents[history + "acceptance.json"] = canonical({"gate": req, "approval": approval})
+                s["head"] = self.repo.write(s["head"], contents, "Orchi accepted initiative target")
+                s["intent"] = {"commit": s["head"], "digest": s["spec"]["intent"]["digest"],
+                               "revision": bundle["manifest"]["revision"]}
+                s["phase"] = "PLANNING" if self.next_epic(s) is not None else "FINALIZING"
+                if kind == "direction" and inputs.get("first_plan") is not None:
+                    self._accept_epic(s, {**inputs, "plan": inputs["first_plan"]}, "epic")
             elif kind in {"epic", "amend"}:
-                plan = inputs["plan"]
-                eid = plan["epic_id"]
-                revision = s["epic_revisions"].get(eid, 0) + 1
-                s["epic_revisions"][eid] = revision
-                initial = s["active"]["initial_head"] if kind == "amend" else s["head"]
-                if kind == "amend":
-                    s["plan_history"].append(copy.deepcopy(s["active"]))
-                    s["epoch"] += 1
-                prefix = self._prefix(s) + "epics/" + eid + "/"
-                files = {prefix + "plans/" + str(revision) + ".json": canonical(plan)}
-                for t in plan["tasks"]:
-                    files[prefix + "tasks/" + str(revision) + "/" + t["id"] + ".json"] = canonical(t)
-                s["head"] = self.repo.write(s["head"], files, "Orchi accepted epic plan " + eid)
-                s["active"] = {"plan": plan, "digest": digest(plan), "revision": revision, "initial_head": initial,
-                               "tasks": {t["id"]: {"status": "pending", "ticket": None, "repair": False} for t in plan["tasks"]}}
-                s["phase"] = "EXECUTING"
+                self._accept_epic(s, inputs, kind)
+            elif kind == "sync":
+                from .synchronization import accept
+                accept(self, s, inputs, req, approval)
+            elif kind == "tasks-amend":
+                from .execution import accept_amendment
+                accept_amendment(self, s, inputs)
+            elif kind == "stop-epic":
+                active = s["active"]
+                require(active and active["digest"] == inputs["plan_digest"], "STALE_APPROVAL", "Active epic changed")
+                abandoned = {**copy.deepcopy(active), "abandoned": True, "stopped_head": s["head"], "reason": inputs["reason"]}
+                s["plan_history"].append(abandoned)
+                prefix = self._prefix(s) + "epics/" + active["plan"]["epic_id"] + "/"
+                files = {p: self.repo.read(s["head"], p) for p in self.repo.files(s["head"]) if p.startswith(prefix)}
+                files[prefix + "stopped/" + str(active["revision"]) + ".json"] = canonical({"epic": abandoned, "gate": req, "approval": approval})
+                s["head"] = self.repo.write(active["initial_head"], files, "Orchi stopped epic at verified boundary")
+                s["epoch"] += 1
+                s["reviews"].pop(active["plan"]["epic_id"], None)
+                s["active"] = None
+                s["phase"] = "PLANNING"
             elif kind == "final":
                 require(s["final"] and inputs["candidate"] == s["final"]["commit"], "STALE_APPROVAL", "Candidate changed")
                 s["final"]["approved"] = True
@@ -131,8 +183,45 @@ class Engine:
             else:
                 raise OrchiError("INVALID_GATE", kind)
             self._assert_core(s, s["head"])
-            self.repo.pin(s["spec"]["id"] + "/head", s["head"])
+            self._pin(s, "head", s["head"])
             return {"phase": s["phase"], "head": s["head"]}
+
+    def _accept_epic(self, s: dict, inputs: dict, kind: str):
+        plan = inputs["plan"]
+        eid = plan["epic_id"]
+        revision = s["epic_revisions"].get(eid, 0) + 1
+        s["epic_revisions"][eid] = revision
+        initial = s["active"]["initial_head"] if kind == "amend" else s["head"]
+        if kind == "amend":
+            s["plan_history"].append(copy.deepcopy(s["active"]))
+            s["epoch"] += 1
+        prefix = self._prefix(s) + "epics/" + eid + "/"
+        design = self.store.get_artifact(inputs["design_artifact"])
+        require(sha(design["content"].encode()) == plan["design"]["content_hash"], "DESIGN_CONTENT_CHANGED", "Approved design differs")
+        files = {prefix + "plans/" + str(revision) + ".json": canonical(plan),
+                 prefix + plan["design"]["path"]: design["content"].encode()}
+        for t in plan["tasks"]:
+            files[prefix + "tasks/" + str(revision) + "/" + t["id"] + ".json"] = canonical(t)
+        s["head"] = self.repo.write(s["head"], files, "Orchi accepted epic plan " + eid)
+        s["active"] = {"plan": plan, "digest": digest(plan), "revision": revision, "initial_head": initial,
+                       "tasks": {t["id"]: {"status": "pending", "ticket": None, "repair": False} for t in plan["tasks"]},
+                       "design_source": {"target": "epics/" + eid + "/" + plan["design"]["path"],
+                           "source_commit": s["head"], "source_path": prefix + plan["design"]["path"],
+                           "content_hash": plan["design"]["content_hash"]}}
+        s["phase"] = "EXECUTING"
+
+    def _pin(self, s: dict, label: str, commit: str):
+        self.repo.pin("runs/" + s["controller_id"] + "/" + s["spec"]["id"] + "/" + label, commit)
+
+    def begin_brief(self, brief: dict) -> dict:
+        baseline = self.repo.resolve(self.policy.canonical_ref)
+        spec, bundle, plan, design = authoring.expand(brief, baseline)
+        return self.begin(spec, bundle, plan, design)
+
+    def plan_preflight(self, plan: dict, design: str) -> dict:
+        plan = EpicPlan.model_validate(plan).model_dump()
+        self._validate_plan(self.state(), plan, design)
+        return preflight.inspect(self, self.state(), plan, design)
 
     def refresh_gate(self) -> dict:
         with self.store.transaction("human.refresh") as s:
@@ -147,21 +236,70 @@ class Engine:
         done = {e["epic_id"] for e in s["completed"]}
         return next((e for e in s["spec"]["epics"] if e["id"] not in done and set(e["depends_on"]) <= done), None)
 
-    def propose_roadmap(self, spec: dict, reason: str) -> dict:
+    def revise_intent(self, spec: dict, bundle: dict, reason: str, evidence: list[str]) -> dict:
         spec = Initiative.model_validate(spec).model_dump()
-        with self.store.transaction("initiative.roadmap.propose") as s:
-            require((s["phase"] in {"PLANNING", "FINALIZING"} or s["phase"] == "PAUSED" and s.get("paused_from") == "FINAL_REVIEW") and s["active"] is None, "EPIC_ACTIVE", "Revise future roadmap between epics or append a corrective epic after final review")
-            require(bool(reason.strip()) and spec["id"] == s["spec"]["id"], "INVALID_AMENDMENT", "Same initiative identity and explicit reason required")
+        require(bool(reason.strip()) and bool(evidence) and all(isinstance(e, str) and e.strip() for e in evidence),
+                "INVALID_AMENDMENT", "A target revision needs a reason and explicit evidence/decision references")
+        with self.store.transaction("initiative.intent.propose") as s:
+            require((s["phase"] in {"PLANNING", "FINALIZING"} or s["phase"] == "PAUSED" and s.get("paused_from") == "FINAL_REVIEW") and
+                    s["active"] is None and s["operation"] is None, "EPIC_ACTIVE", "Revise the target between epics; stop and release workers, then accept stop-epic before changing an active epic's target")
+            require(spec["id"] == s["spec"]["id"], "INVALID_AMENDMENT", "Keep the initiative identity")
+            old = intent.accepted(self.repo, s)
+            current = context.retrieval_snapshot(self.repo, s, spec["id"], "current").records
+            bundle = intent.validate(bundle, spec, current, self.repo.files(s["knowledge_head"]),
+                                     evidence=[e["id"] for e in s["evidence"]], completed=s["completed"])
+            revision = intent.validate_revision(old, bundle)
             done = {e["epic_id"] for e in s["completed"]}
-            old = {e["id"]: e for e in s["spec"]["epics"]}
-            new = {e["id"]: e for e in spec["epics"]}
-            require(all(new.get(e) == old[e] for e in done), "HISTORY_REWRITE", "Do not rewrite or remove completed epic contracts")
-            return self._request(s, "roadmap", {"spec": spec, "reason": reason})
+            prior = {e["id"]: e for e in s["spec"]["epics"]}
+            revised = {e["id"]: e for e in spec["epics"]}
+            require(all(revised.get(e) == prior[e] for e in done), "HISTORY_REWRITE", "Do not rewrite or remove completed epic contracts")
+            revision.update(reason=reason, evidence=evidence)
+            return self._request(s, "intent", {"spec": spec, "intent_bundle": self.store.artifact(bundle),
+                                              "intent_manifest_digest": spec["intent"]["digest"], "revision": revision})
 
-    def _validate_plan(self, s: dict, plan: dict):
+    def propose_roadmap(self, spec: dict, reason: str, evidence: list[str] | None = None) -> dict:
+        """Roadmap-only editing uses the same accepted target-revision boundary."""
+        s = self.state()
+        current = intent.accepted(self.repo, s)
+        bundle = intent.build(s["spec"]["id"], current["documents"], current["manifest"]["revision"] + 1,
+                              current["manifest"]["resolved_requirements"])
+        revised = {**spec, "intent": {"revision": bundle["manifest"]["revision"], "digest": digest(bundle["manifest"])}}
+        return self.revise_intent(revised, bundle, reason, evidence or ["Operator decision: " + reason])
+
+    def stop_epic(self, stopped: bool, reason: str) -> dict:
+        require(stopped and bool(reason.strip()), "STOP_ATTESTATION_REQUIRED", "Confirm that all epic worker processes stopped")
+        with self.store.transaction("epic.stop.propose") as s:
+            require(s.get("active") is not None and s["operation"] is None and s["pending"] is None,
+                    "WRONG_PHASE", "An active, idle epic is required")
+            require(not any(t["status"] in ACTIVE_TICKETS for t in s["tickets"].values()), "WORKERS_ACTIVE", "Stop and release tickets first")
+            return self._request(s, "stop-epic", {"plan_digest": s["active"]["digest"], "reason": reason,
+                                                 "discarded_code_head": s["head"], "return_to": s["active"]["initial_head"]})
+
+    def _validate_plan(self, s: dict, plan: dict, design: str):
+        require(not s.get("target_revision_required"), "INTENT_REVISION_REQUIRED", "Accepted synchronization requires a target revision before further design")
         require(plan["initiative_id"] == s["spec"]["id"] and plan["based_on"] == s["head"], "STALE_PLAN", "Plan against the actual initiative head")
         expected = s["active"]["plan"]["epic_id"] if s.get("active") else self.next_epic(s)["id"]
         require(plan["epic_id"] == expected, "NOT_NEXT_EPIC", "Only the next selected epic may have an executable task plan")
+        require(plan["intent_digest"] == s["spec"]["intent"]["digest"], "STALE_PLAN", "Plan against the accepted Intent snapshot")
+        revision = s["epic_revisions"].get(plan["epic_id"], 0) + 1
+        require(plan["design"]["path"] == "design/" + str(revision) + ".md", "INVALID_DESIGN_REVISION", "Use the next accepted epic plan revision")
+        safe_text(design.encode(), "epic-design.md")
+        require(sha(design.encode()) == plan["design"]["content_hash"], "DESIGN_CONTENT_CHANGED", "Design bytes differ from the plan hash")
+        fm = ontology.frontmatter(design)
+        require(fm.get("kind") == "reference", "INVALID_DESIGN_KIND", "Epic Design has kind: reference and an Orchi-assigned epic-design role")
+        epic = next(e for e in s["spec"]["epics"] if e["id"] == expected)
+        manifest = intent.accepted(self.repo, s)["manifest"]
+        relations = fm.get("relations", {})
+        require(isinstance(relations, dict), "INVALID_RELATIONS", "Design relations must be a mapping")
+        require(set(epic["contributes_to"]) - set(manifest["resolved_requirements"]) <= set(relations.get("addresses", [])) and
+                set(epic["realizes"]) <= set(relations.get("realizes", [])), "INCOMPLETE_DESIGN_TRACEABILITY", "Design must cite the selected epic's requirements and target architecture")
+        logical = "epics/" + expected + "/" + plan["design"]["path"]
+        records = context.retrieval_snapshot(self.repo, s, s["spec"]["id"], "all").records
+        records[logical] = {"content": design, "role": "epic-design"}
+        report = ontology.lint(records, self.repo.files(s["head"]), requirements=manifest["requirements"],
+                               evidence=[e["id"] for e in s["evidence"]], check_indexes=False)
+        errors = [d for d in report["diagnostics"] if d["severity"] == "error" and d["target"] == logical]
+        require(not errors, "INVALID_EPIC_DESIGN", json.dumps(errors))
         files = self.repo.files(s["head"])
         all_tasks = {t["id"]: t for t in plan["tasks"]}
         available = set(files)
@@ -176,7 +314,7 @@ class Engine:
                     "MISSING_DEPENDENCY_CONTRACT", "Each dependency needs an explicit output/contract source: " + tid)
             for src in task["context"]:
                 if src["kind"] == "knowledge":
-                    context.get(self.repo, s, src["path"], s["spec"]["id"])
+                    context.get(self.repo, s, src["path"], s["spec"]["id"], view=src["view"])
                 elif src["kind"] == "dependency":
                     producer = all_tasks[src["producer"]]
                     require(any(e["path"] == src["path"] and e["action"] != "delete" for e in producer["edits"]),
@@ -199,32 +337,27 @@ class Engine:
             checks = {c for v in task["verification"] for c in v["checks"]}
             require(checks <= set(self.policy.checks), "UNKNOWN_CHECK", tid)
         require({c for cs in plan["acceptance_checks"].values() for c in cs} <= set(self.policy.checks), "UNKNOWN_CHECK", plan["epic_id"])
-        # Every planned read/write edge must have an explicit order. Runtime reservations additionally
-        # include dynamically expanded knowledge artifact paths and registered extra reads.
-        for a in plan["tasks"]:
-            aw = {e["path"] for e in a["edits"]}
-            for b in plan["tasks"]:
-                if a["id"] == b["id"]:
-                    continue
-                br = set(b["read_paths"]) | {x["path"] for x in b["context"] if x["kind"] != "knowledge"}
-                if aw & br:
-                    require(a["id"] in reach[b["id"]] or b["id"] in reach[a["id"]], "UNDECLARED_DEPENDENCY", f"{a['id']} and {b['id']} share read/write paths")
+        # Read-only snapshots do not impose DAG edges. Actual dependencies still require
+        # explicit producer contracts; same-path planned writers remain ordered above.
+        report = preflight.inspect(self, s, plan, design)
+        require(report["ok"], "PLAN_PREFLIGHT_FAILED", json.dumps(report["tasks"]))
 
-    def plan(self, plan: dict) -> dict:
+    def plan(self, plan: dict, design: str) -> dict:
         plan = EpicPlan.model_validate(plan).model_dump()
         with self.store.transaction("epic.propose") as s:
             require(s["phase"] == "PLANNING" and s["active"] is None and self.next_epic(s) is not None, "WRONG_PHASE", "Plan only the next epic")
-            self._validate_plan(s, plan)
-            return self._request(s, "epic", {"plan": plan})
+            self._validate_plan(s, plan, design)
+            return self._request(s, "epic", {"plan": plan, "design_artifact": self.store.artifact({"content": design}),
+                                               "preflight": preflight.inspect(self, s, plan, design)})
 
-    def amend(self, plan: dict, reason: str) -> dict:
+    def amend(self, plan: dict, reason: str, design: str) -> dict:
         plan = EpicPlan.model_validate(plan).model_dump()
         with self.store.transaction("epic.amend.propose") as s:
             require(s.get("active") is not None and s["pending"] is None and s["operation"] is None, "WRONG_PHASE", "An active, idle epic is required")
             require(not any(t["status"] in ACTIVE_TICKETS for t in s["tickets"].values()), "WORKERS_ACTIVE", "Stop and release old workers before amendment")
             require(bool(reason.strip()), "INVALID_AMENDMENT", "Explain the material decision")
-            self._validate_plan(s, plan)
-            return self._request(s, "amend", {"plan": plan, "reason": reason})
+            self._validate_plan(s, plan, design)
+            return self._request(s, "amend", {"plan": plan, "reason": reason, "design_artifact": self.store.artifact({"content": design})})
 
     def _task(self, s: dict, tid: str) -> dict:
         require(s.get("active") is not None, "NO_ACTIVE_EPIC", "Select and approve an epic first")
@@ -236,7 +369,12 @@ class Engine:
         ticket = s["tickets"].get(ticket_id)
         require(ticket is not None, "UNKNOWN_TICKET", ticket_id)
         require(ticket["status"] in statuses and ticket["epoch"] == s["epoch"], "STALE_TICKET", ticket_id)
-        require(s.get("active") and ticket["plan_digest"] == s["active"]["digest"], "STALE_TICKET", "Epic definition changed")
+        require(s.get("active") and (ticket["plan_digest"] == s["active"]["digest"] or
+                ticket["plan_digest"] in s["active"].get("compatible_plan_digests", []) and
+                ticket.get("task_digest") == digest(self._task(s, ticket["task_id"]))),
+                "STALE_TICKET", "Epic or assigned task definition changed")
+        require(s["active"]["tasks"][ticket["task_id"]]["ticket"] == ticket_id,
+                "STALE_TICKET", "A newer attempt owns this task")
         require(ticket["expires_at"] > time.time(), "LEASE_EXPIRED", "Stop old process before explicit release; no automatic duplicate dispatch")
         return ticket
 
@@ -245,7 +383,7 @@ class Engine:
         task = self._task(s, tid)
         return meta["status"] == "pending" and all(s["active"]["tasks"][d]["status"] == "integrated" for d in task["depends_on"])
 
-    def claim(self, task_id: str | None = None) -> dict:
+    def claim(self, task_id: str | None = None, executor_filter: str | None = None) -> dict:
         with self.store.transaction("task.claim") as s:
             require(s["phase"] == "EXECUTING", "WRONG_PHASE", "Workers run only inside an approved epic")
             live = [t for t in s["tickets"].values() if t["status"] in ACTIVE_TICKETS]
@@ -264,11 +402,13 @@ class Engine:
                 if s["attempts"].get(key, 0) >= self.policy.max_attempts_per_task:
                     continue
                 task = self._task(s, tid)
+                if executor_filter is not None and task["executor"] != executor_filter:
+                    continue
                 p = context.packet(self.repo, s, task)
                 write_set = {e["path"] for e in task["edits"]}
                 read_set = set(p["read_hashes"])
                 resources = set(task["exclusive_resources"])
-                if any(write_set & (set(t["reads"]) | set(t["writes"])) or read_set & set(t["writes"]) or resources & set(t["resources"]) for t in live):
+                if any(write_set & set(t["writes"]) or resources & set(t["resources"]) for t in live):
                     continue
                 selected = (task, p, write_set, resources, key)
                 break
@@ -283,6 +423,10 @@ class Engine:
                 p["previous_candidate"] = prior
                 p["retry_instruction"] = "A prior attempt failed checks. Inspect its immutable candidate and evidence; reuse only approved paths. Do not repeat a blind implementation."
                 p["fingerprint"] = digest({k: v for k, v in p.items() if k != "fingerprint"})
+            handoff_id = s["active"]["tasks"][tid].get("handoff")
+            if handoff_id:
+                p["handoff"] = self.store.get_artifact(handoff_id)
+                p["fingerprint"] = digest({k: v for k, v in p.items() if k != "fingerprint"})
             require(len(context.render_packet(p).encode()) <= self.policy.max_packet_bytes, "CONTEXT_TOO_LARGE", "Required repair/retry context exceeds the packet budget")
             token = uuid.uuid4().hex
             home = self.workspaces / s["spec"]["id"] / token
@@ -292,10 +436,13 @@ class Engine:
             write_json(home / "input/packet.json", p)
             (home / "input/TASK.md").write_text(context.render_packet(p), encoding="utf-8")
             (home / "input/README.txt").write_text("Read TASK.md and packet.json in the assigned exact worktree. The packet does not include the repository. Prepare read-only, then activate the ticket before writes. Do not merge or change docs/policy.\n", encoding="utf-8")
-            ticket = {"id": token, "task_id": tid, "epic_id": eid, "epoch": s["epoch"],
-                      "plan_digest": s["active"]["digest"], "packet_id": p_id, "fingerprint": p["fingerprint"],
+            ticket = {"id": token, "task_id": tid, "epic_id": eid, "epoch": s["epoch"], "executor": task["executor"],
+                      "plan_digest": s["active"]["digest"], "task_digest": digest(task), "packet_id": p_id, "fingerprint": p["fingerprint"],
                       "start_commit": s["head"], "workspace": str(workspace), "packet": str(home / "input/packet.json"),
-                      "reads": p["read_hashes"], "writes": sorted(write_set), "resources": sorted(resources),
+                      "reads": p["read_hashes"], "snapshot_reads": p["snapshot_reads"],
+                      "authority_snapshot": self.store.artifact({k: s[k] for k in ("policy", "spec", "baseline", "integration_base", "head", "knowledge_head", "knowledge", "knowledge_revision", "intent")}),
+                      "scope_grants": [], "read_events": [], "integration_attempts": [],
+                      "writes": sorted(write_set), "resources": sorted(resources),
                       "created_at": time.time(), "expires_at": time.time() + self.policy.lease_seconds, "status": "claimed"}
             s["tickets"][token] = ticket
             s["active"]["tasks"][tid].update(status="claimed", ticket=token)
@@ -307,8 +454,9 @@ class Engine:
     def activate(self, ticket_id: str, readiness: dict) -> dict:
         readiness = Readiness.model_validate(readiness).model_dump()
         with self.store.transaction("task.activate") as s:
-            require(s["phase"] == "EXECUTING", "WRONG_PHASE", s["phase"])
+            from .execution import execution_allowed
             ticket = self._ticket(s, ticket_id, {"claimed"})
+            require(execution_allowed(s, ticket["task_id"]), "WRONG_PHASE", s["phase"])
             task = self._task(s, ticket["task_id"])
             require(not readiness["questions"], "READINESS_UNCERTAINTY", "Resolve substantive questions before execution")
             require(readiness["packet_fingerprint"] == ticket["fingerprint"] and set(readiness["acceptance_ids"]) == set(task["acceptance"]) and set(readiness["fixed_decisions"]) == set(task["decisions"]),
@@ -326,6 +474,8 @@ class Engine:
         for e in s["completed"]:
             checks.update(e["checks"])
         for old in s["plan_history"]:
+            if old.get("abandoned"):
+                continue
             for t in old["plan"]["tasks"]:
                 if old["tasks"][t["id"]]["status"] == "integrated":
                     checks.update(c for v in t["verification"] for c in v["checks"])
@@ -343,8 +493,10 @@ class Engine:
         for check_id in sorted(set(check_ids)):
             check = self.policy.checks[check_id]
             try:
-                results[check_id] = run(check.argv, workspace, check.timeout_seconds, self.policy.max_output_bytes)
-            except OSError as e:
+                from .resources import acquire
+                with acquire(self.policy, check.resources):
+                    results[check_id] = run(check.argv, workspace, check.timeout_seconds, self.policy.max_output_bytes)
+            except (OSError, OrchiError) as e:
                 results[check_id] = {"passed": False, "error": str(e), "argv": check.argv}
         clean = (not self.repo.git("diff", "--name-only", "HEAD", cwd=workspace).strip() and
                  self.repo.git("rev-parse", "HEAD", cwd=workspace).decode().strip() == commit)
@@ -354,53 +506,32 @@ class Engine:
         return body
 
     def submit(self, ticket_id: str, result: dict) -> dict:
-        result = WorkerResult.model_validate(result).model_dump()
-        with self.store.transaction("task.submission.reserve") as s:
-            require(s["phase"] == "EXECUTING", "WRONG_PHASE", s["phase"])
-            ticket = self._ticket(s, ticket_id, {"running"})
-            if result["status"] != "completed" or result["deviations"]:
-                ticket.update(status="blocked", result=self.store.artifact(result))
-                s["active"]["tasks"][ticket["task_id"]].update(status="blocked", reason=result["summary"])
-                return {"status": "blocked", "reason": result["summary"]}
-            require(s["operation"] is None, "INTEGRATOR_BUSY", "Another verification/integration is running; retry this submission without re-running the worker")
-            for p in result["extra_reads"]:
-                ticket["reads"].update(self.repo.hashes(ticket["start_commit"], [p]))
-            self._fresh_reads(s, ticket)
-            task = self._task(s, ticket["task_id"])
-            candidate = self.repo.snapshot(Path(ticket["workspace"]), ticket["start_commit"], set(ticket["writes"]))
-            changed = self.repo.diff(ticket["start_commit"], candidate)
-            require(bool(changed), "EMPTY_CANDIDATE", "No product changes were produced")
-            require(set(changed) <= set(ticket["writes"]), "SCOPE_VIOLATION", "Candidate escaped task scope")
-            self._assert_core(s, candidate)
-            combined = self.repo.merge_candidate(s["head"], ticket["start_commit"], candidate)
-            task_checks = sorted({c for v in task["verification"] for c in v["checks"]})
-            combined_checks = sorted(set(self._all_checks(s)) | set(task_checks))
-            op = {"id": uuid.uuid4().hex, "kind": "integration", "head": s["head"], "ticket": ticket_id}
-            s["operation"] = op
-            ticket.update(status="checking", candidate=candidate, result=self.store.artifact(result))
-            s["active"]["tasks"][ticket["task_id"]]["status"] = "checking"
-        try:
-            isolated = self._checks(candidate, task_checks, "task")
-            integrated = self._checks(combined, combined_checks, "combined") if isolated["passed"] else None
-        except BaseException:
-            # Durable operation remains for explicit operator recovery after a controller crash.
-            raise
-        with self.store.transaction("task.submission.accept") as s:
-            require(s["operation"] == op and s["head"] == op["head"] and s["phase"] == "EXECUTING", "STATE_CHANGED", "Integration authority changed")
-            ticket = self._ticket(s, ticket_id, {"checking"})
-            s["operation"] = None
-            s["evidence"].extend([isolated] + ([integrated] if integrated else []))
-            meta = s["active"]["tasks"][ticket["task_id"]]
-            if not isolated["passed"] or integrated is None or not integrated["passed"]:
-                ticket["status"] = "blocked"
-                meta.update(status="blocked", reason="Actual isolated or combined checks failed", candidate=candidate)
-                return {"status": "blocked", "isolated": isolated["id"], "combined": integrated["id"] if integrated else None}
-            self._fresh_reads(s, ticket)
-            s["head"] = combined
-            ticket["status"] = "integrated"
-            meta.update(status="integrated", commit=combined, evidence=integrated["id"])
-            self.repo.pin(s["spec"]["id"] + "/head", combined)
-            return {"status": "integrated", "head": combined, "evidence": integrated["id"]}
+        from .execution import submit
+        return submit(self, ticket_id, result)
+
+    def integrate(self, ticket_id: str) -> dict:
+        from .execution import integrate
+        return integrate(self, ticket_id)
+
+    def acquire_scope(self, ticket_id: str, request: dict) -> dict:
+        from .execution import acquire_scope
+        return acquire_scope(self, ticket_id, request)
+
+    def ticket_read(self, ticket_id: str, target: str, **options) -> dict:
+        from .execution import ticket_read
+        return ticket_read(self, ticket_id, target, **options)
+
+    def handoff(self, ticket_id: str, stopped: bool, reason: str, executor: str = "human") -> dict:
+        from .execution import handoff
+        return handoff(self, ticket_id, stopped, reason, executor)
+
+    def import_candidate(self, ticket_id: str, commit: str, base: str, reason: str) -> dict:
+        from .execution import import_candidate
+        return import_candidate(self, ticket_id, commit, base, reason)
+
+    def amend_tasks(self, plan: dict, design: str, affected: list[str], reason: str) -> dict:
+        from .execution import amend_tasks
+        return amend_tasks(self, plan, design, affected, reason)
 
     def release(self, ticket_id: str, stopped: bool, reason: str) -> dict:
         require(stopped and bool(reason.strip()), "STOP_ATTESTATION_REQUIRED", "Operator must confirm the old process is stopped")
@@ -464,8 +595,8 @@ class Engine:
                 checks = sorted(set(self._all_checks(s)) | {c for cs in s["active"]["plan"]["acceptance_checks"].values() for c in cs})
             else:
                 require(s["phase"] == "FINAL_REVIEW" and s.get("final"), "WRONG_PHASE", "Final candidate must be verified first")
-                key, base, target = "@initiative", s["baseline"], s["final"]["commit"]
-                checks = sorted(set(self._all_checks(s)) | set(self.policy.final_checks))
+                key, base, target = "@initiative", integration_base(s), s["final"]["commit"]
+                checks = sorted(set(self._all_checks(s)) | set(self.policy.final_checks) | set(s["final"]["verified"]["checks"]))
             ledger = s["reviews"].setdefault(key, {"rounds": 0, "findings": {}, "history": [], "pending": None})
             if ledger["pending"]:
                 return ledger["pending"]
@@ -492,6 +623,8 @@ class Engine:
                        "all_changed_paths": paths, "known_findings": ledger["findings"],
                        "verification": evidence["id"], "checks": sorted(evidence["checks"]),
                        "definition": s["active"]["plan"] if scope == "epic" else s["spec"],
+                       "intent": s["intent"], "reconciliation": s["final"].get("reconciliation") if scope == "initiative" else None,
+                       "design_source": s["active"]["design_source"] if scope == "epic" else None,
                        "diff": self.repo.patch(base if not targeted else ledger["last_head"], target),
                        "instructions": "Review this exact diff and acceptance, not a general bug hunt. Supply causal evidence. "
                                        "No significant finding is a valid result. Resolve known blockers; do not invent stylistic repairs. "
@@ -552,7 +685,9 @@ class Engine:
             s["phase"] = "FINAL_REVIEW"
             return self._request(s, "final", {"candidate": final["commit"], "tree": self.repo.tree(final["commit"]),
                                                "report": final["report"], "verification": final["verified"]["id"],
-                                               "review": ledger["history"][-1], "acceptance": final["acceptance_checks"]})
+                                               "review": ledger["history"][-1], "intent_digest": final["intent_digest"],
+                                               "reconciliation": final["reconciliation"], "publication_mode": self.policy.publication_mode,
+                                               "integration_base": integration_base(s)})
 
     def repair(self) -> dict:
         with self.store.transaction("review.targeted-repair") as s:
@@ -572,13 +707,16 @@ class Engine:
     def _normalize_knowledge(self, s: dict, edits: list[dict], verified: dict) -> dict[str, dict]:
         require(len({e["target"] for e in edits}) == len(edits), "DUPLICATE_TARGET", "One knowledge action per target")
         result = {}
-        baseline_docs = context.core(self.repo, s["baseline"])
+        baseline_docs = context.core(self.repo, integration_base(s))
         for edit in edits:
             target = edit["target"]
-            require(set(edit["checks"]) <= set(verified["checks"]) and all(verified["checks"][c]["passed"] for c in edit["checks"]),
-                    "UNVERIFIED_KNOWLEDGE", target)
+            if "planned_checks" in verified:
+                require(set(edit["checks"]) <= set(verified["planned_checks"]), "UNKNOWN_CHECK", target)
+            else:
+                require(set(edit["checks"]) <= set(verified["checks"]) and all(verified["checks"][c]["passed"] for c in edit["checks"]),
+                        "UNVERIFIED_KNOWLEDGE", target)
             for p in edit["artifacts"]:
-                require(p in self.repo.files(s["head"]) or p in self.repo.files(s["baseline"]), "MISSING_ARTIFACT", p)
+                require(p in self.repo.files(s["head"]) or p in self.repo.files(integration_base(s)), "MISSING_ARTIFACT", p)
             old = s["knowledge"].get(target)
             action, content_value = edit["action"], edit["content"]
             if action == "revalidate":
@@ -592,10 +730,10 @@ class Engine:
             if content_value is not None:
                 safe_text(content_value.encode(), target)
                 fm = context.frontmatter(content_value)
-                require(fm.get("lifecycle") not in {"proposed", "history"}, "PROPOSAL_AS_KNOWLEDGE", target)
+                require(not (set(fm) & ontology.AUTHORITY_FIELDS) and fm.get("kind") not in {"requirements", "architecture"}, "PROPOSAL_AS_KNOWLEDGE", target)
             result[target] = {"target": target, "action": action, "content": content_value,
                               "artifact_hashes": self.repo.hashes(s["head"], edit["artifacts"]), "checks": edit["checks"],
-                              "reason": edit["reason"], "verified_code_commit": s["head"], "evidence": verified["id"],
+                              "reason": edit["reason"], "verified_code_commit": s["head"], "evidence": verified.get("id"),
                               "source_path": self._prefix(s) + "knowledge/" + target}
         return result
 
@@ -620,6 +758,15 @@ class Engine:
                 require(set(ds[p]["targets"]) <= set(entries), "MISSING_KNOWLEDGE_ENTRY", p)
                 required.update(expected)
             require(required <= set(entries), "STALE_WORKING_KNOWLEDGE", "Affected previous working knowledge was not reconciled")
+            prospective = context.retrieval_snapshot(self.repo, s, s["spec"]["id"], "current").records
+            for target, entry in entries.items():
+                prospective.pop(target, None)
+                if entry["action"] == "replace":
+                    prospective[target] = {"target": target, "content": entry["content"], "role": "current"}
+            report = ontology.lint(prospective, self.repo.files(s["head"]),
+                                   evidence=[e["id"] for e in s["evidence"]], strict_paths=[t for t, e in entries.items() if e["action"] == "replace"], check_indexes=False,
+                                   lookup=lambda p: safe_text(self.repo.read(s["head"], p), p))
+            require(report["ok"], "CHECKPOINT_ONTOLOGY", json.dumps([d for d in report["diagnostics"] if d["severity"] == "error"]))
             old_head = s["head"]
             knowledge = {**s["knowledge"], **entries}
             contents = {}
@@ -638,40 +785,48 @@ class Engine:
             s["knowledge"] = {**s["knowledge"], **entries}
             s["knowledge_revision"] += 1
             s["head"] = s["knowledge_head"] = checkpoint_commit
+            accepted_manifest = intent.accepted(self.repo, s)["manifest"]
+            roadmap_epic = next(e for e in s["spec"]["epics"] if e["id"] == eid)
+            requirement_bindings = {rid: {"ref": accepted_manifest["requirements"][rid],
+                "content_hash": accepted_manifest["documents"][accepted_manifest["requirements"][rid].split("#")[0].removeprefix("intent/")]}
+                for rid in roadmap_epic["contributes_to"] if rid in accepted_manifest["requirements"]}
+            architecture_bindings = {ref.split("#")[0]: {"ref": ref.split("#")[0],
+                "content_hash": accepted_manifest["documents"][ref.split("#")[0].removeprefix("intent/")]}
+                for ref in roadmap_epic["realizes"]}
             s["completed"].append({"epic_id": eid, "plan_digest": active["digest"], "initial_head": active["initial_head"],
+                                   "intent_digest": s["spec"]["intent"]["digest"], "design_source": active["design_source"],
+                                   "artifacts": sorted(changed), "target_bindings": {"requirements": requirement_bindings, "architecture": architecture_bindings},
                                    "code_commit": old_head, "checkpoint": checkpoint_commit, "knowledge_revision": s["knowledge_revision"],
                                    "checks": sorted(active["verified"]["checks"]), "evidence": active["verified"]["id"],
                                    "tasks": task_results, "review": s["reviews"][eid]["history"][-1]})
             s["active"] = None
             s["phase"] = "PLANNING" if self.next_epic(s) is not None else "FINALIZING"
             self._assert_core(s, s["head"])
-            self.repo.pin(s["spec"]["id"] + "/head", s["head"])
+            self._pin(s, "head", s["head"])
             return {"status": "epic_completed", "phase": s["phase"], "head": s["head"], "knowledge_revision": s["knowledge_revision"]}
 
     def final_draft(self) -> dict:
         s = self.state()
         require(s["phase"] == "FINALIZING", "WRONG_PHASE", "Complete all epics before final reconciliation")
-        entries = [{"target": t, "action": r["action"], "content": r["content"], "artifacts": list(r["artifact_hashes"]),
-                    "checks": r["checks"], "reason": r["reason"]} for t, r in sorted(s["knowledge"].items())]
-        return {"format": "orchi-finalization", "initiative_id": s["spec"]["id"], "based_on": s["head"],
-                "report": "REPLACE: reconcile cumulative verified semantics, document omissions and cross-epic consistency.",
-                "entries": entries, "acceptance_checks": {a: list(self.policy.final_checks) for a in s["spec"]["acceptance"]}}
+        return reconciliation.draft(self.repo, s, list(self.policy.final_checks))
 
     def finalize(self, proposal: dict) -> dict:
         proposal = Finalization.model_validate(proposal).model_dump()
         with self.store.transaction("initiative.finalize.reserve") as s:
             require(s["phase"] == "FINALIZING" and s["active"] is None and s["operation"] is None, "WRONG_PHASE", "All epics must have closed checkpoints")
+            require(not s.get("target_revision_required"), "INTENT_REVISION_REQUIRED", "Resolve synchronization target impacts before publication")
             require(proposal["initiative_id"] == s["spec"]["id"] and proposal["based_on"] == s["head"], "STALE_FINALIZATION", "Final input snapshot changed")
             require(self.next_epic(s) is None, "EPICS_INCOMPLETE", "Cannot publish a partial initiative")
-            require(set(proposal["acceptance_checks"]) == set(s["spec"]["acceptance"]) and all(proposal["acceptance_checks"].values()), "INCOMPLETE_ACCEPTANCE", "Every original outcome needs final verification")
             require(not proposal["report"].startswith("REPLACE:"), "UNRECONCILED_DRAFT", "The generated draft is not evidence of reconciliation")
-            require(self.repo.resolve(self.policy.canonical_ref) == s["baseline"], "CANONICAL_MOVED", "Canonical changed; explicit rebase/revalidation is required, not automatic promotion")
+            require(self.repo.resolve(self.policy.canonical_ref) == integration_base(s), "CANONICAL_MOVED", "Canonical changed; explicit rebase/revalidation is required, not automatic promotion")
             self._assert_core(s, s["head"])
-            all_checks = sorted(set(self._all_checks(s)) | set(self.policy.final_checks) | {c for v in proposal["acceptance_checks"].values() for c in v})
+            disposition_checks = reconciliation.validate(self.repo, s, proposal, self.policy)
+            all_checks = sorted(set(self._all_checks(s)) | set(self.policy.final_checks) | set(disposition_checks) |
+                                {c for entry in proposal["entries"] for c in entry["checks"]})
             require(set(all_checks) <= set(self.policy.checks), "UNKNOWN_CHECK", "Unknown final check")
-            # Final knowledge proof references already passed epic checks; code is unchanged since the checkpoint.
-            passed = {c: {"passed": True} for e in s["completed"] for c in e["checks"]}
-            entries = self._normalize_knowledge(s, proposal["entries"], {"checks": passed, "id": self.store.artifact({"completed_epic_evidence": s["completed"]})})
+            # Candidate construction is provisional. Nothing is promoted until every declared
+            # check passes against the exact code/docs candidate below.
+            entries = self._normalize_knowledge(s, proposal["entries"], {"planned_checks": all_checks})
             require(set(s["knowledge"]) <= set(entries), "INCOMPLETE_FINAL_DOCS", "Every working replacement/retirement needs an explicit final disposition")
             contents = {t: r["content"].encode() if r["action"] == "replace" else None for t, r in entries.items()}
             prefix = self._prefix(s)
@@ -680,11 +835,40 @@ class Engine:
                 if p.startswith(prefix):
                     contents[archive + p[len(prefix):]] = self.repo.read(s["head"], p)
                     contents[p] = None
+            for evidence_record in s["evidence"]:
+                contents[archive + "evidence/" + evidence_record["id"] + ".json"] = canonical(evidence_record)
+            for approval_id in s["approvals"]:
+                contents[archive + "approvals/" + approval_id + ".json"] = canonical(self.store.get_artifact(approval_id))
+            for sync_record in s.get("sync_history", []):
+                rid = sync_record["review"]
+                contents[archive + "reviews/" + rid + ".json"] = canonical(self.store.get_artifact(rid))
+            for old_final in s.get("final_history", []):
+                for rid in (old_final.get("review") or {}).get("history", []):
+                    contents[archive + "reviews/" + rid + ".json"] = canonical(self.store.get_artifact(rid))
+            for tid, ticket in s["tickets"].items():
+                contents[archive + "attempts/" + tid + ".json"] = canonical({k: v for k, v in ticket.items() if k not in {"workspace", "packet"}})
+                artifact_ids = set(ticket.get("scope_grants", []) + ticket.get("read_events", []) + ticket.get("imports", []))
+                artifact_ids.update(ticket[k] for k in ("handoff", "handoff_from", "readiness", "result") if ticket.get(k))
+                for artifact_id in artifact_ids:
+                    contents[archive + "attempt-artifacts/" + artifact_id + ".json"] = canonical(self.store.get_artifact(artifact_id))
+                packet = self.store.get_artifact(ticket["packet_id"])
+                contents[archive + "source-manifests/" + tid + ".json"] = canonical({
+                    "fingerprint": packet["fingerprint"], "start_commit": ticket["start_commit"],
+                    "sources": [{k: v for k, v in source.items() if k not in {"content", "preview_content"}} for source in packet["sources"]],
+                    "read_hashes": packet["read_hashes"], "full_packet": ticket["packet_id"],
+                    "note": "Full source packets and internal Git objects are available in controller export; this manifest preserves exact identities."})
+            for review_key, ledger in s["reviews"].items():
+                for report_id in ledger["history"]:
+                    contents[archive + "reviews/" + report_id + ".json"] = canonical(self.store.get_artifact(report_id))
             contents[archive + "completion.json"] = canonical({"initiative": s["spec"], "completed_epics": s["completed"],
-                                                                 "reconciliation": proposal, "approvals": s["approvals"]})
+                                                                 "reconciliation": proposal, "intent_history": s["intent_history"],
+                                                                 "approvals": s["approvals"], "candidate_checks": all_checks,
+                                                                 "origin_baseline": s["baseline"], "integration_base": integration_base(s), "synchronizations": s.get("sync_history", []), "invalidated_finals": s.get("final_history", []),
+                                                                 "final_attestation": "Exact-candidate verification and final approval are controller audit sidecars, available through export."})
             tree_candidate = self.repo.write(s["head"], contents, "Orchi final reconciliation and archive")
-            candidate = self.repo.commit(self.repo.tree(tree_candidate), s["baseline"], "Complete initiative " + s["spec"]["id"])
-            context.validate_final_docs(self.repo, candidate)
+            candidate = self.repo.commit(self.repo.tree(tree_candidate), integration_base(s), "Complete initiative " + s["spec"]["id"])
+            reconciliation.validate_core_targets(self.repo, candidate, proposal)
+            context.validate_final_docs(self.repo, candidate, strict_paths=[t for t, e in entries.items() if e["action"] == "replace"])
             op = {"id": uuid.uuid4().hex, "kind": "final-checks", "head": s["head"]}
             s["operation"] = op
         evidence = self._checks(candidate, all_checks, "final-code-docs")
@@ -695,28 +879,44 @@ class Engine:
             if not evidence["passed"]:
                 return {"status": "blocked", "evidence": evidence["id"], "candidate": candidate}
             s["final"] = {"commit": candidate, "verified": evidence, "approved": False,
-                          "report": proposal["report"], "acceptance_checks": proposal["acceptance_checks"], "proposal": self.store.artifact(proposal)}
+                          "report": proposal["report"], "intent_digest": proposal["intent_digest"],
+                          "reconciliation": proposal, "proposal": self.store.artifact(proposal)}
             s["phase"] = "FINAL_REVIEW"
-            self.repo.pin(s["spec"]["id"] + "/candidate", candidate)
+            self._pin(s, "candidate", candidate)
             return {"status": "final_review_required", "candidate": candidate, "evidence": evidence["id"]}
 
     def publication(self) -> dict:
-        s = self.state()
-        require(s["phase"] == "READY_TO_PUBLISH" and s["final"]["approved"], "APPROVAL_REQUIRED", "Final human acceptance is required")
-        require(self.repo.resolve(self.policy.canonical_ref) == s["baseline"], "CANONICAL_MOVED", "Do not merge a stale candidate")
-        return {"canonical_ref": self.policy.canonical_ref, "expected_parent": s["baseline"], "candidate": s["final"]["commit"],
-                "tree": self.repo.tree(s["final"]["commit"]), "action": "Operator performs a normal fast-forward merge, then record-publication. No deployment is implied."}
+        from .publication import handoff
+        return handoff(self)
 
     def record_publication(self, commit: str) -> dict:
-        with self.store.transaction("initiative.published") as s:
-            require(s["phase"] == "READY_TO_PUBLISH" and s["final"]["approved"], "APPROVAL_REQUIRED", "Final approval missing")
-            commit = self.repo.resolve(commit)
-            require(self.repo.resolve(self.policy.canonical_ref) == commit, "PUBLICATION_NOT_VISIBLE", "Canonical ref does not point at the reported publication")
-            require(self.repo.tree(commit) == self.repo.tree(s["final"]["commit"]), "WRONG_PUBLISHED_TREE", "Published code/docs differ from approved candidate")
-            parents = self.repo.git("rev-list", "--parents", "-n", "1", commit).decode().split()[1:]
-            require(parents == [s["baseline"]], "WRONG_PUBLICATION_PARENT", "Canonical publication must be the approved one-parent boundary")
-            s.update(phase="PUBLISHED", published_commit=commit)
-            return {"status": "published", "commit": commit}
+        from .publication import record
+        return record(self, commit)
+
+    def sync_status(self) -> dict:
+        from .synchronization import status
+        return status(self)
+
+    def sync_draft(self) -> dict:
+        from .synchronization import draft
+        return draft(self)
+
+    def synchronize(self, proposal: dict) -> dict:
+        from .synchronization import prepare
+        return prepare(self, proposal)
+
+    def sync_review(self, report: dict) -> dict:
+        from .synchronization import review
+        return review(self, report)
+
+    def withdraw_gate(self, reason: str) -> dict:
+        require(bool(reason.strip()), "REASON_REQUIRED", "Explain why the pending acceptance is withdrawn")
+        with self.store.transaction("human.withdraw") as s:
+            require(s["pending"] is not None, "NO_APPROVAL_PENDING", "No pending gate")
+            old = s["pending"]
+            self.store.artifact({"withdrawn": old["request"], "reason": reason})
+            s["phase"], s["pending"] = old["previous_phase"], None
+            return {"status": "withdrawn", "phase": s["phase"]}
 
     def next(self) -> dict:
         s = self.state()
@@ -729,12 +929,21 @@ class Engine:
             return {**common, "status": "READY", "skill": "orchi-plan", "action": "define_initiative"}
         if phase == "AWAITING_APPROVAL":
             return {**common, "status": "WAIT", "action": "human_approval", "request": s["pending"]["request"]}
+        if s.get("target_revision_required") and phase in {"PLANNING", "FINALIZING"}:
+            return {**common, "status": "BLOCKED", "skill": "orchi-plan", "action": "revise_intent_after_sync"}
+        if phase == "SYNC_REVIEW":
+            return {**common, "status": "READY", "skill": "orchi-review", "action": "review_sync_candidate", "request": s["sync"]["review_request"]}
+        if phase in {"FINALIZING", "FINAL_REVIEW", "READY_TO_PUBLISH"} and self.repo.resolve(self.policy.canonical_ref) != integration_base(s):
+            return {**common, "status": "BLOCKED", "action": "synchronize_upstream", "integration_base": integration_base(s), "upstream": self.repo.resolve(self.policy.canonical_ref)}
         if phase == "PLANNING":
-            return {**common, "status": "READY", "skill": "orchi-plan", "action": "design_next_epic", "epic": self.next_epic(s), "knowledge_head": s["knowledge_head"]}
+            return {**common, "status": "READY", "skill": "orchi-plan", "action": "design_next_epic", "epic": self.next_epic(s), "knowledge_head": s["knowledge_head"], "intent": s["intent"], "views": ["current", "target"]}
         if phase == "EXECUTING":
             tasks = s["active"]["tasks"]
             if all(t["status"] == "integrated" for t in tasks.values()):
                 return {**common, "status": "READY", "skill": "orchi-review", "action": "request_epic_review"}
+            validated = [m["ticket"] for m in tasks.values() if m["status"] == "validated"]
+            if validated:
+                return {**common, "status": "READY", "skill": "orchi-work", "action": "integrate_validated_candidates", "tickets": validated}
             ready = [t for t in tasks if self._candidate_ready(s, t)]
             live = [t for t in s["tickets"].values() if t["status"] in ACTIVE_TICKETS]
             if any(t["expires_at"] <= time.time() for t in live):
@@ -747,12 +956,14 @@ class Engine:
                 try:
                     pp = context.packet(self.repo, s, task)
                     writes, reads, resources = {e["path"] for e in task["edits"]}, set(pp["read_hashes"]), set(task["exclusive_resources"])
-                    if len(live) < self.policy.max_workers and not any(writes & (set(t["reads"]) | set(t["writes"])) or reads & set(t["writes"]) or resources & set(t["resources"]) for t in live):
+                    if len(live) < self.policy.max_workers and not any(writes & set(t["writes"]) or resources & set(t["resources"]) for t in live):
                         feasible.append(tid)
                 except OrchiError as err:
                     diagnostics.append({"task": tid, "code": err.code, "message": str(err)})
             if feasible and s["total_attempts"] < self.policy.max_attempts_total and s["epic_attempts"].get(eid, 0) < self.policy.max_attempts_per_epic:
-                return {**common, "status": "READY", "skill": "orchi-work", "action": "run_ready_tasks", "tasks": feasible, "diagnostics": diagnostics}
+                automated = [tid for tid in feasible if self._task(s, tid)["executor"] == "agent"]
+                return {**common, "status": "READY", "skill": "orchi-work", "action": "run_ready_tasks" if automated else "assign_human_tasks",
+                        "tasks": automated or feasible, "manual_tasks": [tid for tid in feasible if tid not in automated], "diagnostics": diagnostics}
             return {**common, "status": "WAIT" if live else "BLOCKED", "action": "workers_running" if live else "resolve_blocked_tasks", "diagnostics": diagnostics}
         routes = {"REVIEW": ("orchi-review", "complete_epic_review"), "REPAIR_REQUIRED": ("orchi-work", "repair_confirmed_findings"),
                   "KNOWLEDGE": ("orchi-deliver", "checkpoint_epic"), "FINALIZING": ("orchi-deliver", "reconcile_initiative"),

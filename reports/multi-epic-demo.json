@@ -1,0 +1,59 @@
+{
+  "synthetic": true,
+  "live_model": false,
+  "stages": [
+    "direction",
+    "epic-values",
+    "epic-api",
+    "finalization",
+    "final-approval",
+    "operator-publication"
+  ],
+  "parallel_outcomes": [
+    {
+      "task_id": "right",
+      "status": "integrated",
+      "head": "7d1daa28a4154f3256e66a0e8cf7e8c8861c75c3",
+      "evidence": "28c2d9b623d108500b5921e2a37d46ed7786cfb04ab653580fb96ebd3bf1fa47",
+      "isolated": "f9198eb9815ccbe8b45d1675601bcc0c229cc284f37744c62e16abc82fa3dd92",
+      "recompositions": 0
+    },
+    {
+      "task_id": "left",
+      "status": "integrated",
+      "head": "37a845e451a02f615f86108e3c3d61cce23bd50e",
+      "evidence": "a388472acda1f10fb8deefa6e5f57b0632d746bf59ded59c52841a9b275fad4e",
+      "isolated": "b960fe339948bb31347c8203d26fb64ebcacbbb2e6e54188ca0f0f6b9e4766f7",
+      "recompositions": 1
+    }
+  ],
+  "publication": {
+    "canonical_ref": "refs/heads/main",
+    "expected_parent": "281024c28ea3a3ea1b46a4a48596718e484ab3f1",
+    "origin_baseline": "281024c28ea3a3ea1b46a4a48596718e484ab3f1",
+    "candidate": "38fecb35b8bf61bdf74b5b8400c140eb3f551b75",
+    "tree": "20294508357474493ee55b8997a151d8983b7ade",
+    "mode": "exact",
+    "action": "Publish through the operator's local Git or existing PR/MR workflow, then record-publication. No remote PR or deployment is created by this handoff.",
+    "acceptance": "Exact checked tree and approved integration base are mandatory. Queue recomposition with additional code requires synchronization and new final approval."
+  },
+  "canonical_commits": 1,
+  "phase": "PUBLISHED",
+  "coverage": {
+    "requirements": [
+      {
+        "id": "req-user",
+        "state": "verified",
+        "disposition": "satisfied"
+      }
+    ],
+    "architecture": [
+      {
+        "target": "intent/architecture/README.md",
+        "state": "verified",
+        "disposition": "realized"
+      }
+    ]
+  },
+  "core_unchanged_at_intermediate_checkpoint": true
+}

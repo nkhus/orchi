@@ -1,40 +1,37 @@
 ---
 name: orchi-work
-description: "Execute one ready Orchi task or dispatch approved independent tasks through the local runner. Use only after epic approval; consume generated task packets, prepare readiness, implement bounded changes, and submit verifiable candidates. Do not plan, review globally, or update Core."
+description: "Execute exact approved Orchi tasks as an agent, human or pair, using bounded ticket reads/scopes, readiness, preserved candidates, handoff/import and trusted isolated/combined verification. Do not design or self-approve."
 compatibility: "Requires Git and POSIX; use uv or Python with bundled dependencies. Install all five Orchi skills together."
 ---
 
-# Execute approved tasks
+# Execute the accepted task
 
-For a packet-only worker session, return readiness/result to the controller; do not claim tasks or access control state.
-The commands below are for the coordinator or operator relay, not the sandboxed child worker.
+Read next and [execution](../orchi/references/execution.md).
+A packet worker reads its assigned TASK.md; a coordinator can run the approved adapter.
+The foreground runner dispatches only agent tasks; human/pair tasks use the same manual protocol.
 
-Read `next`. Only ready, unblocked tasks may run; a worktree alone does not establish independence.
-Use `uv run <skills>/orchi/scripts/orchi.py --control "$ORCHI_CONTROL" …`.
-Read [execution](../orchi/references/execution.md) for the exact claim/readiness/result protocol.
+## Prepare
 
-For `repair_confirmed_findings`, run `repair` once, then follow the resulting ready-task state.
+Read goal, fixed decisions, acceptance, before-images, exact sources and instructions.
+Use the ticket-only read helper for on-demand Current/Target/code sources; never substitute latest main.
+Do not edit while preparing. Return readiness bound to the exact packet and material questions.
+Questions block activation; empty questions do not authorize unresolved architecture.
 
-## Coordinated parallel execution
+## Execute
 
-Use `run --adapter /operator/config/adapter.json` with a trusted operator-provided adapter.
-The foreground runner claims ready tasks, runs separate processes/worktrees and validates candidates.
-It stops at epic review, a human gate, a checkpoint, or a blocker; it is not a background daemon.
-Do not spawn untracked workers or bypass declared read/write/resource reservations.
+After activation, implement declared edits and explicitly delegated local choices.
+Acquire extra paths only through the approved directory/action/choice envelope; inspect new instructions.
+A granted path does not authorize public contract, security, design or Target changes. Escalate those.
+Report extra fixed code reads and deviations. Use explicit role-aware knowledge reads.
+Investigations produce observations and no product writes; documentation drafts go into proposals.
+Never edit Core/Intent/policy/instructions or commit/merge from the worker checkout.
 
-## One portable packet
+## Accept or recover
 
-For a manual assistant, use `claim --task <id>` and hand off its assigned worktree plus input packet.
-Read `TASK.md`, exact referenced sources and relevant repository instructions.
-Return readiness with the packet fingerprint, task goal, fixed decisions and covered acceptance IDs.
-Run `activate --ticket <id> --file readiness.json` before writing.
-If preparation finds a missing major decision or contradiction, return blocked; do not improvise.
-Implement only declared paths in the assigned checkout. Do not commit, merge or edit `docs/`, plans or policy.
-Follow fixed decisions; make only delegated local choices. Record extra reads and deviations honestly.
-Return `completed` or `blocked`, summary, extra reads and deviations; submit the exact ticket and result.
-The controller runs actual candidate and combined-tree checks before advancing the internal head.
-A reported completion is not integration. An expired lease is not permission to restart a second worker.
-
-On failure inspect recorded evidence. Retry only explicitly and within retained attempt budgets.
-Do not start another broad code review or expand scope to unrelated defects.
-Read [recovery](../orchi/references/recovery.md) for uncertain process exits or integration failures.
+Submit one structured result. Isolated checks and combined compatibility checks are separate.
+Validated is not integrated. The coordinator can integrate the frozen candidate without another worker run.
+A superseded combination is recomposed/rechecked; a stale fixed assumption or write conflict blocks.
+Use explicit stopped handoff/retry for interrupted work; retain candidate, notes and budgets.
+Existing diffs import only after new readiness into a clean allowed scope with valid before-images.
+Never reuse a fenced ticket or interpret a lease timeout as evidence the process stopped.
+No approvals, canonical writes, sandbox bypass or deployment.

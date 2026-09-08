@@ -17,5 +17,7 @@
   ],
   "max_workers": 4,
   "max_process_seconds": 900,
-  "lease_seconds": 3600
+  "lease_seconds": 3600,
+  "allow_unresolved_requirements": false,
+  "allow_unrealized_architecture": false
 }

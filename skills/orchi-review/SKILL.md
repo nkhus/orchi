@@ -1,35 +1,39 @@
 ---
 name: orchi-review
-description: "Review an exact integrated Orchi epic or final initiative candidate; triage causal findings, deduplicate, and perform bounded targeted repair. Use at controller review actions only. No unlimited whole-repository review loops and no unrelated style repair."
+description: "Independently review exact integrated epic, final or upstream-sync candidates; assess causal correctness, semantic scope and traceability with bounded repair. No unrelated style churn, self-approval or publication."
 compatibility: "Requires Git and POSIX; use uv or Python with bundled dependencies. Install all five Orchi skills together."
 ---
 
 # Review the exact candidate
 
-Use `uv run <skills>/orchi/scripts/orchi.py --control "$ORCHI_CONTROL" …`.
-Read [review](../orchi/references/review.md). Read `next` before selecting scope.
-Request `review-request --scope epic|initiative --out review-request.json`.
-Use a fresh read-only reviewer context: exact definition, candidate diff, required paths and test evidence.
-Do not inherit the author's persuasive narrative as evidence; inspect actual paths and contracts.
+Read next and [review](../orchi/references/review.md).
+Use review-request for epic/initiative; sync-check already returns the exact sync review request.
+Use a fresh read-only context with actual contracts, required paths, diff and verification evidence.
+Do not inherit the author's persuasive narrative as proof.
 
-## Find, then triage
+## Findings
 
-Review only correctness, acceptance, security and regressions attributable to this change.
-A blocker requires a concrete causal path, affected criterion, consequence and evidence.
-Mark pre-existing unrelated issues advisory. Reject unsupported claims explicitly as unsubstantiated.
-Deduplicate by root cause; do not invent cosmetic edits to make a review appear useful.
-Preserve every prior blocker with an explicit current disposition; omission is not resolution.
-When a concern cannot safely be resolved, mark the review incomplete and return to the human.
-Return the structured report with request ID, reviewer, actual coverage, findings and summary.
-Submit `review-record --file review.json`.
+Review correctness, acceptance, security and attributable regressions.
+A blocker needs criterion, causal path, consequence and evidence.
+Mark unrelated pre-existing issues advisory; unsupported allegations unsubstantiated.
+Deduplicate root causes. Preserve every old blocker with an explicit disposition.
+If a concern cannot be safely resolved, mark review incomplete instead of guessing PASS.
+Return request ID, reviewer, actual coverage, findings and summary.
+Submit review-record for epic/final or sync-review for synchronization.
 
-## Stop rules
+## Semantic boundaries
 
-Zero significant findings is a successful review; do not demand changes anyway.
-One full pass is followed only by bounded targeted passes on repairs and their effects.
-Use `repair` only when requested; `$orchi-work` executes the assigned repair packets.
-Do not change the approved task scope during repair; use an amendment for a new decision.
-Review rounds and attempts survive revisions, renames of sessions and process restarts.
-At an unresolved limit, stop; neither another blind pass nor an automatic PASS is permitted.
-Final cross-epic blockers require a human-approved corrective epic, not hidden edits to the candidate.
-Do not sign approval, publish, modify documentation, or execute untrusted check commands.
+Check task scope grants and changed snapshot assumptions; a free path is not semantic permission.
+Target is not existing implementation; observations/proposed docs are not verified Current.
+Challenge requirement and architecture dispositions against actual candidate evidence.
+For sync, inspect both versions of code and Core/Working, new upstream ownership and Target impact.
+A reviewed sync remains prospective until human acceptance.
+
+## Bounded repair
+
+Zero significant findings is success. One full pass precedes bounded targeted repair passes.
+Do not invent cosmetic edits, repeat whole-repository reviews or omit prior blockers.
+Use repair only when requested; scope changes need design amendment.
+Limits survive revisions. At exhaustion stop with evidence rather than reset or auto-pass.
+Final cross-epic code defects need an accepted corrective epic, not hidden candidate edits.
+Do not sign, publish, edit docs or execute unregistered check commands.

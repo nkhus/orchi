@@ -10,8 +10,8 @@ from orchi_core.runner import run_ready
 
 
 def test_real_foreground_process_workers_overlap(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
-    result = run_ready(world.e, {"kind": "command", "argv": [sys.executable, str(Path(__file__).with_name("fake_agent.py"))]})
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
+    result = run_ready(world.e, {"kind": "command", "argv": [sys.executable, str(Path(__file__).with_name("fake_agent.py")), "--parallel-barrier", str(world.repo.parent / "barrier")]})
     assert {o["status"] for o in result["outcomes"]} == {"integrated"}
     assert result["next"]["action"] == "request_epic_review"
     timings = [json.loads((Path(t["workspace"]).parent / "output/timing.json").read_text()) for t in world.e.state()["tickets"].values()]
@@ -20,7 +20,7 @@ def test_real_foreground_process_workers_overlap(world):
 
 
 def test_two_os_processes_cannot_claim_same_task(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     tool = Path(__file__).parents[1] / "tools/orchi.py"
     argv = [sys.executable, str(tool), "--control", str(world.e.store.root), "claim", "--task", "left"]
     procs = [subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE) for _ in range(2)]
@@ -30,7 +30,7 @@ def test_two_os_processes_cannot_claim_same_task(world):
 
 
 def test_independent_candidate_not_invalidated_by_other_integration(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     a = world.e.claim("left"); b = world.e.claim("right")
     world.activate(a); world.activate(b)
     (Path(a["workspace"]) / "src/left.py").write_text("VALUE=1\n")
@@ -44,7 +44,7 @@ def test_isolated_pass_is_not_combined_pass(world):
         s["policy"]["checks"]["joint"] = {"argv": [sys.executable, "-c", "import runpy; assert not(runpy.run_path('src/left.py')['VALUE']==1 and runpy.run_path('src/right.py')['VALUE']==2)"], "timeout_seconds": 30}
         s["policy"]["baseline_checks"].append("joint")
     world.e = Engine(world.e.store.root)
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     a = world.e.claim("left"); b = world.e.claim("right")
     world.activate(a); world.activate(b)
     (Path(a["workspace"]) / "src/left.py").write_text("VALUE=1\n")
@@ -59,7 +59,7 @@ def test_isolated_pass_is_not_combined_pass(world):
 
 
 def test_new_read_dependency_detects_stale_result(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     a = world.e.claim("left"); b = world.e.claim("right")
     world.activate(a); world.activate(b)
     (Path(a["workspace"]) / "src/left.py").write_text("VALUE=1\n")
@@ -74,7 +74,7 @@ def test_resources_serialize_without_inventing_dependencies(world):
     world.begin(); p = world.plan1()
     for t in p["tasks"]:
         t["exclusive_resources"] = ["shared-test-database"]
-    world.approve(world.e.plan(p))
+    world.approve(world.propose_plan(p))
     world.e.claim("left")
     with pytest.raises(OrchiError) as err:
         world.e.claim("right")
@@ -83,7 +83,7 @@ def test_resources_serialize_without_inventing_dependencies(world):
 
 
 def test_expired_worker_not_reissued_automatically(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     ticket = world.e.claim("left")
     with world.e.store.transaction("test-clock") as s:
         s["tickets"][ticket["id"]]["expires_at"] = time.time() - 1

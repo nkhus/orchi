@@ -11,6 +11,7 @@ from .common import OrchiError, digest, read_json, require, write_json
 from .engine import Engine
 from .models import Readiness, WorkerResult
 from .process import run
+from .relay import WorkerRelay
 
 
 def output_schema(model) -> dict:
@@ -69,12 +70,19 @@ def _phase(engine: Engine, ticket: dict, adapter: dict, phase: str) -> dict:
             prompt = "Implement the exact task below in this checkout. Preparation has passed. Do not commit or edit core docs/proposals. " \
                      "Use only delegated local choices. Run assigned checks and return the specified structured result. " \
                      "Report all additional file reads and any deviation.\n" + task_text
+        prompt += ("\nA ticket-bound foreground channel is available. For on-demand sources use "
+                   "`\"$ORCHI_WORKER_PYTHON\" \"$ORCHI_WORKER_REQUEST\" read <path> --view <code|current|target|epic-design>`. "
+                   "During execution only, acquire approved local scope with the same helper's `scope --file <request.json>`. "
+                   "Keep request scratch files outside the product checkout. Never request controller, key, approval or publication access. "
+                   "If the outer sandbox blocks the channel, report that blocker; do not bypass it or substitute a different snapshot.")
         stdin = prompt.encode()
     else:
         argv = list(adapter["argv"])
         stdin = b""
-    observation = run(argv, Path(ticket["workspace"]), engine.policy.max_process_seconds,
-                      engine.policy.max_output_bytes, env=env, stdin=stdin)
+    with WorkerRelay(engine, ticket["id"], phase) as channel:
+        env.update(channel.environment())
+        observation = run(argv, Path(ticket["workspace"]), engine.policy.max_process_seconds,
+                          engine.policy.max_output_bytes, env=env, stdin=stdin)
     observation_id = engine.store.artifact({"ticket": ticket["id"], "phase": phase, "adapter_digest": digest(adapter),
                                              "observation": observation})
     require(observation["passed"], "WORKER_PROCESS_FAILED", f"{phase} process failed; inspect artifact {observation_id}")
@@ -112,13 +120,21 @@ def execute_ticket(control: str, ticket: dict, adapter: dict) -> dict:
 def run_ready(engine: Engine, adapter: dict) -> dict:
     adapter = validate_adapter(adapter)
     futures, outcomes = {}, []
+    resumed = set()
     with ThreadPoolExecutor(max_workers=engine.policy.max_workers) as pool:
         while True:
+            # Recover validated candidates without paying for a new coding session.
+            state = engine.state()
+            if state["phase"] == "EXECUTING":
+                for ticket in state["tickets"].values():
+                    if ticket["status"] == "validated" and ticket["id"] not in resumed and ticket["id"] not in futures.values():
+                        resumed.add(ticket["id"])
+                        outcomes.append({"task_id": ticket["task_id"], **engine.integrate(ticket["id"])})
             while len(futures) < engine.policy.max_workers:
                 if engine.state()["phase"] != "EXECUTING":
                     break
                 try:
-                    ticket = engine.claim()
+                    ticket = engine.claim(executor_filter="agent")
                 except OrchiError as err:
                     if err.code in {"NO_READY_TASK", "PARALLEL_LIMIT", "BUDGET_EXHAUSTED"}:
                         break

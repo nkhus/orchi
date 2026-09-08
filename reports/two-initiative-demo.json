@@ -1,0 +1,29 @@
+{
+  "synthetic": true,
+  "live_model": false,
+  "original_baseline": "281024c28ea3a3ea1b46a4a48596718e484ab3f1",
+  "first": {
+    "phase": "PUBLISHED",
+    "publication": "ae385b2584b1584127ffb9b6397ed3391e351a1b"
+  },
+  "second": {
+    "phase": "PUBLISHED",
+    "publication": "256b6427815a3fc5a2361b73b525267c13060c78",
+    "old_integration_base": "281024c28ea3a3ea1b46a4a48596718e484ab3f1",
+    "accepted_integration_base": "ae385b2584b1584127ffb9b6397ed3391e351a1b",
+    "origin_baseline": "281024c28ea3a3ea1b46a4a48596718e484ab3f1"
+  },
+  "synchronizations": 1,
+  "canonical_commits": 2,
+  "left": "VALUE = 1\n",
+  "right": "VALUE = 2\n",
+  "external_pr": false,
+  "deployment": false,
+  "derived_view": {
+    "status": "ready",
+    "derived": true,
+    "records": 5,
+    "manifest_digest": "51f8cfc9ea18f710017a9286271628f732f9b495272bc5c89724827e564f8ce9",
+    "diagnostics": []
+  }
+}

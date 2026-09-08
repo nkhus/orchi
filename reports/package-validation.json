@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "archive_name": "Orchi-Development-Pack.zip",
+  "root": "orchi",
+  "entries": 146,
+  "zip_crc": "passed",
+  "all_payload_bytes_match": true,
+  "source_hashes_verified": 132,
+  "sha256sum_checks": 132,
+  "fresh_extraction_validator": {
+    "ok": true,
+    "errors": [],
+    "python_files_compiled": 56,
+    "schemas": 13,
+    "skills": 5,
+    "files": 132
+  },
+  "excluded": [
+    ".git",
+    "private keys",
+    "controller databases",
+    "worktrees",
+    "Python caches",
+    "virtual environments"
+  ],
+  "installed_runtime": {
+    "ok": true,
+    "installer": "local",
+    "runner": "python",
+    "skills": 5,
+    "schemas": 13,
+    "preserved_files": 5,
+    "retrieval_readback": true,
+    "retrieval_cache_reused": true,
+    "target_exact_readback": true,
+    "graph_map_lint_coverage": true,
+    "live_model": false
+  },
+  "live_model": false
+}

@@ -6,6 +6,8 @@ import subprocess
 import sys
 import pytest
 from orchi_core.engine import Engine
+from orchi_core import intent, context
+from orchi_core.common import digest, sha
 from orchi_core.signing import keygen, sign
 
 
@@ -26,7 +28,8 @@ class World:
         (self.repo / "docs").mkdir()
         (self.repo / "src/left.py").write_text("VALUE = 0\n")
         (self.repo / "src/right.py").write_text("VALUE = 0\n")
-        (self.repo / "docs/architecture.md").write_text('---\nartifacts: [src/left.py]\n---\n# Architecture\nThe left value starts at zero.\n')
+        (self.repo / "docs/architecture.md").write_text('---\nkind: component\nartifacts: [src/left.py]\n---\n# Architecture\nThe left value starts at zero.\n')
+        (self.repo / "docs/README.md").write_text("---\nkind: index\n---\n# Documentation\n[Architecture](architecture.md)\n")
         (self.repo / ".gitignore").write_text("__pycache__/\n.pytest_cache/\n")
         git(self.repo, "add", "."); git(self.repo, "commit", "-m", "baseline")
         self.baseline = git(self.repo, "rev-parse", "HEAD")
@@ -45,22 +48,56 @@ class World:
             "max_process_seconds": 30, "lease_seconds": 120,
         }
         self.e = Engine.setup(root / "control", self.repo, self.policy)
-        self.spec = {"id": "feature", "request": "Deliver a working feature", "outcome": "Feature works with API",
-                     "acceptance": {"ac-user": "API produces the intended result"}, "constraints": ["Keep public compatibility"],
-                     "direction": "Separate persisted values from the API", "epics": [
-                         {"id": "values", "title": "Values", "outcome": "Set internal values", "contributes_to": ["ac-user"]},
-                         {"id": "api", "title": "API", "outcome": "Expose verified values", "depends_on": ["values"], "contributes_to": ["ac-user"]}]}
+        self.bundle = intent.build("feature", {
+            "source.md": "# Original request\nDeliver a working feature with values and a public API.\n",
+            "requirements.md": '---\nkind: requirements\nrequirements: [req-user]\n---\n# Requirements\n<a id="req-user"></a>\n## User outcome\nThe API must produce three from the verified values. Preserve public compatibility.\n',
+            "architecture/README.md": "---\nkind: architecture\nrelations:\n  addresses: [req-user]\n---\n# Target architecture\nKeep independent value modules behind a public API. Implementation is delivered progressively.\n",
+        })
+        self.spec = {"id": "feature", "outcome": "Feature works with API",
+                     "intent": {"revision": 1, "digest": digest(self.bundle["manifest"])}, "epics": [
+                         {"id": "values", "title": "Values", "outcome": "Set internal values", "contributes_to": ["req-user"], "realizes": ["intent/architecture/README.md"]},
+                         {"id": "api", "title": "API", "outcome": "Expose verified values", "depends_on": ["values"], "contributes_to": ["req-user"], "realizes": ["intent/architecture/README.md"]}]}
+
+    def design_text(self, plan):
+        return "---\nkind: reference\nrelations:\n  addresses: [req-user]\n  realizes: [intent/architecture/README.md]\n---\n# Epic implementation design\n" + plan["shared_design"] + "\nUse the exact verified current snapshot and accepted target.\n"
+
+    def bind_design(self, plan):
+        plan = copy.deepcopy(plan)
+        plan["intent_digest"] = self.e.state()["spec"]["intent"]["digest"]
+        plan["design"] = {"path": "design/" + str(self.e.state()["epic_revisions"].get(plan["epic_id"], 0) + 1) + ".md",
+                          "content_hash": sha(self.design_text(plan).encode())}
+        return plan
+
+    def propose_plan(self, plan):
+        plan = self.bind_design(plan)
+        return self.e.plan(plan, self.design_text(plan))
+
+    def amend_plan(self, plan, reason):
+        plan = self.bind_design(plan)
+        return self.e.amend(plan, reason, self.design_text(plan))
+
+    def final(self):
+        proposal = self.e.final_draft()
+        files = self.e.repo.files(self.e.state()["head"])
+        core = sorted(context.retrieval_snapshot(self.e.repo, self.e.state(), "feature").records)
+        for r in proposal["requirements"]:
+            if r["disposition"] != "changed":
+                r.update(disposition="satisfied", reason="Checked the final API and compatibility outcome", checks=["final"], core_targets=core)
+        for a in proposal["architecture"]:
+            a.update(disposition="realized", reason="The actual modules and API realize the documented boundaries",
+                     artifacts=[p for p in ["src/left.py", "src/api.py"] if p in files], core_targets=core, checks=["final"])
+        return proposal
 
     def approve(self, req):
         return self.e.approve(sign(req, self.key, "approve", "test-operator"))
 
     def begin(self):
-        self.approve(self.e.begin(self.spec))
+        self.approve(self.e.begin(self.spec, self.bundle))
 
     def task(self, tid, file, check, action="modify", with_doc=False):
         sources = [{"kind": "code", "path": "src/" + ("left.py" if action == "create" else file), "reason": "Actual implementation to change"}]
         if with_doc:
-            sources.append({"kind": "knowledge", "path": "docs/architecture.md", "reason": "Relevant architecture constraint"})
+            sources.append({"kind": "knowledge", "view": "current", "path": "docs/architecture.md", "reason": "Relevant architecture constraint"})
         return {"id": tid, "goal": "Implement " + tid, "acceptance": {"ac-" + tid: "Required value is present"},
                 "current_state": "Inspect existing values", "approach": "Use the existing plain Python module",
                 "decisions": ["Preserve the module interface"], "invariants": ["No side effects on import"],
@@ -71,10 +108,10 @@ class World:
                 "escalation": ["Stop if public compatibility must change"], "open_questions": []}
 
     def plan1(self):
-        return {"initiative_id": "feature", "epic_id": "values", "based_on": self.e.state()["head"],
+        return self.bind_design({"initiative_id": "feature", "epic_id": "values", "based_on": self.e.state()["head"],
                 "goal": "Set internal values", "shared_design": "Independent value modules; no shared mutable state",
                 "acceptance": {"ac-values": "Both values available"}, "acceptance_checks": {"ac-values": ["left", "right"]},
-                "tasks": [self.task("left", "left.py", "left", with_doc=True), self.task("right", "right.py", "right")]}
+                "tasks": [self.task("left", "left.py", "left", with_doc=True), self.task("right", "right.py", "right")]})
 
     def activate(self, ticket):
         p = self.e.store.get_artifact(ticket["packet_id"])
@@ -100,13 +137,13 @@ class World:
 
     def checkpoint1(self):
         return {"epic_id": "values", "based_on": self.e.state()["head"], "report": "Reconciled actual value behavior",
-                "entries": [{"target": "docs/architecture.md", "action": "replace", "content": "# Architecture\nThe left value is one.\n",
+                "entries": [{"target": "docs/architecture.md", "action": "replace", "content": "---\nkind: component\n---\n# Architecture\nThe left value is one.\n",
                              "artifacts": ["src/left.py"], "checks": ["left"], "reason": "Verified change to the value"}],
                 "dispositions": [{"path": "src/left.py", "targets": ["docs/architecture.md"], "reason": "Changes documented behavior"},
                                  {"path": "src/right.py", "targets": [], "reason": "Internal numeric fixture; no canonical claim affected"}]}
 
     def finish_first(self):
-        self.begin(); self.approve(self.e.plan(self.plan1()))
+        self.begin(); self.approve(self.propose_plan(self.plan1()))
         assert self.perform("left", {"src/left.py": "VALUE = 1\n"})["status"] == "integrated"
         assert self.perform("right", {"src/right.py": "VALUE = 2\n"})["status"] == "integrated"
         self.pass_review()
@@ -117,11 +154,11 @@ class World:
         p = {"initiative_id": "feature", "epic_id": "api", "based_on": self.e.state()["head"],
              "goal": "Expose values", "shared_design": "Use the actual verified first-epic result",
              "acceptance": {"ac-api": "API available"}, "acceptance_checks": {"ac-api": ["api"]}, "tasks": [task]}
-        self.approve(self.e.plan(p))
+        self.approve(self.propose_plan(p))
         assert self.perform("api", {"src/api.py": "ANSWER = 3\n"})["status"] == "integrated"
         self.pass_review()
         self.e.checkpoint({"epic_id": "api", "based_on": self.e.state()["head"], "report": "Document verified API",
-                           "entries": [{"target": "docs/api.md", "action": "replace", "content": "# API\nThe answer is three.\n",
+                           "entries": [{"target": "docs/api.md", "action": "replace", "content": "---\nkind: component\n---\n# API\nThe answer is three.\n",
                                         "artifacts": ["src/api.py"], "checks": ["api"], "reason": "New verified interface"}],
                            "dispositions": [{"path": "src/api.py", "targets": ["docs/api.md"], "reason": "Adds an interface"}]})
 

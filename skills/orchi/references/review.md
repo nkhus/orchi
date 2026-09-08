@@ -20,3 +20,9 @@ semantic quality. Human high-risk review remains important.
 Targeted repair reuses original scopes and preserved attempt counters. New architectural decisions require
 amendment. Final cross-epic defects use a human-approved corrective epic appended to the roadmap.
 Do not request a broad new review after a clean report just because budget remains.
+
+## Synchronization and delegated scope
+
+A sync review request is returned by sync-check, not review-request. Review exact code resolutions, affected Core/Working decisions, new upstream docs that cover locally changed code, target impact and the complete required diff. Use sync-review for its report. Passing it requests human acceptance; prospective Current is not promoted by reviewer prose alone.
+
+For ordinary candidates, inspect scope grants and changed snapshot-read assumptions as evidence. Directory permission does not authorize a changed public contract or security boundary. Observations and documentation proposals are not already verified Core. Challenge unsupported requirement satisfaction and distinguish unchanged/not-applicable architecture from missing reconciliation.

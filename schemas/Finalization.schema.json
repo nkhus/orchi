@@ -1,5 +1,66 @@
 {
   "$defs": {
+    "ArchitectureDisposition": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "realized",
+            "deviated",
+            "unchanged",
+            "not-applicable",
+            "unresolved"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "artifacts": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "core_targets": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Core Targets",
+          "type": "array"
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "title": "Checks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "target",
+        "disposition",
+        "reason"
+      ],
+      "title": "ArchitectureDisposition",
+      "type": "object"
+    },
     "KnowledgeEdit": {
       "additionalProperties": false,
       "properties": {
@@ -30,11 +91,11 @@
           "title": "Content"
         },
         "artifacts": {
+          "default": [],
           "items": {
             "minLength": 1,
             "type": "string"
           },
-          "minItems": 1,
           "title": "Artifacts",
           "type": "array"
         },
@@ -57,11 +118,61 @@
       "required": [
         "target",
         "action",
-        "artifacts",
         "checks",
         "reason"
       ],
       "title": "KnowledgeEdit",
+      "type": "object"
+    },
+    "RequirementDisposition": {
+      "additionalProperties": false,
+      "properties": {
+        "requirement_id": {
+          "maxLength": 80,
+          "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "satisfied",
+            "changed",
+            "unresolved"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "core_targets": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Core Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "disposition",
+        "reason"
+      ],
+      "title": "RequirementDisposition",
       "type": "object"
     }
   },
@@ -84,6 +195,11 @@
       "title": "Based On",
       "type": "string"
     },
+    "intent_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Intent Digest",
+      "type": "string"
+    },
     "report": {
       "minLength": 1,
       "title": "Report",
@@ -96,31 +212,31 @@
       "title": "Entries",
       "type": "array"
     },
-    "acceptance_checks": {
-      "minProperties": 1,
-      "patternProperties": {
-        "^[a-z0-9]+(?:[-.][a-z0-9]+)*$": {
-          "items": {
-            "maxLength": 80,
-            "pattern": "^[a-z0-9]+(?:[-.][a-z0-9]+)*$",
-            "type": "string"
-          },
-          "type": "array"
-        }
+    "requirements": {
+      "items": {
+        "$ref": "#/$defs/RequirementDisposition"
       },
-      "propertyNames": {
-        "maxLength": 80
+      "minItems": 1,
+      "title": "Requirements",
+      "type": "array"
+    },
+    "architecture": {
+      "items": {
+        "$ref": "#/$defs/ArchitectureDisposition"
       },
-      "title": "Acceptance Checks",
-      "type": "object"
+      "minItems": 1,
+      "title": "Architecture",
+      "type": "array"
     }
   },
   "required": [
     "initiative_id",
     "based_on",
+    "intent_digest",
     "report",
     "entries",
-    "acceptance_checks"
+    "requirements",
+    "architecture"
   ],
   "title": "Finalization",
   "type": "object"

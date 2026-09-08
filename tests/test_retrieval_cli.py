@@ -54,7 +54,7 @@ def test_optional_text_format_and_limit(world, monkeypatch, capsys):
     monkeypatch.delenv("ORCHI_CONTROL", raising=False)
     assert main(["search", "zero", "--repo", str(world.repo), "--format", "text", "-k", "1"]) == 0
     text = capsys.readouterr().out
-    assert "docs/architecture.md:4-5" in text and "The left value starts at zero." in text
+    assert "docs/architecture.md:5-6" in text and "The left value starts at zero." in text
     assert "sha256:" in text
 
 
@@ -111,7 +111,7 @@ def test_real_checkpoints_refresh_overlay_and_leave_core_unchanged(world):
     cache = world.e.store.root / "cache/retrieval"
     world.begin()
     initial = context.search(world.e.repo, world.e.state(), "zero", "feature", cache_root=cache)
-    world.approve(world.e.plan(world.plan1()))
+    world.approve(world.propose_plan(world.plan1()))
     world.perform("left", {"src/left.py": "VALUE = 1\n"})
     world.perform("right", {"src/right.py": "VALUE = 2\n"})
     # Accepted tasks are not yet verified Working Knowledge.
@@ -133,4 +133,4 @@ def test_real_checkpoints_refresh_overlay_and_leave_core_unchanged(world):
     for p in cache.glob("*.sqlite"):
         p.write_bytes(b"destroyed projection")
     rec = context.get(world.e.repo, world.e.state(), "docs/api.md", "feature")
-    assert rec["content"] == "# API\nThe answer is three.\n"
+    assert rec["content"] == "---\nkind: component\n---\n# API\nThe answer is three.\n"

@@ -7,38 +7,38 @@ from orchi_core.signing import sign, keygen
 
 
 def test_forged_approval_does_not_transition(world):
-    req=world.e.begin(world.spec); other=world.root/'other.pem'; keygen(other)
+    req=world.e.begin(world.spec, world.bundle); other=world.root/'other.pem'; keygen(other)
     with pytest.raises(OrchiError, check=lambda e: e.code=='BAD_SIGNATURE'): world.e.approve(sign(req,other,'approve','outsider'))
     assert world.e.state()['phase']=='AWAITING_APPROVAL'
 
 
 def test_replay_approval_rejected(world):
-    req=world.e.begin(world.spec); decision=sign(req,world.key,'approve','operator'); world.e.approve(decision)
+    req=world.e.begin(world.spec, world.bundle); decision=sign(req,world.key,'approve','operator'); world.e.approve(decision)
     with pytest.raises(OrchiError, check=lambda e: e.code=='NO_APPROVAL_PENDING'): world.e.approve(decision)
 
 
 def test_refreshed_gate_invalidates_old_signature(world):
-    req=world.e.begin(world.spec); decision=sign(req,world.key,'approve','operator'); world.e.refresh_gate()
+    req=world.e.begin(world.spec, world.bundle); decision=sign(req,world.key,'approve','operator'); world.e.refresh_gate()
     with pytest.raises(OrchiError, check=lambda e: e.code=='STALE_APPROVAL'): world.e.approve(decision)
 
 
 def test_rejection_does_not_start_workers(world):
-    req=world.e.begin(world.spec); world.e.approve(sign(req,world.key,'reject','operator'))
+    req=world.e.begin(world.spec, world.bundle); world.e.approve(sign(req,world.key,'reject','operator'))
     assert world.e.next()['action']=='define_initiative'
 
 
 def test_no_readiness_no_submission(world):
-    world.begin(); world.approve(world.e.plan(world.plan1())); t=world.e.claim('left')
+    world.begin(); world.approve(world.propose_plan(world.plan1())); t=world.e.claim('left')
     with pytest.raises(OrchiError): world.e.submit(t['id'],{'status':'completed','summary':'claimed done'})
 
 
 def test_readiness_wrong_fingerprint(world):
-    world.begin(); world.approve(world.e.plan(world.plan1())); t=world.e.claim('left')
+    world.begin(); world.approve(world.propose_plan(world.plan1())); t=world.e.claim('left')
     with pytest.raises(OrchiError): world.e.activate(t['id'],{'packet_fingerprint':'0'*64,'understood_goal':'left','fixed_decisions':['Preserve the module interface'],'acceptance_ids':['ac-left'],'questions':[]})
 
 
 def test_required_packet_not_truncated(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     with world.e.store.transaction('test.policy.limit') as s: s['policy']['max_packet_bytes']=1024
     with pytest.raises(OrchiError, check=lambda e: e.code=='CONTEXT_TOO_LARGE'): world.e.claim('left')
     assert not world.e.state()['tickets']
@@ -71,7 +71,7 @@ def test_known_stale_overlay_never_falls_back(world):
 
 
 def test_retirement_masks_baseline(world):
-    world.begin(); world.approve(world.e.plan(world.plan1()))
+    world.begin(); world.approve(world.propose_plan(world.plan1()))
     world.perform('left',{'src/left.py':'VALUE = 1\n'}); world.perform('right',{'src/right.py':'VALUE = 2\n'}); world.pass_review()
     cp=world.checkpoint1(); cp['entries'][0].update(action='retire',content=None); world.e.checkpoint(cp)
     with pytest.raises(OrchiError, check=lambda e: e.code=='RETIRED_KNOWLEDGE'): context.get(world.e.repo,world.e.state(),'docs/architecture.md','feature')

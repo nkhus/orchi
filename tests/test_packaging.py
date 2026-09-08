@@ -90,7 +90,7 @@ def test_complete_installed_bundle_does_not_need_source_checkout(tmp_path):
         result = subprocess.run([sys.executable, str(scripts / script), *args], cwd=tmp_path,
                                 env=env, capture_output=True, text=True, check=False)
         assert result.returncode == 0, result.stdout + result.stderr
-    assert len(list((tmp_path / 'exported-schemas').glob('*.json'))) == 9
+    assert len(list((tmp_path / 'exported-schemas').glob('*.json'))) == len(__import__('orchi_core.models', fromlist=['CONTRACTS']).CONTRACTS)
     assert not list((tmp_path / '.agents').rglob('__pycache__'))
 
 

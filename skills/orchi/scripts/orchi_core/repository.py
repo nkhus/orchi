@@ -49,6 +49,7 @@ class Repository:
             result[name.decode("utf-8")] = (mode, oid)
         return result
 
+    @lru_cache(maxsize=4096)
     def read(self, commit: str, name: str) -> bytes:
         name = path(name)
         f = self.files(commit).get(name)
@@ -141,3 +142,31 @@ class Repository:
         if len(result) > max_bytes:
             return "Diff exceeds inline limit. Inspect exact refs with git diff --no-ext-diff --no-textconv " + a + " " + b
         return result.decode("utf-8", errors="replace")
+
+    def is_ancestor(self, ancestor: str, descendant: str) -> bool:
+        ancestor, descendant = self.resolve(ancestor), self.resolve(descendant)
+        if ancestor == descendant:
+            return True
+        try:
+            bases = self.git("merge-base", "--all", ancestor, descendant).decode().splitlines()
+        except OrchiError as exc:
+            # --all returns no merge base for disconnected histories. Resolve above
+            # already rejects absent/non-commit inputs; unrelated histories are not an ancestor.
+            if exc.code == "GIT_ERROR" and not str(exc).strip():
+                return False
+            raise
+        return ancestor in bases
+
+    def three_way(self, base: str, ours: str, theirs: str) -> tuple[dict, list[str]]:
+        """Conservative file-level composition; never silently resolve two changed versions."""
+        before, local, upstream = self.files(base), self.files(ours), self.files(theirs)
+        edits, conflicts = {}, []
+        for name in sorted(before.keys() | local.keys() | upstream.keys()):
+            b, o, t = before.get(name), local.get(name), upstream.get(name)
+            if o == t or t == b:
+                continue
+            if o == b:
+                edits[name] = t
+            else:
+                conflicts.append(name)
+        return edits, conflicts

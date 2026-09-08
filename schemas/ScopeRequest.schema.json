@@ -1,0 +1,68 @@
+{
+  "$defs": {
+    "Edit": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "create",
+            "modify",
+            "delete"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "how": {
+          "minLength": 1,
+          "title": "How",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "action",
+        "how"
+      ],
+      "title": "Edit",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "edit": {
+      "$ref": "#/$defs/Edit"
+    },
+    "choice": {
+      "minLength": 1,
+      "title": "Choice",
+      "type": "string"
+    },
+    "reason": {
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "change_kind": {
+      "default": "local",
+      "enum": [
+        "local",
+        "design",
+        "target"
+      ],
+      "title": "Change Kind",
+      "type": "string"
+    }
+  },
+  "required": [
+    "edit",
+    "choice",
+    "reason"
+  ],
+  "title": "ScopeRequest",
+  "type": "object"
+}

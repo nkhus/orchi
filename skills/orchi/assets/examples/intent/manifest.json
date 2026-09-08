@@ -1,0 +1,17 @@
+{
+  "format": "orchi-intent",
+  "initiative_id": "feature",
+  "revision": 1,
+  "documents": {
+    "architecture/README.md": "dbfa0f769a1e6d9bb884a9ce4d37e0f7aa6dc599364d60027898243046daa024",
+    "requirements.md": "e08c182ccda335a08fdb0388a0a06468379b619250ae1b5ec72564b6a32ae251",
+    "source.md": "b95a024a3e08f1273ee9713a447cc0b40c5b531ff2f84c5a3bf9fa4cc3862ba9"
+  },
+  "requirements": {
+    "req-user": "intent/requirements.md#req-user"
+  },
+  "architecture": [
+    "intent/architecture/README.md"
+  ],
+  "resolved_requirements": {}
+}

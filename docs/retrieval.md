@@ -1,119 +1,59 @@
-# Documentation retrieval
+---
+kind: reference
+area: orchi
+artifacts:
+  - skills/orchi/scripts/orchi_core/retrieval.py
+  - skills/orchi/scripts/orchi_core/context.py
+relations:
+  part_of: [docs/README.md]
+---
+# Authority-first retrieval
 
-## Authority before relevance
 
-Retrieval is a projection of effective knowledge, not a second knowledge store. The resolver selects an
-immutable view before any text is indexed:
+## Resolve, search, read
 
 ```text
-Canonical scope: current canonical Core
-Initiative scope: baseline Core + verified replacements - retired/stale targets
-                                  |
-                          resolved knowledge snapshot
-                                  |
-                       disposable SQLite section index
-                                  |
-                   BM25 + substring + fuzzy candidates
-                                  |
-                  ranked source-bound headings and excerpts
-                                  |
-                     exact get / task-source resolution
+scope + view -> effective authority snapshot -> lexical index
+                                          -> typed graph
+lexical primary matches + separate structural neighbors -> exact Git read
 ```
 
-Only readable `docs/**/*.md` records from the selected view enter the index. Canonical discovery retains
-the context resolver's lifecycle, status, unsafe-file, secret-path, frontmatter, and text checks. Proposals,
-archives, task observations, arbitrary repository Markdown, and other initiatives do not enter the view.
-An index must not independently walk the filesystem or infer document authority from relevance.
+Canonical access reads committed `docs/` at the configured branch. Initiative Current reads the accepted integration base plus last verified Working overlay; Target reads the accepted Intent Git commit. `all` preserves both roles. No dirty local proposal, active partial implementation or other initiative is silently indexed as documentation authority.
 
-`context.py` owns authority, scope, freshness, ownership, and task materialization. `retrieval.py` accepts
-resolved snapshots and owns section extraction, disposable cache management, ranking, and excerpts.
-Neither indexing nor searching changes controller state, approvals, accepted commits, or Core documents.
+Search preserves heading-aware SQLite FTS5 BM25/token-prefix matching, trigram substring retrieval and bounded fuzzy candidates with word-similarity filtering. Queries are plain text, not raw FTS syntax. This is lexical search, not embedding-based semantic or cross-language retrieval. Missing SQLite trigram support explicitly disables substring/fuzzy paths; `doctor` reports availability.
 
-## Sections and ranking
+## Commands
 
-Sections follow ATX and Setext headings and retain their heading hierarchy. YAML frontmatter is not body
-search content. Fenced-code headings do not create sections. Source line ranges include frontmatter and
-are 1-based and inclusive. Long sections split at line boundaries after 100 lines or approximately 8,000
-characters; an indivisible long line can exceed the character target. This is focused section extraction,
-not a full Markdown renderer.
+The following assumes the installed entrypoint is available as `orchi` through the operator guide's shell function:
 
-The searchable fields are logical path, document title, heading hierarchy, and body. Token/prefix matching
-uses SQLite FTS5 with `unicode61` and BM25 field weights of 1.5, 2, 4, and 1 respectively. A trigram channel
-finds substrings. A fuzzy channel retrieves shared four-character windows, then requires sufficient window
-coverage and a word-level similarity check. Normalization casefolds Unicode, normalizes compatibility
-characters, and folds Latin accents. Original source text is retained for result excerpts.
+```bash
+orchi search "idempotency" --initiative feature --view all
+orchi search "orders" --initiative feature --view target --kind architecture --related-limit 6
+orchi get req-order-idempotency --initiative feature --view target --content-hash <hash>
+orchi get docs/orders.md --initiative feature --view current --content-hash <hash>
+orchi related req-order-idempotency --initiative feature --view all --relation addressed_by
+orchi owners src/orders/service.py --initiative feature --view current
+orchi lint --initiative feature --view all
+orchi map --initiative feature --view all
+orchi coverage --initiative feature
+```
 
-Candidate sets are combined by weighted reciprocal-rank fusion: BM25 weight 1, substring weight 0.6, fuzzy
-weight 0.3, and denominator `60 + rank`. Results sort first by matched query-term count, then fused score,
-then logical path and line. Raw BM25 scores from different tokenizers are not compared directly. A score
-is a local relevance heuristic, not confidence, verification, or proof that a document is complete.
+For standalone Current, omit control and initiative and pass `--repo .`; canonical defaults to `refs/heads/main`, with `--ref` for another exact ref. Standalone Target is invalid. Controller-backed and standalone modes must not be mixed.
 
-Queries are plain text, not executable FTS syntax. Tokens are quoted and MATCH expressions are bound
-parameters. Limits are 512 query characters, 16 distinct terms, 64 characters per term, and 1-100 results
-(default 8). Each channel considers at most `max(64, 8 * result_limit)` candidates. This is bounded retrieval,
-not an exhaustive repository scan or a semantic/cross-language search engine. Short token/prefix matches
-work; substring matching requires at least three characters. Typo recovery is heuristic, not guaranteed.
+Search filters include `--view`, `--kind` and `--area`. `--limit` bounds primary section hits to 1-100 (default 8). `--related-limit` is 0-100 (default 8); zero disables graph expansion. `--relation` restricts structural neighbors. Filters on kind/area constrain primary matches; related context can include differently classified connected knowledge within the selected authority view.
 
-## Result and read contract
+## Output and exact source binding
 
-The default CLI response preserves the JSON `ok/result` envelope. Search results include:
+`primary_matches` contains lexical section hits; `results` is the same primary list. `related_context` contains graph neighbors with explicit distance/edge provenance and no lexical relevance score. A structural neighbor must never be described as a matching search result. Deterministic graph traversal is independent of lexical ranking.
 
-| Field | Meaning |
-| --- | --- |
-| `target`, `layer` | Logical documentation path and selected authority layer |
-| `source_path`, `source_commit`, `content_hash` | Original source location, immutable Git commit, and SHA256 of complete text |
-| `title`, `heading`, `heading_path` | Document title and section context |
-| `line`, `end_line` | Inclusive source section range |
-| `snippet`, `snippet_line` | At most 280 characters from an original source line and that line's number |
-| `via`, `matched_terms`, `score` | Matching channels, term coverage, and fused relevance |
+Every readable hit includes target, role/layer, kind/area when declared, source commit/path, SHA256 and authority revision where applicable. Primary matches additionally carry heading hierarchy, bounded snippets and source line ranges including frontmatter. One document may have multiple section hits.
 
-Hits for the same source section are merged; different sections of one document can appear separately.
-`scope`, `snapshot`, `index`, and `diagnostics` accompany the results. `truncated` indicates additional
-accepted candidates beyond the returned limit; it is not an exhaustive total-hit count. A false value does
-not establish that the bounded candidate pools covered every possible match. Human-readable output is
-available through `--format text`; JSON remains the agent protocol.
+Inspect diagnostics first. Stale replacements stay masked and exact reads fail; retired targets are absent. `get` resolves again and verifies the optional content hash. Requirement aliases and anchors select an addressable source; exact read returns the complete document with the requested anchor identity, not a cached snippet. A revalidation can retain identical text while changing evidence; always inspect returned provenance.
 
-Cache rows propose candidates only. Returned section text and provenance are checked and reconstructed
-against the freshly resolved source records. Read a hit with `get <target>` in the same scope; supplying
-`--content-hash` rejects changed content with `KNOWLEDGE_CHANGED`. The resulting read exposes current
-provenance even when a revalidation retains identical text. Search and read are separate snapshots, not
-a transaction spanning commands. Task packets independently bind their full exact sources and start state.
+Tasks use explicit `knowledge` sources with `view: current` or `view: target`. The packet builder rereads accepted Git sources independently of any search cache and includes complete required content. If a packet exceeds policy size, split or refine the accepted plan rather than truncating mandatory context.
 
-Ownership remains a direct `artifacts`-metadata lookup. A search match is not an ownership declaration,
-and no search hit is not evidence of no documentation impact.
+## Projection lifecycle
 
-## Disposable cache
+The index fingerprint includes authority identity, view, selected filters, accepted Intent digest, Working revision, source contents/provenance, ontology implementation and retrieval implementation. Search, `index` and `stat` ensure a matching projection; `index --force` explicitly rebuilds it. Cache corruption or a mismatched cached chunk triggers rebuild; unavailable cache storage falls back to memory.
 
-Controller-backed projections live at `$ORCHI_CONTROL/cache/retrieval/<scope-digest>.sqlite`.
-Standalone projections live under `orchi-retrieval/` in the worktree's Git directory. Both locations stay
-outside the tracked project tree. The cache contains document text; protect it like other repository data.
-Do not put it in task packets or export it as authoritative audit evidence.
-
-One cache file is replaced per repository/scope identity. Its fingerprint includes the resolved canonical
-commit or initiative baseline, knowledge checkpoint and revision, full knowledge-manifest digest, and
-readable document hashes and provenance. The implementation's source digest, linked SQLite build, and
-available tokenizers are also checked for reuse. There is no product release counter or index migration.
-
-Every request resolves the authority view and checks working-artifact freshness before considering cache
-reuse. This includes reading authoritative documentation; the cache accelerates matching, not authority
-validation. An active epic's code `head` does not invalidate the last verified knowledge view merely because
-some tasks have integrated. A knowledge checkpoint, revalidation, retirement, stale artifact, or canonical
-publication does invalidate the corresponding projection.
-
-Search, `index`, and `stat` build or refresh as needed. `index --force` forces rebuilding. Builders write to
-a temporary file and publish with atomic replacement; a reader keeps its own snapshot connection during
-concurrent builds. Corrupt, missing, incompatible, or candidate-mismatched indexes are rebuilt. If cache
-storage is unavailable or unsafe, retrieval uses an in-memory projection and reports a diagnostic.
-Deleting only the retrieval cache is safe. Controller state, audit artifacts, and Git are not disposable.
-
-Python's linked SQLite must have FTS5. Missing FTS5 raises `FTS5_UNAVAILABLE`; `get` and `owners` remain
-usable. Missing trigram support keeps token/prefix BM25 and reports `TRIGRAM_UNAVAILABLE` rather than
-silently claiming substring or fuzzy matching. `doctor` checks these capabilities. Retrieval adds no
-third-party Python dependency, service, embeddings, model call, or runtime network request.
-
-## Use from an installed skill
-
-The complete command procedure is bundled in [the retrieval reference](../skills/orchi/references/retrieval.md).
-It covers controller-backed scope, standalone canonical reads, exact readback, and cache diagnostics.
-Standalone mode defaults to `refs/heads/main`; select the project's canonical ref explicitly when different.
-Do not mix standalone `--repo` with `--control`, `ORCHI_CONTROL`, or initiative scope.
+Controller caches use `$ORCHI_CONTROL/cache/retrieval/`; standalone caches live under the worktree's Git metadata. Graphs are rebuilt in memory, with only requested HTML/JSON outputs written. Delete projections freely, never the controller store or Git source objects. Caches and maps contain private repository context and need appropriate access controls.
