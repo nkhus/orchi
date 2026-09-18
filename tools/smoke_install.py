@@ -13,12 +13,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ('orchi', 'orchi-plan', 'orchi-work', 'orchi-review', 'orchi-deliver')
 
 
-def smoke(out: Path, installer: str, runner: str) -> dict:
+def smoke(out: Path, installer: str, runner: str, agents: list[str] | None = None) -> dict:
     """Never use an existing destination or a production control directory."""
     out = out.resolve()
     out.mkdir(parents=True, exist_ok=False)
     project = out / 'project'
     project.mkdir()
+    agents = agents or ['codex', 'copilot', 'claude']
     env = {key: value for key, value in os.environ.items()
            if key not in {'PYTHONPATH', 'PYTHONHOME', 'ORCHI_CONTROL', 'VIRTUAL_ENV'}}
     env.update(DISABLE_TELEMETRY='1', DO_NOT_TRACK='1')
@@ -50,9 +51,12 @@ def smoke(out: Path, installer: str, runner: str) -> dict:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding='utf-8')
     if installer == 'skills':
-        run(['npx', '--yes', 'skills', 'add', str(ROOT), '--skill', '*', '--agent', 'codex', '--yes'])
+        names = {'codex': 'codex', 'copilot': 'github-copilot', 'claude': 'claude-code'}
+        run(['npx', '--yes', 'skills', 'add', str(ROOT), '--skill', '*', '--agent', *[names[name] for name in agents], '--yes'])
+    elif installer == 'npm':
+        run(['node', str(ROOT / 'bin/orchi.js'), '--project', str(project), '--agents', *agents])
     else:
-        run([sys.executable, str(ROOT / 'tools/install.py'), '--project', str(project)])
+        run([sys.executable, str(ROOT / 'tools/install.py'), '--project', str(project), '--agents', *agents])
     for name in SKILLS:
         if not (project / '.agents/skills' / name / 'SKILL.md').is_file():
             raise RuntimeError('Missing installed skill: ' + name)
@@ -72,12 +76,20 @@ def smoke(out: Path, installer: str, runner: str) -> dict:
     run([*prefix, str(scripts / 'orchi_operator.py'), 'keygen',
          '--private', str(out / 'test-only-private.pem'), '--public', str(out / 'test-only-public.pem')])
     for relative, text in preserved.items():
-        if (project / relative).read_text(encoding='utf-8') != text:
+        installed_text = (project / relative).read_text(encoding='utf-8')
+        if relative == 'AGENTS.md' and installer != 'skills':
+            if not installed_text.startswith(text) or installed_text.count('<!-- orchi:begin -->') != 1:
+                raise RuntimeError('Managed root instructions were not installed correctly')
+        elif installed_text != text:
             raise RuntimeError('Installation modified an unrelated file: ' + relative)
+    if 'claude' in agents:
+        for name in SKILLS:
+            if (project / '.claude/skills' / name).resolve() != project / '.agents/skills' / name:
+                raise RuntimeError('Claude does not share the canonical skill bundle')
     for unexpected in ('.venv', 'uv.lock'):
         if (project / unexpected).exists():
             raise RuntimeError('Runtime used the consuming application environment: ' + unexpected)
-    result = {'ok': True, 'installer': installer, 'runner': runner, 'skills': len(SKILLS),
+    result = {'ok': True, 'installer': installer, 'runner': runner, 'agents': agents, 'skills': len(SKILLS),
               'schemas': len(actual), 'preserved_files': len(preserved),
               'live_model': False, 'out': str(out)}
     (out / 'smoke-report.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
@@ -87,11 +99,12 @@ def smoke(out: Path, installer: str, runner: str) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, required=True, help='A new disposable output directory')
-    parser.add_argument('--installer', choices=('skills', 'local'), default='skills')
+    parser.add_argument('--installer', choices=('skills', 'local', 'npm'), default='npm')
+    parser.add_argument('--agents', nargs='+', choices=('codex', 'copilot', 'claude'), default=['codex', 'copilot', 'claude'])
     parser.add_argument('--runner', choices=('uv', 'python'), default='uv')
     args = parser.parse_args()
     try:
-        result = smoke(args.out, args.installer, args.runner)
+        result = smoke(args.out, args.installer, args.runner, args.agents)
     except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as exc:
         print(str(exc), file=sys.stderr)
         return 1

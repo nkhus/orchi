@@ -2,20 +2,24 @@
 
 **Turn one user request into a verified implementation through iterative epics, parallel tasks, and one final code-and-documentation publication.**
 
-Orchi is a local orchestration workflow for coding assistants. Five focused agent skills coordinate a Python controller that records approvals, builds task packets, manages Git worktrees, executes checks, and preserves recoverable state. Codex has a built-in execution adapter; other assistants can consume the same packets through a command adapter or manual handoff.
+Orchi is a local orchestration workflow for coding assistants. Five focused agent skills coordinate a Python controller that records approvals, builds task packets, manages Git worktrees, executes checks, and preserves recoverable state. Codex, GitHub Copilot CLI, and Claude Code have built-in execution adapters. Other assistants can consume the same packets through a command adapter or manual handoff.
 
 ## Install in a project
 
 Run the repository's installer from the target repository:
 
 ```bash
-npx --yes github:nkhus/orchi --project "$PWD"
+npx --yes github:nkhus/orchi --project "$PWD" --agents copilot claude
 uv run .agents/skills/orchi/scripts/orchi.py doctor --repo .
 ```
 
+Select `codex`, `copilot`, `claude`, or `all`; one or several names work. With no selection, an interactive terminal offers a picker. Use `--global` instead of `--project` for a user-wide installation.
+
+The installer adds a managed Orchi section to root `AGENTS.md` and the selected assistants' instruction bridges, preserving existing user text. All selected assistants share one skill bundle.
+
 Install **all five skills together**. The small npm wrapper copies the controller, Python dependency declarations, operator tools, references, and example templates into the project; the installed runtime itself is not a Python or Node application package. `uv` manages Orchi's Python environment without adding dependencies to the application's environment.
 
-Requirements: Git, a POSIX environment, and `uv`; Python 3.11 or newer is required by the scripts. Node.js/npm is needed for the `npx` installation command, not for the controller. A live Codex run also needs an installed and authenticated Codex CLI. Use Linux, macOS, or a Linux environment under WSL; native Windows execution is not supported by the process controller.
+Requirements: Git, a POSIX environment, and `uv`; Python 3.11 or newer is required by the scripts. Node.js/npm is needed for the `npx` installation command, not for the controller. Automatic workers need the selected assistant's installed and authenticated CLI; the installer reports missing programs with installation links. Use Linux, macOS, or a Linux environment under WSL; native Windows execution is not supported by the process controller.
 
 Installation does **not** authorize execution. Before starting an initiative, a human operator configures an external control directory, signing key, trusted project checks, and worker access boundaries. Follow the [operator guide](skills/orchi/references/operator-guide.md). `doctor` checks local prerequisites; it does not certify authentication or isolation.
 
@@ -26,7 +30,7 @@ Installation does **not** authorize execution. Before starting an initiative, a 
 In a coding-agent session that has loaded the skills:
 
 ```text
-$orchi Implement <the requested change>. Agree on the outcome and epic roadmap first.
+Use Orchi to implement <the requested change>. Agree on the outcome and epic roadmap first.
 Design only the next epic, then execute its approved independent tasks in parallel.
 Update Core documentation only after the entire request is implemented and verified.
 ```
@@ -57,7 +61,7 @@ A small request can use one epic. Larger requests keep future epics at roadmap l
 | `orchi-review` | Review exact candidates and triage bounded, causal findings |
 | `orchi-deliver` | Checkpoint Working Knowledge; reconcile Core and prepare publication |
 
-Use `$orchi` to start or continue. The other skills are explicit stages, not competing entrypoints. A packet worker follows its assigned task rather than starting another coordinator.
+Use `$orchi` in Codex CLI or `/orchi` in Claude Code and Copilot CLI to start or continue. The other skills are explicit stages, not competing entrypoints. A packet worker follows its assigned task rather than starting another coordinator.
 
 ## Documentation during development
 

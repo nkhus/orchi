@@ -27,7 +27,7 @@ Submit `review-record --file review.json`.
 
 Zero significant findings is a successful review; do not demand changes anyway.
 One full pass is followed only by bounded targeted passes on repairs and their effects.
-Use `repair` only when requested; `$orchi-work` executes the assigned repair packets.
+Use `repair` only when requested; [orchi-work](../orchi-work/SKILL.md) executes the assigned repair packets.
 Do not change the approved task scope during repair; use an amendment for a new decision.
 Review rounds and attempts survive revisions, renames of sessions and process restarts.
 At an unresolved limit, stop; neither another blind pass nor an automatic PASS is permitted.

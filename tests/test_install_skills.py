@@ -13,7 +13,7 @@ spec=importlib.util.spec_from_file_location('orchi_installer',ROOT/'tools/instal
 def test_fresh_install_preserves_user_files(tmp_path):
     (tmp_path/'AGENTS.md').write_text('User rules'); (tmp_path/'.codex').mkdir(); (tmp_path/'.codex/config.toml').write_text('model="operator-model"')
     r=installer.install(tmp_path)
-    assert r['status']=='installed';assert (tmp_path/'AGENTS.md').read_text()=='User rules'
+    assert r['status']=='installed';assert (tmp_path/'AGENTS.md').read_text().startswith('User rules\n\n<!-- orchi:begin -->')
     assert (tmp_path/'.codex/config.toml').read_text()=='model="operator-model"'
     assert sorted(p.name for p in (tmp_path/'.agents/skills').iterdir())==sorted(installer.NAMES)
     assert installer.install(tmp_path)['status']=='unchanged'
@@ -29,7 +29,7 @@ def test_modified_skill_refuses_silent_overwrite(tmp_path):
     installer.install(tmp_path);f=tmp_path/'.agents/skills/orchi/SKILL.md';f.write_text('User customizations')
     with pytest.raises(ValueError): installer.install(tmp_path)
     r=installer.install(tmp_path,replace=True)
-    assert (Path(r['backup'])/'orchi/SKILL.md').read_text()=='User customizations'
+    assert (Path(r['backup'])/'.agents/skills/orchi/SKILL.md').read_text()=='User customizations'
 
 
 def test_unrelated_skills_are_preserved(tmp_path):

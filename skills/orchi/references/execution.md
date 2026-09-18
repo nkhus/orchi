@@ -12,7 +12,10 @@
 Use the foreground `run --adapter ...` for automatic preparation/execution process pairs and ready-task drain.
 The default Codex adapter uses read-only preparation, workspace-write execution and explicit no-interaction
 approval policy. It does not bypass the sandbox. Model and environment are operator choices.
+Claude Code and Copilot CLI have native adapters with read-only preparation tools, operator-selected execution permissions,
+and validated phase results. Copy and review the corresponding bundled adapter template; see [operator setup](operator-guide.md).
 Other assistants can use the same packet through a registered command adapter or a manual operator relay.
+The coordinating assistant and worker provider are independent choices; one run uses one adapter.
 
 Read/write overlap is serialized; semantic conflicts not visible in declared paths still require tests/review.
 New reads must be reported in result.extra_reads. Changed read assumptions reject stale results.

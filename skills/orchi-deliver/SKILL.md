@@ -18,7 +18,7 @@ Replace, retire or revalidate affected initiative knowledge with passed evidence
 Store only verified intermediate semantics, never the unimplemented future design.
 Use `checkpoint --file checkpoint.json`; the controller stores the scoped overlay and closes the epic.
 Do not edit `docs/`, archive the initiative or merge to canonical at this stage.
-Return to `$orchi-plan`: design the next epic against this actual checkpoint.
+Return to [orchi-plan](../orchi-plan/SKILL.md): design the next epic against this actual checkpoint.
 
 ## Entire initiative
 
@@ -27,7 +27,7 @@ Review cumulative code, root acceptance and all working replacements; the draft 
 Produce coherent Core updates and a substantive reconciliation report; retain no future claims.
 Use `finalize --file finalization.json`; the controller builds one baseline-parent code-plus-docs commit,
 archives initiative material and runs all required checks on the exact final tree.
-Route to `$orchi-review` for bounded cross-epic review; then present final human acceptance and stop.
+Route to [orchi-review](../orchi-review/SKILL.md) for bounded cross-epic review; then present final human acceptance and stop.
 After approval, `publication` returns the exact candidate and expected canonical parent.
 An operator performs the normal fast-forward merge, then calls `record-publication --commit <hash>`.
 Do not merge automatically. Canonical drift invalidates publication; no silent rebase or deployment.

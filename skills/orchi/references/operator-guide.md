@@ -4,7 +4,7 @@ This guide and both command entrypoints are bundled in the installed `orchi` ski
 
 ## Locate the installed tools
 
-For a project-local Codex installation:
+For a project-local installation:
 
 ```bash
 export PROJECT="/absolute/path/to/project"
@@ -18,7 +18,7 @@ orchi_operator() { uv run "$ORCHI_SKILLS/orchi/scripts/orchi_operator.py" "$@"; 
 orchi doctor --repo "$PROJECT"
 ```
 
-For a user-wide Codex installation through the Skills CLI, set `ORCHI_SKILLS="$HOME/.codex/skills"`, or use the location printed by your installer. For another agent, use the actual directory containing all five installed skills. Orchi's Python environment is separate from the project's test/build environment.
+For a user-wide installation through Orchi, set `ORCHI_SKILLS="$HOME/.agents/skills"`. For third-party installers, use the location printed by that installer. For another agent, use the actual directory containing all five installed skills. Orchi's Python environment is separate from the project's test/build environment.
 
 The target must be a Git repository with an existing commit and the intended canonical branch. Installation need not have initialized a workflow. Reserve the `initiatives/` namespace for Orchi's internal initiative records and inspect the path protection rules before adopting the workflow.
 
@@ -96,30 +96,36 @@ The planner reads actual internal commits and initiative-scoped knowledge. Use `
 
 ## Configure workers
 
-The bundled Codex adapter template is `../assets/codex-adapter.json`:
+The bundle includes `codex-adapter.json`, `copilot-adapter.json`, and `claude-adapter.json` under `assets/`. Select a worker provider independently of the assistant coordinating the initiative. One foreground run uses one adapter; installing multiple integrations does not automatically mix worker providers.
 
-```json
-{
-  "kind": "codex",
-  "executable": "codex",
-  "pass_env": ["HOME", "CODEX_HOME"]
-}
-```
+Install and authenticate the selected terminal program under the intended worker identity. Check executable availability with `orchi doctor --require-agent codex`, `copilot`, or `claude`. Inspect the installed CLI's help for the flags described below. No model is selected by Orchi; an optional adapter `model` field makes the operator's choice explicit.
 
-Install and authenticate Codex for the intended worker identity using its official instructions. Inspect `codex exec --help` for required flags. An optional `model` field selects a model; no model is selected by Orchi. `HOME` and `CODEX_HOME` must not expose operator keys or privileged configuration. Permit additional environment names only after reviewing their contents and authority.
-
-Copy and review the adapter in the operator configuration directory:
+Copy and review the selected template outside worker access:
 
 ```bash
-cp "$ORCHI_SKILLS/orchi/assets/codex-adapter.json" "$CONTROL_HOME/adapter.json"
+cp "$ORCHI_SKILLS/orchi/assets/copilot-adapter.json" "$CONTROL_HOME/adapter.json"
 orchi run --adapter "$CONTROL_HOME/adapter.json"
 ```
 
-The runner uses a read-only preparation session and a workspace-write execution session, with structured output, JSON events, ephemeral sessions, and noninteractive approval settings. It does not bypass the sandbox. Verify that the actual executable and outer isolation policy enforce the intended access boundaries. `run` is foreground and returns at review, checkpoint, approval, or blocker boundaries; continue through `next`.
+The native adapters accept `kind`, optional `executable`, optional `model`, and `pass_env`. Claude and Copilot additionally accept `allowed_tools`, applied only during execution. Without explicit rules, their execution defaults permit reading and editing but do not approve shell commands. Bundled templates include shell permission so trusted task checks can run; narrow these rules to the project and use real OS/container isolation. Tool allowlists cannot enforce filesystem isolation for shell commands.
+
+`pass_env` lists environment names, never secret values. The templates pass `HOME` and the provider's configuration-root variable. These must point to a worker identity's configuration, never an operator home containing signing keys. Environment-token authentication requires the operator to add the intended variable explicitly. Orchi does not copy credentials or configure login.
+
+| Adapter | Prepare | Execute and result |
+| --- | --- | --- |
+| Codex | `codex exec` with `read-only` sandbox | `workspace-write`, ephemeral session, output schema and result file |
+| Claude | `claude -p`, only Read/Glob/Grep tools | Coding tools with `dontAsk` and explicit allowed tools; validates successful JSON envelope and `structured_output` |
+| Copilot | Piped noninteractive prompt, only view/glob/grep; denies shell and writes | Coding tools with explicit allow rules; silent non-streaming text must be one schema-valid JSON object |
+
+Claude worker skills and MCP servers are disabled so a packet cannot recursively start orchestration. Copilot's available-tool list excludes delegation and skill invocation, and built-in MCP servers are disabled. These restrictions do not replace inspection of provider hooks, managed policy, and outer isolation. No blanket permission-bypass flag is set.
+
+Each phase receives the exact packet and input directory. Process errors, invalid output, unresolved readiness, or preparation writes block progression. Controller activation occurs before an execution process starts; ordinary scope and verification gates still apply. No provider response can substitute for a passed check or signed approval.
+
+The runner preserves process time/output limits and records observations before parsing results. It does not automatically retry malformed output or resume provider sessions. `run` is foreground and returns at review, checkpoint, approval, or blocker boundaries; continue through `next`.
 
 ## Command adapter or manual handoff
 
-A trusted command adapter supplies `kind: "command"` and an `argv` array. It runs without a shell. The process receives `ORCHI_PHASE`, `ORCHI_PACKET`, `ORCHI_OUTPUT`, `ORCHI_WORKSPACE`, and `ORCHI_TICKET`. It must write the phase's JSON result to `ORCHI_OUTPUT`. Prepare/execute output schemas are in the ticket's input directory. The command adapter does not itself provide a sandbox; its executable or external runtime must enforce access restrictions.
+A trusted command adapter supplies `kind: "command"` and an `argv` array. It runs without a shell. The process receives `ORCHI_PHASE`, `ORCHI_PACKET`, `ORCHI_OUTPUT`, `ORCHI_SCHEMA`, `ORCHI_WORKSPACE`, and `ORCHI_TICKET`. It must write the phase's JSON result to `ORCHI_OUTPUT`. Prepare/execute output schemas are in the ticket's input directory. The command adapter does not itself provide a sandbox; its executable or external runtime must enforce access restrictions.
 
 For manual handoff, `claim --task <id>` returns a workspace, packet, and ticket. Give the assistant only the assigned checkout and inputs. Relay its readiness using `activate --ticket <id> --file readiness.json` before execution. Relay its result using `submit --ticket <id> --file result.json`. Do not give a worker the entire control store merely to simplify CLI access.
 

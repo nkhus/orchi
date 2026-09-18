@@ -20,10 +20,10 @@ If no control directory exists, read [setup](references/setup.md); do not fabric
 
 | Action | Skill / behavior |
 |---|---|
-| Define initiative, plan next epic | `$orchi-plan` |
-| Execute ready tasks | `$orchi-work` |
-| Review epic or final candidate, targeted repair | `$orchi-review` |
-| Checkpoint epic, reconcile initiative, publish | `$orchi-deliver` |
+| Define initiative, plan next epic | [orchi-plan](../orchi-plan/SKILL.md) |
+| Execute ready tasks | [orchi-work](../orchi-work/SKILL.md) |
+| Review epic or final candidate, targeted repair | [orchi-review](../orchi-review/SKILL.md) |
+| Checkpoint epic, reconcile initiative, publish | [orchi-deliver](../orchi-deliver/SKILL.md) |
 | Human approval, running operation, running workers | Report the exact blocker and stop; do not poll in a paid loop |
 | Paused / blocked | Read [recovery](references/recovery.md); never reset counters or invent approval |
 | Published | Report the verified publication; do not deploy |
