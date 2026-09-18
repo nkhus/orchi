@@ -33,6 +33,10 @@ def validate() -> dict:
     errors: list[str] = []
     compiled = 0
     source_files = files()
+    expected_schemas = {name + '.schema.json' for name in CONTRACTS}
+    actual_schemas = {path.name for path in (ROOT / 'schemas').glob('*.json')}
+    if actual_schemas != expected_schemas:
+        errors.append('Unexpected schema set: ' + ', '.join(sorted(actual_schemas ^ expected_schemas)))
     for name, model in CONTRACTS.items():
         try:
             actual = json.loads((ROOT / 'schemas' / (name + '.schema.json')).read_text())
@@ -78,7 +82,7 @@ def validate() -> dict:
                 if file.relative_to(ROOT).parts[0] == 'skills' and not target.is_relative_to(ROOT / 'skills'):
                     errors.append(rel + ': installed reference escapes the skill bundle: ' + link)
     requirements = (ROOT / 'skills/orchi/scripts/requirements.txt').read_text().splitlines()
-    for entrypoint in ('orchi.py', 'operator.py'):
+    for entrypoint in ('orchi.py', 'orchi_operator.py'):
         try:
             metadata = inline_metadata(ROOT / 'skills/orchi/scripts' / entrypoint)
             if metadata.get('requires-python') != '>=3.11' or metadata.get('dependencies') != requirements:

@@ -1,67 +1,79 @@
----
-kind: guide
-area: orchi
-artifacts:
-  - tools/install.py
-  - tools/smoke_install.py
-  - skills/orchi/scripts/orchi.py
-  - skills/orchi/scripts/operator.py
-relations:
-  part_of: [docs/README.md]
----
 # Installation
 
+## Distribution contract
 
-## Complete skill bundle
+Orchi is distributed directly from its Git repository using the Agent Skills directory format. Each of its five skill directories contains `SKILL.md`; the `orchi` directory also contains the shared runtime, dependency declarations, operator tooling, references, and assets. Keep the five directories as siblings.
 
-Install all five sibling directories: `orchi`, `orchi-plan`, `orchi-work`, `orchi-review`, `orchi-deliver`. `orchi` contains the shared runtime, operator tooling, references and assets. The npm package is an installation wrapper, not the Orchi runtime. The receiving project's language and package manager do not determine the Orchi runtime.
+The repository includes a dependency-free npm wrapper that installs the complete bundle locally without changing the target application's dependencies. The installed runtime is Python and does not depend on Node or a separately published Python application package.
 
-Install the bundle with the dependency-free npm wrapper:
+## Project-local installation
 
-```bash
-npx --yes github:nkhus/orchi --project /absolute/path/to/project
-uv run /absolute/path/to/project/.agents/skills/orchi/scripts/orchi.py doctor --repo /absolute/path/to/project
-```
-
-Omit `--project` to install into the current directory. `--dry-run` previews the operation. `--replace-orchi` explicitly backs up and replaces differing Orchi skill directories. The npm package has no dependencies or lifecycle installation scripts; it invokes the bundled Python copy installer through `uv run --no-project` and does not modify or resolve the consuming project's package metadata.
-
-For a source checkout or an offline archive, invoke the same installer directly:
+From the repository in which the assistant will work:
 
 ```bash
-uv run --no-project --python '>=3.11' /absolute/path/to/orchi/tools/install.py --project /absolute/path/to/project
-```
-
-Provision Python dependencies with the entrypoints' inline `uv` metadata or an approved wheelhouse, not by changing application dependencies. The copy installer preserves existing project instructions, configuration and unrelated skills, refuses symlink installation paths, and refuses silent overwrite of modified Orchi skills. Review the resulting diff before committing installed skills.
-
-The Skills CLI can also discover the source directory:
-
-```bash
-npx skills add /absolute/path/to/orchi --skill '*' --agent codex --yes
-```
-
-Use the printed installation directory for commands; a third-party installer may choose canonical copies and agent-specific links. A repository locator can replace the local path when it refers to the exact source content you intend to install. The ZIP itself does not update or publish a remote repository.
-
-## Isolated script runtime
-
-The controller and operator entrypoints carry inline Python dependency metadata. The ticket worker helper uses the provisioned interpreter and only the standard library. With a provisioned `uv` installation:
-
-```bash
+npx --yes github:nkhus/orchi --project "$PWD"
 uv run .agents/skills/orchi/scripts/orchi.py doctor --repo .
-uv run .agents/skills/orchi/scripts/operator.py --help
 ```
 
-The scripts require `uv`, Python 3.11+, Git, POSIX process support and the pinned dependencies in `scripts/requirements.txt`. FTS5 is required for search; optional trigram support adds substring/fuzzy retrieval. Node/npm is needed only for npm or Skills CLI installation, not controller execution. A live Codex adapter additionally needs the actual CLI, authentication and an operator-validated isolation policy.
+To inspect the operation first, use the bundled installer's dry-run mode from a checkout:
 
-A managed Python environment with the bundled requirements can run `python <installed-script>` directly. Orchi does not install target-project build/test dependencies, initialize services or certify authentication. `doctor --require-codex` checks executable availability, not a live model call.
+```bash
+python3 tools/install.py --project /absolute/path/to/project --dry-run
+```
 
-## Initialize authority, not invented implementation
+Review the resulting diff. Commit the installed skill files and any project-local lockfile written by the Skills CLI when the setup should be shared with the team. Orchi's own installer does not modify `AGENTS.md`, `.codex/config.toml`, application manifests, or unrelated skills. Review the behavior of any third-party installer before running it in a sensitive repository.
 
-Installation alone does not authorize execution. The operator configures an external controller directory, signing key and trusted check policy; follow the installed [operator guide](../skills/orchi/references/operator-guide.md). Keep private keys and canonical write permissions outside worker access.
+The [Codex skill documentation](https://developers.openai.com/codex/skills/) describes `.agents/skills` discovery. Start a fresh agent session when the current session does not expose the installed skills.
 
-A new repository requires a canonical branch with a baseline commit. An intentionally empty Git commit is sufficient for greenfield when policy prerequisites are valid. There is no need to create fake Core architecture first. For existing unstructured docs, use the installed [bootstrap procedure](../skills/orchi/references/bootstrap.md).
+## Other installation locations
 
-## Verification and removal
+The installer targets a project's `.agents/skills` directory. For a user-wide or another agent-specific installation, copy all five sibling directories to that agent's documented skill location and run `doctor` from the actual installed path. Skill-format compatibility does not imply a native execution adapter: Orchi includes a Codex adapter and a generic command/manual packet protocol.
 
-Run `python tools/smoke_install.py --installer local --runner python --out /new/disposable/path` from a provisioned source checkout to verify the copied runtime against an unrelated application environment. The smoke exercises schema export, Current/Target retrieval, exact reads, graph/map/lint/coverage and synthetic approval in a disposable project.
+## Python runtime
 
-To remove a local installation, remove only the five Orchi skill directories or use the installer that placed them. Inspect links and lockfiles before removal; do not delete unrelated skills, project instructions, controller audit data or Git metadata. Each initiative uses its own external control directory even with user-wide skill installation.
+Run the installed scripts with `uv`:
+
+```bash
+uv run .agents/skills/orchi/scripts/orchi.py --help
+uv run .agents/skills/orchi/scripts/orchi.py doctor --repo . --require-codex
+uv run .agents/skills/orchi/scripts/orchi_operator.py --help
+```
+
+Both entrypoints declare Python requirements and dependencies through inline script metadata. [Astral's script guide](https://docs.astral.sh/uv/guides/scripts/) explains the isolated environment: a target project's dependency set is not loaded when the script has inline metadata. Orchi does not create or modify that project's application environment. Initial execution requires access to the declared Python packages and a suitable Python interpreter; pre-provision them for restricted networks.
+
+To select a suitable interpreter explicitly, add `--python 3.11` before the script path in `uv run`; this is useful when a local Python selection conflicts with the script requirements.
+
+For an existing managed Python environment or offline provisioning, install the bundled requirements through your approved package mirror or wheelhouse, then use `python` directly:
+
+```bash
+python -m pip install -r .agents/skills/orchi/scripts/requirements.txt
+python .agents/skills/orchi/scripts/orchi.py doctor --repo .
+```
+
+Choose a dedicated environment, not the application's environment. Orchi's dependencies do not include your project's compiler, test runner, packages, or services. Those must work inside the verification worktrees under the operator's trusted check configuration.
+
+## Installation from a local checkout
+
+With Node.js/npm available:
+
+```bash
+# Run in the target project; point to an existing Orchi checkout.
+npx --yes /absolute/path/to/orchi --project "$PWD"
+```
+
+Without Node.js, run the bundled standard-library-only copying tool from an Orchi checkout:
+
+```bash
+python3 tools/install.py --project /absolute/path/to/project --dry-run
+python3 tools/install.py --project /absolute/path/to/project
+```
+
+This copies the complete skill set to `.agents/skills`, verifies file hashes, and records a local installation manifest. An unchanged installation is a no-op. Conflicting Orchi files require explicit `--replace-orchi`; replaced content is backed up beside the target project. Unrelated skills are neither removed nor rewritten. Symlinked destination skill directories are refused by this copying tool; use the Skills CLI to manage its own symlinks.
+
+## Maintenance and removal
+
+Re-run the installation command with `--replace-orchi` to replace a differing installation after reviewing it; the installer keeps a backup. Removing the five installed skill directories does not delete external audit data, operator keys, or control databases. Stop active workers and preserve required audit material before removing an installation used by an initiative.
+
+## Operational setup
+
+A successful installation or `doctor` result is not permission to run coding tasks. The human operator selects trusted checks, creates a protected keypair, sets `ORCHI_CONTROL`, initializes a fresh external control store, and verifies worker isolation. Continue with the bundled [operator guide](../skills/orchi/references/operator-guide.md).

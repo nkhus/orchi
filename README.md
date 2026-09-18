@@ -1,84 +1,112 @@
 # Orchi
 
-A local, Git-native controller that takes an accepted development request to a checked, reviewed, atomically published result. A bounded fix and a large initiative use the same authority model; only the depth of authoring changes. Humans and agents use the same candidate-acceptance protocol.
+**Turn one user request into a verified implementation through iterative epics, parallel tasks, and one final code-and-documentation publication.**
 
-## Install
+Orchi is a local orchestration workflow for coding assistants. Five focused agent skills coordinate a Python controller that records approvals, builds task packets, manages Git worktrees, executes checks, and preserves recoverable state. Codex has a built-in execution adapter; other assistants can consume the same packets through a command adapter or manual handoff.
 
-Install all five sibling skills into the target project with `npx`:
+## Install in a project
+
+Run the repository's installer from the target repository:
 
 ```bash
-npx --yes github:nkhus/orchi --project /absolute/path/to/project
-uv run /absolute/path/to/project/.agents/skills/orchi/scripts/orchi.py doctor --repo /absolute/path/to/project
+npx --yes github:nkhus/orchi --project "$PWD"
+uv run .agents/skills/orchi/scripts/orchi.py doctor --repo .
 ```
 
-Run the installer without `--project` to target the current directory. The wrapper uses `uv run --no-project` so installation does not inherit the consuming project's Python package metadata. The installed entrypoints use their inline `uv` dependency metadata. Node 18+, `uv`, Python 3.11+, POSIX, Git with SHA-1 objects and SQLite FTS5 are required. Installation preserves unrelated skills and project instructions. See [installation](docs/installation.md) and the bundled [operator guide](skills/orchi/references/operator-guide.md) for keys, checks and real worker isolation. The npm package is only an installation wrapper; the installed runtime does not depend on Node or a separately published Python application.
+Install **all five skills together**. The small npm wrapper copies the controller, Python dependency declarations, operator tools, references, and example templates into the project; the installed runtime itself is not a Python or Node application package. `uv` manages Orchi's Python environment without adding dependencies to the application's environment.
 
-## One development cycle
+Requirements: Git, a POSIX environment, and `uv`; Python 3.11 or newer is required by the scripts. Node.js/npm is needed for the `npx` installation command, not for the controller. A live Codex run also needs an installed and authenticated Codex CLI. Use Linux, macOS, or a Linux environment under WSL; native Windows execution is not supported by the process controller.
+
+Installation does **not** authorize execution. Before starting an initiative, a human operator configures an external control directory, signing key, trusted project checks, and worker access boundaries. Follow the [operator guide](skills/orchi/references/operator-guide.md). `doctor` checks local prerequisites; it does not certify authentication or isolation.
+
+[Installation options](docs/installation.md) cover user-wide installation, other agents, local/offline copying, and removal.
+
+## Start a request
+
+In a coding-agent session that has loaded the skills:
 
 ```text
-Request -> accepted Intent -> design the nearest verifiable epic
-        -> parallel human/agent tasks -> isolated checks
-        -> exact-head composition + compatibility checks + short CAS acceptance
-        -> independent review -> verified Working Knowledge checkpoint
-        -> next epic, or final requirement/architecture/Core reconciliation
-        -> exact final checks + review + human acceptance -> atomic publication
+$orchi Implement <the requested change>. Agree on the outcome and epic roadmap first.
+Design only the next epic, then execute its approved independent tasks in parallel.
+Update Core documentation only after the entire request is implemented and verified.
 ```
 
-For a small understood change, `start --file brief.json` deterministically expands one compact brief into normal Intent and the first Epic Plan, with one combined initial approval. A final approval is still required. Larger requests use `begin` and progressively accepted `plan` calls. The controller does not invent missing requirements or architecture.
+The workflow is:
 
-Investigations return observations without product writes. Knowledge-only epics need no fake implementation task. Existing diffs can be imported after readiness, and explicitly stopped work can be handed from an agent to a person without losing its candidate. Local file-scope additions are permitted only inside the accepted directory/action/choice envelope; changing a shared design or Target requires its own revision.
+```text
+Understand the request and agree on direction
+  -> Design and approve the next epic and its tasks
+  -> Execute ready tasks in parallel; integrate verified results serially
+  -> Review the combined implementation
+  -> Checkpoint verified Working Knowledge
+  -> Repeat for the next epic using the actual result
+  -> Reconcile Core documentation for the completed request
+  -> Review and approve the exact final candidate
+  -> Operator publishes one code + docs + initiative archive commit
+```
 
-Only one epic is active per initiative. Independent tasks can run in parallel; multiple independent initiatives use separate control directories and a shared Git target. Reading an immutable snapshot is not a file lock. Documentation ownership remains navigation/impact metadata, not a scheduler reservation.
+A small request can use one epic. Larger requests keep future epics at roadmap level instead of designing every task upfront. Material uncertainty returns to the human; normal tasks within an approved epic do not require repeated approval.
 
-## A moving repository, not a frozen main
+## Skills
 
-The original baseline is immutable provenance. Current uses the **accepted integration base plus verified Working Knowledge**. Other developers can publish to the canonical branch. At a closed boundary, `sync-status`, `sync-draft`, `sync-check`, exact review and signed acceptance reconcile both code and knowledge against the new upstream snapshot. Until acceptance, the old Current remains authoritative. A sync invalidates an old final candidate and approval.
-
-An upstream edit to a document cannot be silently hidden by an old Working replacement. Same-path code conflicts and affected knowledge require explicit dispositions. Rewritten upstream history fails closed. See [synchronization](docs/synchronization.md).
-
-## Knowledge views
-
-| View | Meaning |
+| Skill | Responsibility |
 | --- | --- |
-| Current | Published Core, or this initiative's accepted base plus verified sparse overlay |
-| Target | Accepted requirements, architecture and target decisions |
-| All | Both, with explicit role and exact Git/hash provenance |
+| `orchi` | User entrypoint; route according to controller state |
+| `orchi-plan` | Define the initiative; design and amend the next epic |
+| `orchi-work` | Execute approved tasks through generated packets and bounded workers |
+| `orchi-review` | Review exact candidates and triage bounded, causal findings |
+| `orchi-deliver` | Checkpoint Working Knowledge; reconcile Core and prepare publication |
 
-Intent, Epic Design, Working Knowledge and Evidence are separate. Greenfield can have empty Current and a useful Target. Search resolves authority first, keeps BM25/prefix/substring/fuzzy primary hits separate from typed graph neighbors, then supports exact reads. `related`, `owners`, `lint`, `map` and `coverage` are derived navigation. No vector service, graph database or remote knowledge authority is required.
+Use `$orchi` to start or continue. The other skills are explicit stages, not competing entrypoints. A packet worker follows its assigned task rather than starting another coordinator.
 
-Task packets support inline and on-demand exact sources. The foreground runner provides a ticket-bound local read/scope channel; workers do not need the control database or signing key. The outer sandbox must permit that limited channel. `views --out /new/external/path --view all` creates a read-only, provenance-labelled snapshot for a human's IDE; it is not another source of truth.
+## Documentation during development
 
-## Decisions and publication
+**Core** is the canonical `docs/` tree. It remains unchanged during intermediate epic work. **Verified Working Knowledge** is a sparse, initiative-scoped overlay describing completed, checked epics. **Proposals** describe the active epic and its tasks; they are not current system facts.
 
-`overview` explains pending work; `inspect` shows the actual pending gate. The operator can inspect, sign and apply an exact request ID without manually transporting decision files. Cryptographic gates, fixed policy and review remain in force.
+Workers receive the last knowledge checkpoint, the approved active-epic design, and actual accepted dependency results. At finalization, Orchi produces a coherent cumulative Core update and verifies the exact code-and-docs tree. It does not publish intermediate epics or automatically deploy anything.
 
-Atomic initiative is the only delivery contract: this initiative's code and Core publish after its whole request is reconciled. Exact commit is the default Git shape; policy can explicitly select squash-equivalent or a two-parent merge with the same checked tree and approved base. `publication` produces a Git/PR handoff, not a remote PR. Local operator publication uses compare-and-swap and refuses a branch checked out in any worktree. Hosted queue recomposition requires a new sync/final check/approval. Publication is not deployment.
-
-Incremental publication of one request, parallel active epics, distributed locking, atomic multi-repository delivery and a universal deployment engine are not claimed. See the [development formats](docs/development-flows.md) for precise support boundaries.
-
-## Skills and source layout
-
-`orchi` routes controller state; `orchi-plan` authors accepted intent and designs; `orchi-work` executes bounded tasks; `orchi-review` reviews exact candidates; `orchi-deliver` reconciles checkpoints, synchronization and publication. All five remain siblings.
+## Repository layout
 
 ```text
-skills/       Installed runtime, five skills, operator and worker tools, references, examples
-schemas/      Generated strict authoring contracts
-docs/         Current-state architecture and operating guides
-tests/        Deterministic protocol, concurrency and installation tests
-evals/        Live-agent scenarios, explicitly separate from deterministic results
-reports/      Detailed implementation plan, executed validation and delivery manifest
-tools/        Offline installer, validator, demonstration and installed-runtime smoke
+skills/                  Installable skills, bundled runtime, references, templates
+  orchi/scripts/         Controller and operator entrypoints; shared Python modules
+  orchi/references/      Focused agent instructions and the installed operator guide
+  orchi/assets/          Policy, adapter, and authoring examples
+  orchi-*/               Planning, execution, review, and delivery skills
+docs/                    Project architecture, protocols, installation, and security
+schemas/                 JSON Schemas generated from the Python contracts
+tests/                   Deterministic unit, integration, and packaging tests
+evals/                   Model-behavior scenarios; separate from automated tests
+examples/                Guide to the bundled examples and synthetic demonstration
+tools/                   Repository validation, local copying, and demonstration
+.github/workflows/       Continuous integration checks
 ```
 
-## Validate
+## Develop and test
 
 ```bash
+python3 -m venv .venv
+. .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 python tools/validate_package.py
 python -m pytest -q
-python tools/demo_development.py --out /new/disposable/moving-main-demo
-python tools/demo.py --out /new/disposable/orchi-demo
-python tools/smoke_install.py --installer local --runner python --out /new/disposable/orchi-install
+python tools/demo.py --out /tmp/orchi-demo
 ```
 
-The [implementation plan](reports/IMPLEMENTATION_PLAN.md) and [implementation report](reports/IMPLEMENTATION_REPORT.md) distinguish shipped behavior, executed evidence and untested external integrations. Synthetic workers and test-only signatures are not model evaluations or production authorization. See [security](docs/security.md) before using live agents. Initialize a fresh control directory for these contracts; existing active stores are not automatically converted.
+The demo requires a new output directory. It creates a disposable repository, synthetic workers, and a test-only signing key. Its automatic approvals are fixtures, not a production approval mechanism. No model credentials are needed for deterministic tests.
+
+See [contributing](CONTRIBUTING.md) and [testing](docs/testing.md) for validation procedures and the distinction between protocol tests and live model evaluation.
+
+## Documentation
+
+| Read | For |
+| --- | --- |
+| [Architecture](docs/architecture.md) | Domain model, components, storage, and publication boundary |
+| [Planning and task packets](docs/planning-and-packets.md) | Iterative design, context, task contracts, and parallelism |
+| [Knowledge lifecycle](docs/knowledge-lifecycle.md) | Core, Working Knowledge, reconciliation, and provenance |
+| [Protocol](docs/protocol.md) | State transitions, approvals, checks, review, and recovery |
+| [Operator guide](skills/orchi/references/operator-guide.md) | End-to-end setup, approvals, execution, and publication |
+| [Security](docs/security.md) | Trust boundaries and explicit operational limitations |
+| [External references](docs/references.md) | Skill distribution, script dependencies, and agent documentation |
+
+Orchi enforces mechanical acceptance conditions, not the semantic correctness of every design or document. A worktree is not a security sandbox. Keep keys, control state, and privileged operations outside worker access.

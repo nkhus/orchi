@@ -35,10 +35,7 @@ def doctor(repo: str | None = None, require_codex: bool = False) -> dict:
         add("dependency:" + module, importlib.util.find_spec(module) is not None, module)
     for name in SKILLS:
         add("skill:" + name, (root.parent / name / "SKILL.md").is_file(), str(root.parent / name))
-    for relative in ("scripts/operator.py", "scripts/requirements.txt", "references/operator-guide.md", "assets/codex-adapter.json",
-                     "scripts/orchi_core/intent.py", "scripts/orchi_core/ontology.py",
-                     "scripts/orchi_core/graph.py", "scripts/orchi_core/reconciliation.py",
-                     "references/ontology.md", "references/bootstrap.md"):
+    for relative in ("scripts/orchi_operator.py", "scripts/requirements.txt", "references/operator-guide.md", "assets/codex-adapter.json"):
         add("resource:" + relative, (root / relative).is_file(), str(root / relative))
     if repo is not None:
         try:

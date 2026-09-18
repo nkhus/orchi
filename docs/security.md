@@ -1,45 +1,39 @@
----
-kind: reference
-area: orchi
-artifacts:
-  - skills/orchi/scripts/orchi_core/process.py
-  - skills/orchi/scripts/orchi_core/relay.py
-  - skills/orchi/scripts/orchi_core/signing.py
-relations:
-  part_of: [docs/README.md]
----
-# Security and operating boundaries
+# Security and operating limits
 
-## Authority ownership
+## Trust boundaries
 
-The operator owns policy, registered check commands, signing keys, adapters, canonical write access and actual OS/container permissions. Workers receive an assigned worktree, packet and bounded communication capability. A planner/reviewer does not inherit authority to sign or publish. The controller rejects protected writes, stale identities, unknown checks and unapproved transitions; it does not make untrusted execution safe by itself.
+The human operator controls the signing key, policy, check registry, adapter configuration, canonical publication, and access to the control store. Workers receive bounded task packets and assigned worktrees, not operator privileges. The coordinator may relay controller operations only within the permissions assigned by the operator.
 
-Keep the private signing key outside the repository and worker workspaces and inaccessible to worker identities. Direct operator `decide` binds the exact displayed request ID and rejects in-project/worktree keys. Separate paths alone do not isolate processes sharing an OS account. Do not expose a whole controller store merely to let a worker call a read command.
+Putting files in different directories is not access isolation. A worker process launched under the controller's operating-system identity may still read or modify resources that identity can access. Orchi's local runner does not automatically change users, enter a container, or make shared Git metadata inaccessible. Enforce these boundaries through operating-system/container policy and a trusted adapter wrapper or external relay where necessary.
 
-## Worktree and process limits
+Never give workers the private key, operator home directory, privileged cloud credentials, unrestricted control-state access, or canonical write permissions. Review the actual runtime sandbox, not merely the adapter's name. A prompt, skill instruction, signature format, or Git worktree is not an adversarial security boundary.
 
-Git worktrees share objects, refs and repository configuration. They are not sandboxes. The repository may contain trusted checkout filters; hooks and several implicit Git features are disabled for controller object operations, but repository/project code still executes through operator-registered checks. A worker with broad filesystem access can attack control state, sibling worktrees or credentials unless the outer runtime prevents it.
+## What the controller enforces
 
-Foreground processes have wall-clock/output limits and POSIX process-group termination. This cannot stop remote jobs or prove every external side effect terminated. Confirm observed termination before `--stopped` recovery. No private key, arbitrary approval identity or canonical push credential belongs in an agent environment. Provision build/test dependencies separately and consider running hostile repositories in isolated disposable environments.
+Strict contracts reject unknown fields, unresolved task-design questions, unsafe paths, forbidden write targets, unknown check IDs, and incomplete acceptance mappings. Task packets bind exact sources, plan identity, and start state. Readiness must precede execution acceptance. Fenced tickets and transactional reservations prevent conflicting legitimate claims; candidates must pass scope checks and actual verification.
 
-## Ticket-bound worker relay
+Core and accepted initiative definitions cannot be modified by ordinary task candidates. Checkpoints require actual impact dispositions and evidence. Finalization requires completed roadmap epics and root acceptance coverage. Publication identifies one exact approved candidate based on the original canonical parent.
 
-The foreground runner creates a temporary local Unix socket with a per-phase capability. Its allowlist is exact snapshot `read` and, only after readiness, bounded `scope`. Requests are bound server-side to one ticket; a client cannot specify another ticket or invoke setup, arbitrary shell checks, approval, sync or publication. Requests/responses are bounded; repeated IDs cannot change their arguments. The channel ends when the foreground phase ends.
+These checks are acceptance controls within a trusted local controller. They do not prevent a process with broader system access from bypassing the controller, modifying external systems, reading undeclared files, or corrupting the controller itself.
 
-The standalone `worker_request.py` helper needs only the channel environment, not the controller database. Capabilities and socket access must be restricted by the outer runtime. Same-user sibling processes are not isolated by random paths or file modes. Sandboxes that block Unix IPC must relay manually or configure a permitted narrow channel; Orchi must report the blocker rather than disable the sandbox. Live Codex IPC behavior is an environment-specific validation, not asserted by local command-adapter tests.
+## Untrusted material and processes
 
-## Concurrency and resources
+Treat repository prose, code comments, retrieved text, process output, and worker reports as task data rather than authorization. They cannot grant permission to reveal secrets, change policy, sign approvals, or expand task scope.
 
-Scope envelopes provide mechanical checks, not proof of semantic permission. Workers must escalate fixed decision/Target changes even inside allowed directories; independent review checks the actual diff. Snapshot reads require explicit consistency choices. Passing tests or nonoverlapping paths never prove arbitrary semantic independence.
+Commands use argument arrays, not shell interpolation. Checks and workers have process time/output limits and a minimal inherited environment. Every allowed environment variable is an explicit operator choice. A command that executes repository code still executes potentially dangerous code; absence of a shell does not make it safe.
 
-Named check resource locks require a shared operator-owned directory on the same supported host. They neither coordinate unrelated machines nor fence external database/deployment jobs. Operator-managed isolation is preferred. Task-exclusive resource labels remain local to a controller.
+Additional reads are reported cooperatively. Review authorship, independence, coverage, and semantic quality are not proven by a JSON report. Use genuine independent review and human scrutiny for consequential changes.
 
-## Git and publication
+## Keys and state
 
-Controllers use unique internal ref namespaces. Original provenance is immutable; explicit sync advances an accepted integration base without editing historical evidence. Rewritten upstream fails closed. Final publication checks exact tree/base/parent shape and visibility. Local CAS refuses checked-out target branches and cannot overwrite a racing canonical commit. Hosted protections and credentials remain with the operator; a local handoff is not a created remote PR.
+Use an operator-owned external directory with restrictive permissions. `orchi_operator.py keygen` refuses existing key paths and writes the private key with restrictive permissions. Only the public key belongs in policy. `orchi_operator.py sign` is a human/operator command following inspection of the exact request; workers must never call it on the human's behalf.
 
-Audit exports may contain proprietary source context, logs, candidate objects and observations. Store them privately with appropriate retention. Source manifests and archived attempts preserve identity; full internal replay requires retained export objects and packets. Final attestation is necessarily outside its own signed candidate tree.
+Keep private keys and active state out of Git and worker-visible prompts. Audit exports may contain full source and process output. Apply access, retention, and backup controls accordingly. Do not assume Git alone contains the complete execution audit.
 
-## Platform and non-goals
+## Supported operating scope
 
-This pack targets Python 3.11+, POSIX, SHA-1 Git repositories and SQLite FTS5. Windows process/resource isolation, automatic active-store conversion, remote job execution, hosted PR creation, distributed scheduling, cross-repository atomicity and production deployment are not implemented. Incremental publication of one request is not a supported delivery mode. Initialize a fresh operator control directory for these contracts.
+The controller is local and POSIX-dependent. It manages one repository and one initiative per control directory, with parallel tasks inside one active epic. It is not a distributed or multi-tenant service. Native Windows execution, automatic baseline rebasing, automatic deployment, protected-branch pull-request orchestration, and autonomous operator approval are outside the implementation.
+
+Project portability means that the installed skills and controller do not depend on the target application's language. It does not mean every toolchain works without preparation: trusted checks, per-worktree dependencies, external services, credentials, branch workflow, and sandbox policies must be configured for each project.
+
+Deterministic tests validate the protocol and its mechanical boundaries. Live model behavior, authentication, and real worker isolation require separate operator validation; see [testing](testing.md).

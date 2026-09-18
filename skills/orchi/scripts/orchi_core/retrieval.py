@@ -184,7 +184,6 @@ def _populate(con: sqlite3.Connection, snapshot: Snapshot, meta: dict) -> None:
             id INTEGER PRIMARY KEY, target TEXT NOT NULL, line INTEGER NOT NULL,
             end_line INTEGER NOT NULL, heading TEXT NOT NULL, title TEXT NOT NULL,
             body TEXT NOT NULL, content_hash TEXT NOT NULL,
-            role TEXT, kind TEXT, area TEXT,
             UNIQUE(target, line));
         CREATE VIRTUAL TABLE lex USING fts5(target, title, heading, body,
             tokenize='unicode61 remove_diacritics 2');
@@ -197,9 +196,9 @@ def _populate(con: sqlite3.Connection, snapshot: Snapshot, meta: dict) -> None:
         title = document_title(target, parts)
         for chunk in parts:
             heading = " > ".join(chunk.heading_path)
-            rowid = con.execute("INSERT INTO chunks(target,line,end_line,heading,title,body,content_hash,role,kind,area) VALUES(?,?,?,?,?,?,?,?,?,?)",
+            rowid = con.execute("INSERT INTO chunks(target,line,end_line,heading,title,body,content_hash) VALUES(?,?,?,?,?,?,?)",
                                 (target, chunk.line, chunk.end_line, heading, title, chunk.body,
-                                 record["content_hash"], record.get("role"), record.get("kind"), record.get("area"))).lastrowid
+                                 record["content_hash"])).lastrowid
             values = (rowid, *(normalize(v) for v in (target, title, heading, chunk.body)))
             con.execute("INSERT INTO lex(rowid,target,title,heading,body) VALUES(?,?,?,?,?)", values)
             if trigram:
@@ -232,7 +231,7 @@ def projection(snapshot: Snapshot, cache_root: Path | None = None,
     status = "memory"
     try:
         if cache_root is not None:
-            scope = {k: snapshot.identity.get(k) for k in ("repository", "kind", "initiative_id", "canonical_ref", "view", "filters")}
+            scope = {k: snapshot.identity.get(k) for k in ("repository", "kind", "initiative_id", "canonical_ref")}
             # Use one replaceable projection per scope, not an ever-growing snapshot history.
             file = Path(os.path.abspath(cache_root)) / (digest(scope) + ".sqlite")
             try:
@@ -397,7 +396,6 @@ def _rank(con: sqlite3.Connection, snapshot: Snapshot, terms: list[str], limit: 
             if key not in candidates:
                 snippet, snippet_line = _snippet(chunk, terms)
                 candidates[key] = {k: record[k] for k in ("target", "layer", "source_commit", "source_path", "content_hash")}
-                candidates[key].update({k: record.get(k) for k in ("role", "view", "kind", "area", "initiative_id", "intent_revision", "intent_digest", "knowledge_revision")})
                 candidates[key].update(title=title, heading=chunk.heading, heading_path=list(chunk.heading_path),
                                        line=chunk.line, end_line=chunk.end_line, snippet=snippet, snippet_line=snippet_line,
                                        score=0.0, matched_terms=0, via=[])
@@ -441,8 +439,6 @@ def format_text(result: dict) -> str:
                      f"{display(' > '.join(hit['heading_path']) or hit['title'])} | {','.join(hit['via'])}")
         lines.append("  " + display(hit["snippet"]))
         lines.append(f"  {hit['layer']} | {hit['source_commit']}:{display(hit['source_path'])} | sha256:{hit['content_hash']}")
-    for neighbor in result.get("related_context", []):
-        lines.append("Related (structural, not a lexical match): " + display(neighbor["target"]) + " | " + display(neighbor["role"]))
     if not result["results"]:
         lines.append("No matching knowledge.")
     for warning in result["diagnostics"]:
