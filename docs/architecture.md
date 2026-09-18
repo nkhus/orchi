@@ -24,7 +24,7 @@ JSON CLI -> Engine
               |-- Git object access, candidate construction, and worktrees
               |-- Trusted check runner
               `-- Foreground worker runner
-                     |-- Codex prepare/execute adapter
+                     |-- Codex / Copilot / Claude prepare/execute adapters
                      `-- Command adapter / manual packet handoff
 
 Human operator -> signed exact gate requests

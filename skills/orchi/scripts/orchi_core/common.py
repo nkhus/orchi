@@ -53,7 +53,7 @@ def secret_path(value: str) -> bool:
 def protected(value: str) -> bool:
     parts = value.split("/")
     return (is_core(value) or secret_path(value) or
-            any(p in {".git", ".agents", ".codex", ".github", ".gitmodules", ".gitattributes", "AGENTS.md", "AGENTS.override.md"} for p in parts) or
+            any(p in {".git", ".agents", ".codex", ".claude", ".copilot", ".github", ".gitmodules", ".gitattributes", "AGENTS.md", "AGENTS.override.md", "CLAUDE.md", "CLAUDE.local.md"} for p in parts) or
             value.startswith(("initiatives/", "changes/", "history/")))
 
 

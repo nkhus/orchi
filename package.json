@@ -1,7 +1,7 @@
 {
   "name": "@nkhus/orchi",
   "version": "0.1.0",
-  "description": "Install the complete Orchi agent-skill bundle into a project.",
+  "description": "Install shared Orchi skills and workflow instructions for Codex, Copilot, and Claude Code.",
   "type": "module",
   "bin": {
     "orchi": "bin/orchi.js"
@@ -38,6 +38,8 @@
   "keywords": [
     "agent-skills",
     "codex",
+    "copilot",
+    "claude-code",
     "orchestration"
   ],
   "license": "UNLICENSED",

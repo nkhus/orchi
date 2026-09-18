@@ -32,6 +32,10 @@ Keep private keys and active state out of Git and worker-visible prompts. Audit 
 
 ## Supported operating scope
 
+Claude Code and Copilot adapters restrict preparation to file-reading/search tools and exclude delegation tools from their worker tool sets. Execution enables only the built-in coding tools, with operator-selected permission rules. Their tool restrictions are not a filesystem sandbox; shell access can reach anything allowed by the worker identity. No adapter sets a blanket permission-bypass flag. Use a restricted worker identity/container and inspect provider settings and hooks before live execution.
+
+Worker candidates cannot modify `.claude/`, `.copilot/`, `CLAUDE.md`, or `CLAUDE.local.md`, in addition to the existing protected instruction/configuration paths.
+
 The controller is local and POSIX-dependent. It manages one repository and one initiative per control directory, with parallel tasks inside one active epic. It is not a distributed or multi-tenant service. Native Windows execution, automatic baseline rebasing, automatic deployment, protected-branch pull-request orchestration, and autonomous operator approval are outside the implementation.
 
 Project portability means that the installed skills and controller do not depend on the target application's language. It does not mean every toolchain works without preparation: trusted checks, per-worktree dependencies, external services, credentials, branch workflow, and sandbox policies must be configured for each project.

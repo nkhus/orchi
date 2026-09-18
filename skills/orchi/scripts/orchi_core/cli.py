@@ -22,6 +22,7 @@ def parser():
     d = sub.add_parser("doctor", help="Inspect installation and prerequisites without initializing state")
     d.add_argument("--repo", help="Optionally check a target Git repository")
     d.add_argument("--require-codex", action="store_true", help="Fail when the Codex executable is missing")
+    d.add_argument("--require-agent", nargs="+", action="extend", help="Fail when any selected assistant CLI is missing: codex, copilot, claude")
     s = sub.add_parser("setup"); s.add_argument("--repo", required=True); s.add_argument("--policy", required=True)
     for name in ["begin", "plan", "apply-decision", "review-record", "checkpoint", "finalize"]:
         x = sub.add_parser(name); x.add_argument("--file", required=True)
@@ -91,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         c = args.command
         if c == "doctor":
-            result = doctor(args.repo, args.require_codex)
+            result = doctor(args.repo, args.require_codex, args.require_agent)
         elif c in {"search", "get", "owners", "index", "stat"}:
             result = knowledge_command(args)
         elif c == "schemas":

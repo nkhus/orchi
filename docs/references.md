@@ -10,6 +10,10 @@ The sources below describe external standards and tools used by Orchi. Orchi's o
 | [Vercel agent-skill guide](https://vercel.com/kb/guide/agent-skills-creating-installing-and-sharing-reusable-agent-context) | Publishing and sharing skills through a repository |
 | [Codex skills](https://developers.openai.com/codex/skills/) | Local skill discovery and agent-specific interface metadata |
 | [GitHub Copilot agent skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills) | Shared skill-format support and portability boundaries |
+| [Claude Code skills](https://code.claude.com/docs/en/skills) | Skill discovery, invocation, and directory symlinks |
+| [Claude Code memory](https://code.claude.com/docs/en/memory) | Shared AGENTS.md imports through CLAUDE.md |
+| [Claude Code CLI](https://code.claude.com/docs/en/cli-reference) | Noninteractive execution, structured output, and tool permissions |
+| [Copilot CLI reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference) | Piped prompts, tool allowlists, and output modes |
 | [Astral: running scripts](https://docs.astral.sh/uv/guides/scripts/) | `uv run`, inline dependency declarations, and isolation from project dependencies |
 | [Codex non-interactive execution](https://developers.openai.com/codex/noninteractive/) | Structured output and automated CLI execution |
 | [Codex CLI reference](https://developers.openai.com/codex/cli/reference/) | Supported execution flags and operator configuration |

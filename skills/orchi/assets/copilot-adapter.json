@@ -1,0 +1,6 @@
+{
+  "kind": "copilot",
+  "executable": "copilot",
+  "pass_env": ["HOME", "COPILOT_HOME"],
+  "allowed_tools": ["read", "write", "shell"]
+}

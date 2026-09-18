@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const installer = fileURLToPath(new URL("../tools/install.py", import.meta.url));
 const supplied = process.argv.slice(2);
 const hasProject = supplied.some(
-  (argument) => argument === "--project" || argument.startsWith("--project="),
+  (argument) => argument === "--global" || argument === "--project" || argument.startsWith("--project="),
 );
 const argumentsForInstaller = hasProject
   ? supplied

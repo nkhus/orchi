@@ -1,79 +1,109 @@
 # Installation
 
-## Distribution contract
+## Select assistants
 
-Orchi is distributed directly from its Git repository using the Agent Skills directory format. Each of its five skill directories contains `SKILL.md`; the `orchi` directory also contains the shared runtime, dependency declarations, operator tooling, references, and assets. Keep the five directories as siblings.
-
-The repository includes a dependency-free npm wrapper that installs the complete bundle locally without changing the target application's dependencies. The installed runtime is Python and does not depend on Node or a separately published Python application package.
-
-## Project-local installation
-
-From the repository in which the assistant will work:
+Run the installer from the target repository. Select one or several assistants:
 
 ```bash
-npx --yes github:nkhus/orchi --project "$PWD"
+npx --yes github:nkhus/orchi --project "$PWD" --agents copilot
+npx --yes github:nkhus/orchi --project "$PWD" --agents copilot claude
+npx --yes github:nkhus/orchi --project "$PWD" --agents all
+```
+
+`codex`, `copilot`, and `claude` are the canonical names. Comma-separated names, repeated `--agent` options, `github-copilot`, and `claude-code` also work. Without a selection, an interactive terminal offers a numbered picker. Noninteractive installation retains the existing selection or defaults to Codex. Adding an assistant preserves previously selected assistants.
+
+The installer installs all five Orchi skills, the shared Python controller, operator tools, references, and adapter templates together. It registers the selected assistants and reports their installed executable paths or official installation links. It does not install or authenticate the assistants themselves. An IDE can consume the skills directly; automatic workers require the corresponding terminal program (`codex`, `copilot`, or `claude`).
+
+Requirements: Git, POSIX, Python 3.11 or newer, and `uv` for the npm wrapper and isolated runtime. Node.js/npm is needed for `npx`, not for the controller. Linux, macOS, and WSL are supported; native Windows process execution is not supported.
+
+## Shared files and instruction discovery
+
+One canonical copy lives in `.agents/skills/`. Codex and Copilot discover this directory. Selecting Claude creates relative per-skill symlinks in `.claude/skills/`. All five directories remain siblings, including through those links. Project links survive moving or cloning the repository on a symlink-capable filesystem.
+
+Selection configures integrations; it is not an access restriction. An unselected assistant that already searches `.agents/skills/` may still discover the shared skills.
+
+The installer appends an Orchi workflow section to the target root `AGENTS.md`. Its rules route implementation through the Orchi entrypoint, exempt assigned packet workers from starting a coordinator, and preserve operator approvals and publication. It never copies this repository's contributor `AGENTS.md` into another project.
+
+Additional selected-agent integration:
+
+| Assistant | Instructions |
+| --- | --- |
+| Codex | Root `AGENTS.md` |
+| Copilot | A managed pointer in `.github/copilot-instructions.md` directs IDE/CLI sessions to root `AGENTS.md` |
+| Claude Code | A managed `@AGENTS.md` import in root `CLAUDE.md` |
+
+Sections are delimited by `<!-- orchi:begin -->` and `<!-- orchi:end -->`. Existing content outside these markers is preserved byte-for-byte, including line endings. Reinstallation updates only an unchanged managed section and never duplicates it. Edited or malformed sections cause installation to stop before mutation, even with `--replace-orchi`; preserve custom rules outside the managed section. An existing `CLAUDE.md` symlink directly to root `AGENTS.md` is preserved. If `AGENTS.override.md` exists, its managed section is updated too so Codex does not skip the workflow.
+
+Instruction discovery improves routing but does not prove model compliance. More specific instructions, explicit user instructions, disabled skills, instruction-size limits, and application settings can affect behavior. Start a fresh session and verify the entrypoint is exposed: `$orchi` in Codex CLI, `/orchi` in Claude Code and Copilot CLI, or the IDE's skill selection interface.
+
+## User-wide installation
+
+```bash
+npx --yes github:nkhus/orchi --global --agents copilot claude
+```
+
+This stores one bundle in `~/.agents/skills/`, adds Claude skill links in `~/.claude/skills/`, and installs managed instructions only for selected assistants:
+
+| Assistant | User instructions |
+| --- | --- |
+| Codex | `~/.codex/AGENTS.md` |
+| Copilot | `~/.copilot/copilot-instructions.md` |
+| Claude Code | `~/.claude/CLAUDE.md` |
+
+User instructions reference the absolute shared skill path. No project's root files are edited in global mode. Use project installation when root `AGENTS.md` registration or team sharing is required. Global integration uses these standard home locations; custom assistant configuration roots require explicit registration in those roots. Local home files do not provision remote or cloud environments; install in each execution environment.
+
+## Inspect, update, and remove
+
+```bash
+npx --yes github:nkhus/orchi --project "$PWD" --agents all --dry-run
+npx --yes github:nkhus/orchi --project "$PWD" --agents all --replace-orchi
+npx --yes github:nkhus/orchi --project "$PWD" --uninstall
+```
+
+Dry-run lists file changes without writing. A manifest at `.agents/.orchi-install.json` records selection, hashes, links, and managed sections. Identical installation is a no-op. Differing existing skill files require `--replace-orchi`; changed files are backed up beside the project, or inside the home directory for user-wide installation. Skills, links, instructions, and manifest are staged together and rolled back on an ordinary installation error. A process or host crash during mutation requires inspecting the backup and target before retrying.
+
+The installer refuses symlinked canonical skill destinations, unrelated conflicting skill directories, and instruction symlinks other than the explicit Claude-to-AGENTS bridge. It preserves unrelated skills, assistant settings, and application manifests. Do not alternate installers to manage the same installation.
+
+`--uninstall` removes the complete managed Orchi installation at the selected project/user scope, including its instruction sections. It preserves surrounding user instructions and refuses modified skill files or managed sections. It does not remove assistant programs, authentication, operator keys, control stores, audit data, or backups. Stop active workers before updating or removing an installation.
+
+Commit project skill files, Claude symlinks, instruction changes, and the installation manifest when sharing the setup with the team.
+
+## Local and offline installation
+
+From a checkout:
+
+```bash
+python3 tools/install.py --project /absolute/path/to/project --agents copilot claude --dry-run
+python3 tools/install.py --project /absolute/path/to/project --agents copilot claude
+```
+
+The Python installer uses only the standard library. The npm wrapper invokes the same implementation through `uv`. From an already installed bundle, add an assistant without a source checkout:
+
+```bash
+python3 .agents/skills/orchi/scripts/orchi_install.py --project "$PWD" --agents claude
+```
+
+For offline runtime provisioning, install `scripts/requirements.txt` in a dedicated managed environment through an approved package mirror. Do not add Orchi dependencies to the application's environment.
+
+## Runtime and workers
+
+```bash
 uv run .agents/skills/orchi/scripts/orchi.py doctor --repo .
-```
-
-To inspect the operation first, use the bundled installer's dry-run mode from a checkout:
-
-```bash
-python3 tools/install.py --project /absolute/path/to/project --dry-run
-```
-
-Review the resulting diff. Commit the installed skill files and any project-local lockfile written by the Skills CLI when the setup should be shared with the team. Orchi's own installer does not modify `AGENTS.md`, `.codex/config.toml`, application manifests, or unrelated skills. Review the behavior of any third-party installer before running it in a sensitive repository.
-
-The [Codex skill documentation](https://developers.openai.com/codex/skills/) describes `.agents/skills` discovery. Start a fresh agent session when the current session does not expose the installed skills.
-
-## Other installation locations
-
-The installer targets a project's `.agents/skills` directory. For a user-wide or another agent-specific installation, copy all five sibling directories to that agent's documented skill location and run `doctor` from the actual installed path. Skill-format compatibility does not imply a native execution adapter: Orchi includes a Codex adapter and a generic command/manual packet protocol.
-
-## Python runtime
-
-Run the installed scripts with `uv`:
-
-```bash
-uv run .agents/skills/orchi/scripts/orchi.py --help
-uv run .agents/skills/orchi/scripts/orchi.py doctor --repo . --require-codex
+uv run .agents/skills/orchi/scripts/orchi.py doctor --repo . --require-agent copilot claude
 uv run .agents/skills/orchi/scripts/orchi_operator.py --help
 ```
 
-Both entrypoints declare Python requirements and dependencies through inline script metadata. [Astral's script guide](https://docs.astral.sh/uv/guides/scripts/) explains the isolated environment: a target project's dependency set is not loaded when the script has inline metadata. Orchi does not create or modify that project's application environment. Initial execution requires access to the declared Python packages and a suitable Python interpreter; pre-provision them for restricted networks.
+The runtime entrypoints declare isolated Python dependencies. The default diagnostic reports missing selected CLIs as warnings, while `--require-agent` makes absence blocking. `--require-codex` remains an alias for requiring Codex. Diagnostics inspect registrations, resources, local executables, and optional repository state; they do not verify authentication, model behavior, or isolation.
 
-To select a suitable interpreter explicitly, add `--python 3.11` before the script path in `uv run`; this is useful when a local Python selection conflicts with the script requirements.
+Each assistant has a bundled `assets/<agent>-adapter.json` template. Copy the chosen template into an operator-owned configuration directory and review its environment and execution permissions. Run `orchi.py --control "$ORCHI_CONTROL" run --adapter /operator/adapter.json`. Multiple installed integrations coexist; one foreground run uses one explicitly selected adapter. Installation selection does not dispatch mixed-provider workers automatically.
 
-For an existing managed Python environment or offline provisioning, install the bundled requirements through your approved package mirror or wheelhouse, then use `python` directly:
+Installation never authorizes execution. A human operator selects trusted checks, provisions authentication and actual worker isolation, creates a protected signing key, and initializes the external control store. Continue with the bundled [operator guide](../skills/orchi/references/operator-guide.md).
 
-```bash
-python -m pip install -r .agents/skills/orchi/scripts/requirements.txt
-python .agents/skills/orchi/scripts/orchi.py doctor --repo .
-```
+## Upstream contracts
 
-Choose a dedicated environment, not the application's environment. Orchi's dependencies do not include your project's compiler, test runner, packages, or services. Those must work inside the verification worktrees under the operator's trusted check configuration.
-
-## Installation from a local checkout
-
-With Node.js/npm available:
-
-```bash
-# Run in the target project; point to an existing Orchi checkout.
-npx --yes /absolute/path/to/orchi --project "$PWD"
-```
-
-Without Node.js, run the bundled standard-library-only copying tool from an Orchi checkout:
-
-```bash
-python3 tools/install.py --project /absolute/path/to/project --dry-run
-python3 tools/install.py --project /absolute/path/to/project
-```
-
-This copies the complete skill set to `.agents/skills`, verifies file hashes, and records a local installation manifest. An unchanged installation is a no-op. Conflicting Orchi files require explicit `--replace-orchi`; replaced content is backed up beside the target project. Unrelated skills are neither removed nor rewritten. Symlinked destination skill directories are refused by this copying tool; use the Skills CLI to manage its own symlinks.
-
-## Maintenance and removal
-
-Re-run the installation command with `--replace-orchi` to replace a differing installation after reviewing it; the installer keeps a backup. Removing the five installed skill directories does not delete external audit data, operator keys, or control databases. Stop active workers and preserve required audit material before removing an installation used by an initiative.
-
-## Operational setup
-
-A successful installation or `doctor` result is not permission to run coding tasks. The human operator selects trusted checks, creates a protected keypair, sets `ORCHI_CONTROL`, initializes a fresh external control store, and verifies worker isolation. Continue with the bundled [operator guide](../skills/orchi/references/operator-guide.md).
+- [Codex skills](https://developers.openai.com/codex/skills/)
+- [Copilot skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)
+- [Claude Code skills and symlinks](https://code.claude.com/docs/en/skills)
+- [Claude Code imports of AGENTS.md](https://code.claude.com/docs/en/memory)
+- [Copilot custom instructions](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions)
+- [Astral isolated script environments](https://docs.astral.sh/uv/guides/scripts/)

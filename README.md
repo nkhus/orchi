@@ -1,88 +1,183 @@
 # Orchi
 
-**Turn one user request into a verified implementation through iterative epics, parallel tasks, and one final code-and-documentation publication.**
+### One workflow. Three coding assistants.
 
-Orchi is a local orchestration workflow for coding assistants. Five focused agent skills coordinate a Python controller that records approvals, builds task packets, manages Git worktrees, executes checks, and preserves recoverable state. Codex has a built-in execution adapter; other assistants can consume the same packets through a command adapter or manual handoff.
+**Plan deliberately. Execute in parallel. Publish one verified result.**
 
-## Install in a project
+Orchi turns a coding request into an approved plan, bounded implementation tasks, and a reviewed code-and-documentation result. Install one shared skill set for **Codex**, **GitHub Copilot**, **Claude Code**, or any combination of the three.
 
-Run the repository's installer from the target repository:
+[Quick start](#quick-start) · [How it works](#how-it-works) · [Project instructions](#project-instructions) · [Documentation](#documentation)
+
+---
+
+## Quick start
+
+### 1. Install from your project
+
+Run this in the repository where you want to use Orchi. No manual download or clone is needed:
 
 ```bash
-npx --yes github:nkhus/orchi --project "$PWD"
+npx --yes github:nkhus/orchi#feat/multi-agent-installation --agents all
+```
+
+This command uses the `feat/multi-agent-installation` branch. The current directory is the installation target; use `--project /path/to/project` to choose another one.
+
+Choose the assistants you use:
+
+| Your setup | Installation option |
+| --- | --- |
+| Codex | `--agents codex` |
+| GitHub Copilot | `--agents copilot` |
+| Claude Code | `--agents claude` |
+| Copilot and Claude Code | `--agents copilot claude` |
+| All three | `--agents all` |
+| Choose interactively | Omit `--agents` in a terminal |
+
+All five skills are installed together. Adding another assistant later reuses the shared bundle and preserves your existing selections.
+
+**Prerequisites:** Node.js 18+, npm, Git, and `uv`. The Python runtime requires Python 3.11+; `uv` manages its environment separately from your application's dependencies. Use macOS, Linux, or WSL.
+
+Automatic workers also need the selected assistant's installed and authenticated terminal program: `codex`, `copilot`, or `claude`. Orchi reports missing programs with installation links; it does not install those programs or sign you in.
+
+<details>
+<summary><strong>Install across projects, preview changes, or remove Orchi</strong></summary>
+
+For a user-wide installation:
+
+```bash
+npx --yes github:nkhus/orchi#feat/multi-agent-installation --global --agents copilot claude
+```
+
+Useful options for the same installer:
+
+| Option | Effect |
+| --- | --- |
+| `--dry-run` | Show planned file changes without writing |
+| `--replace-orchi` | Back up and replace differing installed skill files |
+| `--uninstall` | Remove the complete managed Orchi installation at the selected scope |
+
+User-wide installation writes to your home directory. Project installation writes to the selected repository, including its root instructions. Stop active workers before updating or removing an installation.
+
+See the [installation guide](docs/installation.md) for paths, conflict handling, offline installation, and removal behavior. Use the branch-qualified source above when installing this branch.
+
+</details>
+
+### 2. Check the installation and configure execution
+
+For a project installation:
+
+```bash
 uv run .agents/skills/orchi/scripts/orchi.py doctor --repo .
 ```
 
-Install **all five skills together**. The small npm wrapper copies the controller, Python dependency declarations, operator tools, references, and example templates into the project; the installed runtime itself is not a Python or Node application package. `uv` manages Orchi's Python environment without adding dependencies to the application's environment.
+Before the first initiative, follow the [operator setup guide](skills/orchi/references/operator-guide.md) to configure trusted project checks, external control state, a protected signing key, and worker access boundaries.
 
-Requirements: Git, a POSIX environment, and `uv`; Python 3.11 or newer is required by the scripts. Node.js/npm is needed for the `npx` installation command, not for the controller. A live Codex run also needs an installed and authenticated Codex CLI. Use Linux, macOS, or a Linux environment under WSL; native Windows execution is not supported by the process controller.
+Installation makes the skills available. Operator setup establishes how tasks are authorized and verified. `doctor` checks local prerequisites; it does not verify authentication, model behavior, or isolation.
 
-Installation does **not** authorize execution. Before starting an initiative, a human operator configures an external control directory, signing key, trusted project checks, and worker access boundaries. Follow the [operator guide](skills/orchi/references/operator-guide.md). `doctor` checks local prerequisites; it does not certify authentication or isolation.
+### 3. Start a request
 
-[Installation options](docs/installation.md) cover user-wide installation, other agents, local/offline copying, and removal.
-
-## Start a request
-
-In a coding-agent session that has loaded the skills:
+Open a fresh assistant session and ask:
 
 ```text
-$orchi Implement <the requested change>. Agree on the outcome and epic roadmap first.
-Design only the next epic, then execute its approved independent tasks in parallel.
-Update Core documentation only after the entire request is implemented and verified.
+Use Orchi to implement CSV export for the orders page.
+Agree on the outcome and epic roadmap first, then design the next epic.
+Execute approved independent tasks in parallel and verify the combined result.
+Update Core documentation only when the entire request is complete.
 ```
 
-The workflow is:
+You can also invoke the entrypoint explicitly:
 
-```text
-Understand the request and agree on direction
-  -> Design and approve the next epic and its tasks
-  -> Execute ready tasks in parallel; integrate verified results serially
-  -> Review the combined implementation
-  -> Checkpoint verified Working Knowledge
-  -> Repeat for the next epic using the actual result
-  -> Reconcile Core documentation for the completed request
-  -> Review and approve the exact final candidate
-  -> Operator publishes one code + docs + initiative archive commit
+| Assistant | Invocation |
+| --- | --- |
+| Codex CLI | `$orchi` |
+| Copilot CLI | `/orchi` |
+| Claude Code | `/orchi` |
+
+In an IDE, use its skill selection interface or ask it to use Orchi. The installed project instructions also direct implementation requests to the entrypoint.
+
+## How it works
+
+One **initiative** represents the whole request. An **epic** is the next useful milestone. A **task** is a designed unit of work with exact scope, context, and verification requirements.
+
+```mermaid
+flowchart TD
+    A[Request and agreed direction] --> B[Design the next epic]
+    B --> C[Human approves the exact plan]
+    C --> D[Execute independent tasks in parallel]
+    D --> E[Integrate, verify, and review]
+    E --> F[Checkpoint verified working knowledge]
+    F --> G{More epics?}
+    G -->|Yes| B
+    G -->|No| H[Reconcile Core documentation]
+    H --> I[Review and approve the final candidate]
+    I --> J[Operator publishes one code + docs commit]
 ```
 
-A small request can use one epic. Larger requests keep future epics at roadmap level instead of designing every task upfront. Material uncertainty returns to the human; normal tasks within an approved epic do not require repeated approval.
+- **Plan from actual results.** Future epics stay at roadmap level until it is time to design them.
+- **Give workers bounded assignments.** Each worker receives a task packet and an assigned Git worktree. Readiness passes before implementation starts.
+- **Verify what gets integrated.** The controller checks each candidate and its combination with already accepted work. A worker's completion message is not proof of success.
+- **Keep decisions recoverable.** Approvals, attempts, checks, and workflow state are recorded outside the conversation.
+- **Publish at the request boundary.** The operator publishes the final approved code, documentation, and initiative archive together. Orchi does not automatically merge or deploy.
 
-## Skills
+A small request can use one epic. Ordinary tasks within an approved epic do not require repeated plan approval; material changes return to the human.
+
+## Project instructions
+
+Orchi registers itself where each assistant looks for instructions:
+
+| File or directory | Purpose |
+| --- | --- |
+| `.agents/skills/` | One canonical copy of the five skills and shared runtime |
+| Root `AGENTS.md` | Managed Orchi workflow instructions |
+| `.github/copilot-instructions.md` | Copilot pointer to the shared root instructions, when selected |
+| Root `CLAUDE.md` | Claude import of `AGENTS.md`, when selected |
+| `.claude/skills/` | Relative links to the shared skills, when Claude is selected |
+
+The installer preserves your existing instruction text. It maintains only the section between `<!-- orchi:begin -->` and `<!-- orchi:end -->`, and refuses to overwrite a locally edited managed section. An existing `AGENTS.override.md` receives the workflow section too.
+
+Commit the installed files, links, instruction changes, and installation manifest to share project setup with your team. User-wide installation uses each assistant's personal instruction location instead of editing project roots.
+
+## Five skills, one entrypoint
 
 | Skill | Responsibility |
 | --- | --- |
-| `orchi` | User entrypoint; route according to controller state |
-| `orchi-plan` | Define the initiative; design and amend the next epic |
-| `orchi-work` | Execute approved tasks through generated packets and bounded workers |
-| `orchi-review` | Review exact candidates and triage bounded, causal findings |
-| `orchi-deliver` | Checkpoint Working Knowledge; reconcile Core and prepare publication |
+| **`orchi`** | Start or continue; route using controller state |
+| `orchi-plan` | Agree on the initiative and design the next epic |
+| `orchi-work` | Execute approved task packets through bounded workers |
+| `orchi-review` | Review exact candidates and triage actionable findings |
+| `orchi-deliver` | Checkpoint knowledge, reconcile Core, and prepare publication |
 
-Use `$orchi` to start or continue. The other skills are explicit stages, not competing entrypoints. A packet worker follows its assigned task rather than starting another coordinator.
+The four stage skills share the `orchi` runtime and references. An assigned packet worker follows its task rather than starting another coordinator.
 
-## Documentation during development
+**Choose the coordinator and worker provider independently.** Codex, Copilot CLI, and Claude Code each have a bundled worker adapter. Multiple integrations can coexist, while each foreground run uses one explicitly selected adapter. A generic command adapter and manual packet handoff support other assistants.
 
-**Core** is the canonical `docs/` tree. It remains unchanged during intermediate epic work. **Verified Working Knowledge** is a sparse, initiative-scoped overlay describing completed, checked epics. **Proposals** describe the active epic and its tasks; they are not current system facts.
+## Documentation that follows the implementation
 
-Workers receive the last knowledge checkpoint, the approved active-epic design, and actual accepted dependency results. At finalization, Orchi produces a coherent cumulative Core update and verifies the exact code-and-docs tree. It does not publish intermediate epics or automatically deploy anything.
+| Layer | What it contains |
+| --- | --- |
+| **Core** | Canonical `docs/` describing the system; unchanged during intermediate epics |
+| **Verified Working Knowledge** | Initiative-scoped facts from completed, checked epics |
+| **Proposals** | The active epic's design and intended changes |
 
-## Repository layout
+Workers receive the last knowledge checkpoint, the approved task design, and accepted dependency results. At the end of the initiative, Orchi reconciles the cumulative result into Core and verifies the exact final code-and-docs tree.
 
-```text
-skills/                  Installable skills, bundled runtime, references, templates
-  orchi/scripts/         Controller and operator entrypoints; shared Python modules
-  orchi/references/      Focused agent instructions and the installed operator guide
-  orchi/assets/          Policy, adapter, and authoring examples
-  orchi-*/               Planning, execution, review, and delivery skills
-docs/                    Project architecture, protocols, installation, and security
-schemas/                 JSON Schemas generated from the Python contracts
-tests/                   Deterministic unit, integration, and packaging tests
-evals/                   Model-behavior scenarios; separate from automated tests
-examples/                Guide to the bundled examples and synthetic demonstration
-tools/                   Repository validation, local copying, and demonstration
-.github/workflows/       Continuous integration checks
-```
+## Documentation
 
-## Develop and test
+| Guide | Read it to… |
+| --- | --- |
+| [Installation](docs/installation.md) | Select assistants; install, update, or remove the shared bundle |
+| [Operator setup](skills/orchi/references/operator-guide.md) | Configure checks, workers, approvals, and publication |
+| [Architecture](docs/architecture.md) | Understand the controller, state, and publication boundary |
+| [Planning and task packets](docs/planning-and-packets.md) | Design epics, task contracts, context, and parallelism |
+| [Knowledge lifecycle](docs/knowledge-lifecycle.md) | Understand Core, working knowledge, and reconciliation |
+| [Protocol](docs/protocol.md) | Follow state transitions, approvals, review, and recovery |
+| [Security](docs/security.md) | Establish trust boundaries and worker isolation |
+| [Testing](docs/testing.md) | Run deterministic checks and separate live model evaluations |
+| [External references](docs/references.md) | Find the underlying skill standards and assistant documentation |
+
+## Contributing
+
+The installable bundle lives in `skills/`. Shared Python code is in `skills/orchi/scripts/orchi_core/`; repository-only validation, tests, and documentation live in `tools/`, `tests/`, and `docs/`.
 
 ```bash
 python3 -m venv .venv
@@ -90,23 +185,8 @@ python3 -m venv .venv
 python -m pip install -r requirements-dev.txt
 python tools/validate_package.py
 python -m pytest -q
-python tools/demo.py --out /tmp/orchi-demo
 ```
 
-The demo requires a new output directory. It creates a disposable repository, synthetic workers, and a test-only signing key. Its automatic approvals are fixtures, not a production approval mechanism. No model credentials are needed for deterministic tests.
+See [contributing](CONTRIBUTING.md) for contracts and source ownership, and [testing](docs/testing.md) for installation smoke tests and the disposable synthetic demo.
 
-See [contributing](CONTRIBUTING.md) and [testing](docs/testing.md) for validation procedures and the distinction between protocol tests and live model evaluation.
-
-## Documentation
-
-| Read | For |
-| --- | --- |
-| [Architecture](docs/architecture.md) | Domain model, components, storage, and publication boundary |
-| [Planning and task packets](docs/planning-and-packets.md) | Iterative design, context, task contracts, and parallelism |
-| [Knowledge lifecycle](docs/knowledge-lifecycle.md) | Core, Working Knowledge, reconciliation, and provenance |
-| [Protocol](docs/protocol.md) | State transitions, approvals, checks, review, and recovery |
-| [Operator guide](skills/orchi/references/operator-guide.md) | End-to-end setup, approvals, execution, and publication |
-| [Security](docs/security.md) | Trust boundaries and explicit operational limitations |
-| [External references](docs/references.md) | Skill distribution, script dependencies, and agent documentation |
-
-Orchi enforces mechanical acceptance conditions, not the semantic correctness of every design or document. A worktree is not a security sandbox. Keep keys, control state, and privileged operations outside worker access.
+Deterministic tests establish mechanical behavior, not live model quality. Git worktrees separate checkouts but are not security sandboxes. Keep operator keys and control state outside worker access; see the [security guide](docs/security.md).

@@ -13,7 +13,7 @@ def test_paths_reject_ambiguous_or_unsafe(value):
 def test_paths_accept_exact(value):
     assert path(value) == value
 
-@pytest.mark.parametrize('target',['docs/a.md','.codex/config.toml','.agents/skills/a/SKILL.md','AGENTS.md','src/AGENTS.md','.github/workflows/ci.yml','.env','private.pem','initiatives/active/x/a.md'])
+@pytest.mark.parametrize('target',['docs/a.md','.codex/config.toml','.agents/skills/a/SKILL.md','AGENTS.md','src/AGENTS.md','.github/workflows/ci.yml','.claude/settings.json','.copilot/settings.json','CLAUDE.md','src/CLAUDE.local.md','.env','private.pem','initiatives/active/x/a.md'])
 def test_task_cannot_modify_protected_files(world,target):
     t=world.task('t','left.py','left'); t['edits'][0]['path']=target
     with pytest.raises((OrchiError,ValidationError)): Task.model_validate(t)
