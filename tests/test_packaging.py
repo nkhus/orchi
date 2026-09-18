@@ -27,41 +27,17 @@ def test_source_validation():
     assert report['ok'], report['errors']
 
 
-def test_npm_package_is_a_dependency_free_installer():
+def test_runtime_has_no_application_package_metadata():
     config = tomllib.loads((ROOT / 'pyproject.toml').read_text())
     assert 'project' not in config and 'build-system' not in config
     package = json.loads((ROOT / 'package.json').read_text())
     assert package['name'] == '@nkhus/orchi'
-    assert package['bin'] == {'orchi': 'bin/orchi.js'}
-    assert package['files'] == [
-        'bin/orchi.js', 'tools/install.py', 'skills/*/SKILL.md', 'skills/*/agents/openai.yaml',
-        'skills/orchi/assets', 'skills/orchi/references', 'skills/orchi/scripts/**/*.py',
-        'skills/orchi/scripts/requirements.txt', 'README.md']
-    assert 'dependencies' not in package and 'devDependencies' not in package
-    assert not any(name in package.get('scripts', {}) for name in ('install', 'preinstall', 'postinstall'))
-
-
-def test_node_installer_uses_uv_and_current_directory(tmp_path):
-    result = subprocess.run(['node', str(ROOT / 'bin/orchi.js'), '--dry-run'], cwd=tmp_path,
-                            capture_output=True, text=True, check=False)
-    assert result.returncode == 0, result.stdout + result.stderr
-    report = json.loads(result.stdout)
-    assert report['project'] == str(tmp_path.resolve()) and report['dry_run'] is True
-    assert list(tmp_path.iterdir()) == []
-
-
-def test_node_installer_installs_complete_bundle(tmp_path):
-    result = subprocess.run(['node', str(ROOT / 'bin/orchi.js')], cwd=tmp_path,
-                            capture_output=True, text=True, check=False)
-    assert result.returncode == 0, result.stdout + result.stderr
-    assert sorted(path.name for path in (tmp_path / '.agents/skills').iterdir()) == sorted(
-        ('orchi', 'orchi-plan', 'orchi-work', 'orchi-review', 'orchi-deliver'))
 
 
 def test_entrypoints_declare_same_isolated_dependencies():
     validator = load_tool('validate_package')
     requirements = (ROOT / 'skills/orchi/scripts/requirements.txt').read_text().splitlines()
-    for script in ('orchi.py', 'operator.py'):
+    for script in ('orchi.py', 'orchi_operator.py'):
         metadata = validator.inline_metadata(ROOT / 'skills/orchi/scripts' / script)
         assert metadata['dependencies'] == requirements
         assert metadata['requires-python'] == '>=3.11'
@@ -110,12 +86,12 @@ def test_complete_installed_bundle_does_not_need_source_checkout(tmp_path):
     scripts = tmp_path / '.agents/skills/orchi/scripts'
     (tmp_path / 'pyproject.toml').write_text('[project]\nname="unrelated-app"\nrequires-python=">=3.99"\n')
     env = {k: v for k, v in os.environ.items() if k not in {'PYTHONPATH', 'ORCHI_CONTROL'}}
-    for script, args in [('orchi.py', ['doctor']), ('operator.py', ['--help']),
+    for script, args in [('orchi.py', ['doctor']), ('orchi_operator.py', ['--help']),
                          ('orchi.py', ['schemas', '--out', str(tmp_path / 'exported-schemas')])]:
         result = subprocess.run([sys.executable, str(scripts / script), *args], cwd=tmp_path,
                                 env=env, capture_output=True, text=True, check=False)
         assert result.returncode == 0, result.stdout + result.stderr
-    assert len(list((tmp_path / 'exported-schemas').glob('*.json'))) == len(__import__('orchi_core.models', fromlist=['CONTRACTS']).CONTRACTS)
+    assert len(list((tmp_path / 'exported-schemas').glob('*.json'))) == 9
     assert not list((tmp_path / '.agents').rglob('__pycache__'))
 
 

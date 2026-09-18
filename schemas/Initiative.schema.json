@@ -1,26 +1,5 @@
 {
   "$defs": {
-    "IntentRef": {
-      "additionalProperties": false,
-      "properties": {
-        "revision": {
-          "minimum": 1,
-          "title": "Revision",
-          "type": "integer"
-        },
-        "digest": {
-          "pattern": "^[0-9a-f]{64}$",
-          "title": "Digest",
-          "type": "string"
-        }
-      },
-      "required": [
-        "revision",
-        "digest"
-      ],
-      "title": "IntentRef",
-      "type": "object"
-    },
     "RoadmapEpic": {
       "additionalProperties": false,
       "properties": {
@@ -68,15 +47,6 @@
           },
           "title": "Risks",
           "type": "array"
-        },
-        "realizes": {
-          "default": [],
-          "items": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "title": "Realizes",
-          "type": "array"
         }
       },
       "required": [
@@ -103,29 +73,43 @@
       "title": "Id",
       "type": "string"
     },
+    "request": {
+      "minLength": 1,
+      "title": "Request",
+      "type": "string"
+    },
     "outcome": {
       "minLength": 1,
       "title": "Outcome",
       "type": "string"
     },
-    "result_kind": {
-      "default": "software",
-      "enum": [
-        "software",
-        "knowledge",
-        "investigation"
-      ],
-      "title": "Result Kind",
-      "type": "string"
+    "acceptance": {
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z0-9]+(?:[-.][a-z0-9]+)*$": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "propertyNames": {
+        "maxLength": 80
+      },
+      "title": "Acceptance",
+      "type": "object"
     },
-    "delivery": {
-      "const": "atomic",
-      "default": "atomic",
-      "title": "Delivery",
-      "type": "string"
+    "constraints": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Constraints",
+      "type": "array"
     },
-    "intent": {
-      "$ref": "#/$defs/IntentRef"
+    "direction": {
+      "minLength": 1,
+      "title": "Direction",
+      "type": "string"
     },
     "epics": {
       "items": {
@@ -138,8 +122,11 @@
   },
   "required": [
     "id",
+    "request",
     "outcome",
-    "intent",
+    "acceptance",
+    "constraints",
+    "direction",
     "epics"
   ],
   "title": "Initiative",
