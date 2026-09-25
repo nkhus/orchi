@@ -1,11 +1,11 @@
 name: Orchi Task
 description: One reviewable result, either inside an Epic or as a standalone fix.
-title: "[TASK][KEY-n.m] "
+title: "[INITIATIVE][EPIC] "
 labels: [Task]
 body:
   - type: markdown
     attributes:
-      value: "Title as [TASK][PAY-1.2] Outcome inside an Epic (the Epic key plus the next unused number), or [TASK] Outcome for a standalone fix."
+      value: "Start the title with the same tags as the parent Epic, for example [PAY][TOKEN] Add token column, or [CSV] Add export endpoint under a standalone Epic. A standalone fix has no tags."
   - type: textarea
     id: outcome
     attributes:

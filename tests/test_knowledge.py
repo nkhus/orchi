@@ -47,7 +47,7 @@ class KnowledgeTests(unittest.TestCase):
         self.assertEqual(lint(Documents(self.root)), [])
         (self.root / 'docs/README.md').write_text(
             '# Guide\n[Missing](absent.md)\n[Bad](accounts.md#absent)\n'
-            '[Account][account]\n[account]: accounts.md#session\n[EPIC][PAY-1] is literal text\n'
+            '[Account][account]\n[account]: accounts.md#session\n[PAY][TOKEN] is literal text\n'
             '```md\n[Example](not-real.md)\n```\n`[Code](not-real.md)`\n')
         errors = lint(Documents(self.root))
         self.assertEqual(len(errors), 2, errors)

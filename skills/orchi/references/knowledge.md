@@ -7,7 +7,7 @@ the project's canonical documentation of current behavior at its normal paths.
 | Material | Meaning and location |
 | --- | --- |
 | Main Core | Implemented, integrated behavior on main; integration is not deployment evidence |
-| Initiative plan | Agreed target, decisions, and open questions in `docs/initiatives/<key>-<slug>/` on its branch |
+| Initiative plan | Agreed target, decisions, and open questions in `docs/initiatives/<tag>-<slug>/` on its branch |
 | Branch Core | Normal Core paths updated with implemented branch behavior, read with that branch's code and checks |
 | Evidence | Checks, reviews, and observations in issues and PRs; supports claims without becoming requirements |
 
@@ -30,7 +30,7 @@ When an Epic merges, its Core changes become the Initiative branch's working Cor
 they reach main only with final Initiative integration. Keep plans and unresolved
 decisions in the Initiative documentation, label proposed behavior clearly, and
 never present unimplemented plans as current behavior. The
-`docs/initiatives/<key>-<slug>/` area is delivery history, not another product owner;
+`docs/initiatives/<tag>-<slug>/` area is delivery history, not another product owner;
 link it as such if indexed. A standalone Epic can keep its plan in its issue.
 
 ## Reconcile

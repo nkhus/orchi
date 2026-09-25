@@ -66,7 +66,7 @@ When interrupted or handing over, update the `Handoff` section of the PR body
 
 ```md
 ## Handoff
-- Branch / commit: epic/<key>-<n>-<slug> @ <sha>
+- Branch / commit: epic/<tag>-<epic-tag>-<slug> @ <sha>
 - Done: <Tasks and results completed>
 - Remaining: <next Tasks or open work>
 - Uncommitted or local-only changes: <none, or where they are>

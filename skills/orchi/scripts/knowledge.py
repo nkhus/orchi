@@ -98,7 +98,7 @@ def lint(docs: Documents) -> list[str]:
                 definitions[' '.join(match[1].casefold().split())] = match[2].strip('<>')
         for number, line in rows:
             targets = re.findall(r'!?\[[^\]]*\]\(\s*(<[^>]+>|[^\s()]*(?:\([^()]*\)[^\s()]*)*)(?:\s+["\'][^\n]*?["\'])?\s*\)', line)
-            # GitHub renders an undefined reference such as [EPIC][PAY-1] as literal text,
+            # GitHub renders an undefined reference such as [PAY][TOKEN] as literal text,
             # so only defined references are links whose targets need checking.
             for label, reference in re.findall(r'\[([^]]+)\]\[([^]]*)\]', line):
                 key = ' '.join((reference or label).casefold().split())

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from typing import Callable
@@ -19,7 +20,7 @@ query($owner: String!, $name: String!, $cursor: String) {
         labels(first: 20) { nodes { name } }
         assignees(first: 10) { nodes { login } }
         parent { number title }
-        subIssues(first: 100) { totalCount nodes { state } }
+        subIssues(first: 100) { totalCount nodes { number title state } }
         blockedBy(first: 50) { nodes {
           number title state stateReason
           closedByPullRequestsReferences(first: 10, includeClosedPrs: true) {
@@ -30,6 +31,7 @@ query($owner: String!, $name: String!, $cursor: String) {
   }
 }
 '''
+TAGS = re.compile(r'\[([A-Z][A-Z0-9]{1,7})\]')
 ORDER = {'ready': 0, 'check': 1, 'blocked': 2, 'claimed': 3}
 
 Runner = Callable[[list[str]], str]
@@ -46,6 +48,36 @@ def names(connection: dict | None, key: str) -> list[str]:
 def claimed(labels: list[str]) -> bool:
     # Accept the common "in progress" spelling as well as the documented label.
     return any(label.casefold().replace(' ', '-') == 'in-progress' for label in labels)
+
+
+def tags(title: str) -> list[str]:
+    """Leading [TAG] groups of a title."""
+    found, position = [], 0
+    while match := TAGS.match(title, position):
+        found.append(match[1])
+        position = match.end()
+    return found
+
+
+def shown(path: list[str]) -> str:
+    return ''.join(f'[{tag}]' for tag in path) or 'no tags'
+
+
+def naming(issue: dict, kind: str) -> list[str]:
+    """Titles start with the Initiative tag and the Epic tag; Tasks repeat their Epic's tags."""
+    own = tags(issue['title'])
+    warnings = []
+    if kind == 'Epic':
+        parent = tags(issue['parent']['title']) if issue.get('parent') else []
+        if own[:-1] != parent or len(own) != len(parent) + 1:
+            expected = ''.join(f'[{tag}]' for tag in parent) + '[<EPIC TAG>]'
+            warnings.append(f'title should start with {expected}, not {shown(own)}')
+        for child in (issue.get('subIssues') or {}).get('nodes', []):
+            if child.get('state') == 'OPEN' and 'title' in child and tags(child['title']) != own:
+                warnings.append(f"Task #{child['number']} title should start with {shown(own)}, not {shown(tags(child['title']))}")
+    elif own:
+        warnings.append(f'a standalone Task title has no tags, not {shown(own)}')
+    return warnings
 
 
 def blocker_state(node: dict) -> tuple[str, str]:
@@ -86,7 +118,7 @@ def classify(issue: dict) -> dict | None:
             'status': status, 'owners': names(issue.get('assignees'), 'login'),
             'parent': parent['number'] if parent else None,
             'tasks': {'closed': done, 'total': children['totalCount']} if kind == 'Epic' else None,
-            'blockers': blockers}
+            'blockers': blockers, 'naming': naming(issue, kind)}
 
 
 def fetch(repo: str, run: Runner = gh) -> list[dict]:
@@ -126,6 +158,8 @@ def render(entries: list[dict]) -> str:
                      + (f"  ({'; '.join(extra)})" if extra else ''))
         for blocker in entry['blockers']:
             lines.append(f"           blocked by #{blocker['number']}: {blocker['detail']}")
+        for warning in entry['naming']:
+            lines.append(f'           naming: {warning}')
     lines.append('Snapshot only: confirm predecessor results are on the intended integration branch before claiming.')
     return '\n'.join(lines)
 

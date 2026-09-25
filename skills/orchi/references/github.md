@@ -12,33 +12,35 @@ installed with `--github` already has them, plus issue templates, a PR template,
 and a documentation check workflow. Otherwise, create missing labels deliberately
 with a stable description; do not invent variants.
 
-## Titles and keys
+## Titles and tags
 
-Titles start with the type and a lineage key, then a short outcome:
+Every Initiative and Epic has a short tag. A title starts with the tags of its
+Initiative and Epic, in that order, then a short outcome. The type comes from the
+label, not the title.
 
-| Issue | Title | Branch |
+| Issue (label) | Title | Branch |
 | --- | --- | --- |
-| Initiative | `[INITIATIVE][PAY] Card payments` | `initiative/pay-card-payments` |
-| Epic in that Initiative | `[EPIC][PAY-1] Tokenize stored cards` | `epic/pay-1-tokenize-cards` |
-| Task in that Epic | `[TASK][PAY-1.2] Add token column to wallet` | The Epic branch |
-| Standalone Epic | `[EPIC][CSV] Export orders as CSV` | `epic/csv-export-orders` |
-| Task in a standalone Epic | `[TASK][CSV.1] Add export endpoint` | The Epic branch |
-| Standalone Task | `[TASK] Fix rounding in invoice totals` | `fix/invoice-rounding` |
+| Initiative, tag `PAY` | `[PAY] Card payments` | `initiative/pay-card-payments` |
+| Epic in it, tag `TOKEN` | `[PAY][TOKEN] Tokenize stored cards` | `epic/pay-token-tokenize-cards` |
+| Task in that Epic | `[PAY][TOKEN] Add token column to wallet` | The Epic branch |
+| Standalone Epic, tag `CSV` | `[CSV] Export orders as CSV` | `epic/csv-export-orders` |
+| Task in a standalone Epic | `[CSV] Add export endpoint` | The Epic branch |
+| Standalone Task | `Fix rounding in invoice totals` | `fix/invoice-rounding` |
 
-- A key is 2–6 uppercase letters naming the outcome, chosen when the Initiative or
-  standalone Epic is created. Check that no open or closed title uses it
-  (`gh issue list --state all --search '<KEY> in:title'`) and choose another if so. Use it in lowercase in branch names and
-  the Initiative plan path, `docs/initiatives/<key>-<slug>/`.
-- Number Epics within an Initiative, and Tasks within an Epic, in creation order.
-  Numbers are identifiers, not a schedule: never renumber or reuse them after
-  reordering, cancellation, or reopening. Sequence comes from native dependencies
-  and child order.
-- Keep the outcome part short and descriptive. Keep keys stable when an issue is
-  renamed.
+- A tag is 2–8 uppercase letters or digits, starting with a letter, and names the
+  outcome. Choose it when creating the Initiative or Epic. An Initiative's or
+  standalone Epic's tag must not be used by any other open or closed issue
+  (`gh issue list --state all --search '<TAG> in:title'`); an Epic's tag must be
+  unique within its Initiative.
+- Tasks have no tag of their own; they repeat their Epic's tags.
+- Keep tags stable when an issue is renamed. If an issue moves to another parent,
+  update its leading tags. `status.py` reports titles whose tags do not match
+  their parents. Use tags in lowercase in branch names and the
+  Initiative plan path, `docs/initiatives/<tag>-<slug>/`.
 
 ## Hierarchy and dependencies
 
-Give each tracked issue exactly one type label that matches its title prefix.
+Give each tracked issue exactly one type label.
 Attach children as native sub-issues
 (`gh issue create --parent <n>` or `gh issue edit <parent> --add-sub-issue <n>`);
 do not keep a second checklist of the same children in the body.
