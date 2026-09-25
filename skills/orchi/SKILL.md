@@ -33,10 +33,12 @@ evidence changes the outcome, approach, or scale, explain it and agree again.
 | --- | --- | --- |
 | Question or exploration | None | None |
 | Small fix | Standalone Task | `fix/<slug>` from main, PR to main |
-| Outcome decomposed into Tasks | Epic → Tasks | One `epic/<slug>` branch and PR to main |
-| Outcome decomposed into Epics | Initiative → Epics → Tasks | `initiative/<slug>` from main; one `epic/<slug>` PR per Epic into it; final PR to main |
+| Outcome decomposed into Tasks | Epic → Tasks | One `epic/<key>-<slug>` branch and PR to main |
+| Outcome decomposed into Epics | Initiative → Epics → Tasks | `initiative/<key>-<slug>` from main; one `epic/<key>-<n>-<slug>` PR per Epic into it; final PR to main |
 
-Reuse a branch already recorded in the issue. Create an Initiative branch after
+Title issues `[TYPE][KEY] outcome`, for example
+`[EPIC][PAY-1] Tokenize stored cards`, so every issue and branch shows where it
+comes from; see [naming](references/github.md#titles-and-keys). Reuse a branch already recorded in the issue. Create an Initiative branch after
 agreement, before its plan or code. Branch from the fetched remote target after
 inspecting local changes; never reset another checkout to get a baseline. Do not
 create placeholder parents for small work.

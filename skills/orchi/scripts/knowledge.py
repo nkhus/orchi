@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
 import os
@@ -97,11 +98,11 @@ def lint(docs: Documents) -> list[str]:
                 definitions[' '.join(match[1].casefold().split())] = match[2].strip('<>')
         for number, line in rows:
             targets = re.findall(r'!?\[[^\]]*\]\(\s*(<[^>]+>|[^\s()]*(?:\([^()]*\)[^\s()]*)*)(?:\s+["\'][^\n]*?["\'])?\s*\)', line)
+            # GitHub renders an undefined reference such as [EPIC][PAY-1] as literal text,
+            # so only defined references are links whose targets need checking.
             for label, reference in re.findall(r'\[([^]]+)\]\[([^]]*)\]', line):
                 key = ' '.join((reference or label).casefold().split())
-                if key not in definitions:
-                    errors.append(f'{name}:{number}: undefined link reference [{reference or label}]')
-                else:
+                if key in definitions:
                     targets.append(definitions[key])
             for target in targets:
                 target = target.strip('<>')
@@ -138,6 +139,21 @@ def search(docs: Documents, query: str, limit: int) -> list[dict]:
     return hits[:limit]
 
 
+def new_errors(current: list[str], baseline: list[str]) -> list[str]:
+    """Errors not present in the baseline, matched by file and message because line numbers shift."""
+    def key(error: str) -> str:
+        name, _, rest = error.partition(':')
+        return name + ':' + rest.partition(':')[2]
+    remaining = Counter(map(key, baseline))
+    result = []
+    for error in current:
+        if remaining[key(error)]:
+            remaining[key(error)] -= 1
+        else:
+            result.append(error)
+    return result
+
+
 PLACEHOLDERS = {'', 'n/a', 'na', 'none', 'todo', 'tbd', '-', '...'}
 
 
@@ -165,7 +181,8 @@ def main() -> int:
     get = commands.add_parser('get')
     get.add_argument('path')
     get.add_argument('--sha256', help='Refuse content that changed since search')
-    commands.add_parser('lint')
+    lint_command = commands.add_parser('lint')
+    lint_command.add_argument('--since', metavar='REF', help='Fail only on errors that are not already present in REF')
     check = commands.add_parser('impact', help='Require a filled Documentation impact section in a PR body')
     check.add_argument('--body-file', help='File containing the PR body; default is the PR_BODY environment variable')
     args = parser.parse_args()
@@ -188,9 +205,14 @@ def main() -> int:
                               'results': search(docs, args.query, args.limit)}, ensure_ascii=False, indent=2))
         else:
             errors = lint(docs)
+            existing = 0
+            if args.since:
+                introduced = new_errors(errors, lint(Documents(Path(args.repo), args.since, args.path)))
+                existing, errors = len(errors) - len(introduced), introduced
             for error in errors:
                 print(error)
-            print(f'Orchi documentation lint: {len(docs.names)} files, {len(errors)} errors')
+            summary = f'Orchi documentation lint: {len(docs.names)} files, {len(errors)} errors'
+            print(summary + (f' (new since {args.since}; {existing} pre-existing ignored)' if args.since else ''))
             return int(bool(errors))
     except (ValueError, OSError, UnicodeError, subprocess.CalledProcessError) as error:
         print(f'Orchi knowledge error: {error}', file=__import__('sys').stderr)

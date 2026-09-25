@@ -48,12 +48,12 @@ npx --yes github:nkhus/orchi --agents all --github
 | --- | --- |
 | `.github/ISSUE_TEMPLATE/orchi-initiative.yml`, `orchi-epic.yml`, `orchi-task.yml` | Issue forms that apply the matching type label |
 | PR template section | Summary, Verification, Documentation impact, and Handoff, as a managed section in an existing template (`.github/pull_request_template.md` or another location GitHub reads) or a new one |
-| `.github/workflows/orchi-docs.yml` | On every PR, runs `knowledge.py lint` and fails when the Documentation impact section is missing or empty |
+| `.github/workflows/orchi-docs.yml` | On every PR, fails on broken local links the PR introduces (`knowledge.py lint --since` the base branch) or a missing or empty Documentation impact section |
 | Labels `Initiative`, `Epic`, `Task`, `in-progress` | Created with `gh` when missing; existing labels are not changed |
 
 The template and workflow files are recorded in the manifest with their hashes, so they follow the same rules as the skill: unmodified files update in place, edited or pre-existing files need `--replace-orchi`, and uninstalling refuses edited files. Label creation needs a GitHub remote and an authenticated `gh`. If either is missing, the installation still completes and reports the error in `labels`; rerun it later to create them. Uninstalling leaves labels in place.
 
-The workflow lints every project Markdown file, so enabling it in a repository with existing broken links fails until they are fixed. Run `python3 .agents/skills/orchi/scripts/knowledge.py lint` first to see what it reports. Make the check required in branch protection if it should block merges.
+Broken links that already exist on the base branch are reported as pre-existing and do not fail a PR, so the workflow can be enabled in a repository with documentation debt. Run `python3 .agents/skills/orchi/scripts/knowledge.py lint` to see that debt. Make the check required in branch protection if it should block merges.
 
 ## User-wide installation
 

@@ -12,10 +12,34 @@ installed with `--github` already has them, plus issue templates, a PR template,
 and a documentation check workflow. Otherwise, create missing labels deliberately
 with a stable description; do not invent variants.
 
+## Titles and keys
+
+Titles start with the type and a lineage key, then a short outcome:
+
+| Issue | Title | Branch |
+| --- | --- | --- |
+| Initiative | `[INITIATIVE][PAY] Card payments` | `initiative/pay-card-payments` |
+| Epic in that Initiative | `[EPIC][PAY-1] Tokenize stored cards` | `epic/pay-1-tokenize-cards` |
+| Task in that Epic | `[TASK][PAY-1.2] Add token column to wallet` | The Epic branch |
+| Standalone Epic | `[EPIC][CSV] Export orders as CSV` | `epic/csv-export-orders` |
+| Task in a standalone Epic | `[TASK][CSV.1] Add export endpoint` | The Epic branch |
+| Standalone Task | `[TASK] Fix rounding in invoice totals` | `fix/invoice-rounding` |
+
+- A key is 2–6 uppercase letters naming the outcome, chosen when the Initiative or
+  standalone Epic is created. Check that no open or closed title uses it
+  (`gh issue list --state all --search '<KEY> in:title'`) and choose another if so. Use it in lowercase in branch names and
+  the Initiative plan path, `docs/initiatives/<key>-<slug>/`.
+- Number Epics within an Initiative, and Tasks within an Epic, in creation order.
+  Numbers are identifiers, not a schedule: never renumber or reuse them after
+  reordering, cancellation, or reopening. Sequence comes from native dependencies
+  and child order.
+- Keep the outcome part short and descriptive. Keep keys stable when an issue is
+  renamed.
+
 ## Hierarchy and dependencies
 
-Give each tracked issue exactly one type label. Title parents by outcome, for
-example `Epic: <bounded delivery result>`. Attach children as native sub-issues
+Give each tracked issue exactly one type label that matches its title prefix.
+Attach children as native sub-issues
 (`gh issue create --parent <n>` or `gh issue edit <parent> --add-sub-issue <n>`);
 do not keep a second checklist of the same children in the body.
 

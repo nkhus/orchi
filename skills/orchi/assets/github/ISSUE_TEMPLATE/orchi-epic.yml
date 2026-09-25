@@ -1,8 +1,11 @@
 name: Orchi Epic
 description: An independently verifiable outcome delivered as sequential Tasks on one branch and PR.
-title: "Epic: "
+title: "[EPIC][KEY-n] "
 labels: [Epic]
 body:
+  - type: markdown
+    attributes:
+      value: "Title as [EPIC][PAY-1] Outcome inside an Initiative (next unused number), or [EPIC][CSV] Outcome with its own new key when standalone."
   - type: textarea
     id: outcome
     attributes:

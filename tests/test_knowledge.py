@@ -47,7 +47,7 @@ class KnowledgeTests(unittest.TestCase):
         self.assertEqual(lint(Documents(self.root)), [])
         (self.root / 'docs/README.md').write_text(
             '# Guide\n[Missing](absent.md)\n[Bad](accounts.md#absent)\n'
-            '[Account][account]\n[account]: accounts.md#session\n'
+            '[Account][account]\n[account]: accounts.md#session\n[EPIC][PAY-1] is literal text\n'
             '```md\n[Example](not-real.md)\n```\n`[Code](not-real.md)`\n')
         errors = lint(Documents(self.root))
         self.assertEqual(len(errors), 2, errors)
@@ -74,6 +74,22 @@ class KnowledgeTests(unittest.TestCase):
         self.assertNotIn('node_modules/pkg/README.md', docs.names)
         self.assertEqual(Documents(self.root, prefixes=['docs']).names, ['docs/README.md', 'docs/accounts.md'])
         self.assertEqual(lint(Documents(self.root, prefixes=['docs/'])), [])
+
+    def test_lint_since_reports_only_new_errors(self):
+        (self.root / 'docs/README.md').write_text('# Guide\n[Old](gone.md)\n')
+        self.run_git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-qam', 'existing debt')
+        (self.root / 'docs/README.md').write_text('# Guide\nIntro moved the old link down.\n\n[Old](gone.md)\n')
+        output = io.StringIO()
+        with patch('sys.argv', ['knowledge.py', '--repo', str(self.root), 'lint', '--since', 'HEAD']), \
+                contextlib.redirect_stdout(output):
+            self.assertEqual(main(), 0)
+        self.assertIn('1 pre-existing ignored', output.getvalue())
+        (self.root / 'docs/accounts.md').write_text('# Accounts\n[New](missing.md)\n')
+        with patch('sys.argv', ['knowledge.py', '--repo', str(self.root), 'lint', '--since', 'HEAD']), \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(main(), 1)
+        self.assertIn('docs/accounts.md:2: missing local target missing.md', output.getvalue())
+        self.assertNotIn('gone.md', output.getvalue())
 
     def test_documentation_impact_requires_filled_section(self):
         self.assertIsNotNone(impact('## Summary\nDone.'))

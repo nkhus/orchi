@@ -10,7 +10,7 @@ then its Tasks. Do not create a planning Task per field or empty design document
 
 ## Initiative
 
-Record the plan in `docs/initiatives/<slug>/README.md` on the Initiative branch,
+Record the plan in `docs/initiatives/<key>-<slug>/README.md` on the Initiative branch,
 or in an existing project location that already serves this purpose. Capture the
 original request faithfully, the agreed outcome, exclusions, observable
 acceptance, constraints, major decisions, and remaining unknowns. Keep the source

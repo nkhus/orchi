@@ -1,8 +1,11 @@
 name: Orchi Initiative
 description: A request decomposed into Epics on an initiative branch.
-title: "Initiative: "
+title: "[INITIATIVE][KEY] "
 labels: [Initiative]
 body:
+  - type: markdown
+    attributes:
+      value: "Replace KEY with 2-6 uppercase letters that no other issue title uses, for example [INITIATIVE][PAY] Card payments."
   - type: textarea
     id: request
     attributes:
@@ -21,4 +24,4 @@ body:
     id: plan
     attributes:
       label: Plan
-      description: Link to docs/initiatives/<slug>/README.md on the initiative/<slug> branch.
+      description: Link to docs/initiatives/<key>-<slug>/README.md on the initiative/<key>-<slug> branch.

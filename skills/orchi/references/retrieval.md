@@ -9,7 +9,7 @@ with the installed skill path, for example:
 python3 .agents/skills/orchi/scripts/knowledge.py search 'account session'
 python3 .agents/skills/orchi/scripts/knowledge.py --ref main search 'account session'
 python3 .agents/skills/orchi/scripts/knowledge.py --ref main get docs/accounts/README.md
-python3 .agents/skills/orchi/scripts/knowledge.py --path docs lint
+python3 .agents/skills/orchi/scripts/knowledge.py --path docs lint --since main
 ```
 
 Select `--ref` explicitly for main, an initiative, or an Epic snapshot. It resolves
@@ -28,9 +28,15 @@ The corpus is every Markdown file in the snapshot except installed skill bundles
 such as `node_modules/`. Narrow it with one or more `--path PREFIX` options. Use
 `rg` when looking for code or other files; `get` can read any selected text file.
 
-`lint` checks local Markdown inline links, explicit reference links, and ATX
+`lint` checks local Markdown inline links, defined reference links, and ATX
 heading/HTML anchors in that corpus, ignoring fenced examples and inline code. It
 does not fetch external links, validate arbitrary embedded HTML or all Markdown
 extensions, or prove that current-state claims are true. Review indexes,
 requirements, implementation evidence, and semantic consistency as described in
 [knowledge guidance](knowledge.md).
+
+`lint --since REF` reports only errors not already present in `REF`, matched by
+file and message rather than line number, so existing debt does not hide a new
+break. The `--github` workflow runs it against the PR base branch. `impact` checks
+that a PR body (`--body-file`, or the `PR_BODY` variable) has a filled
+`Documentation impact` section.
