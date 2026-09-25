@@ -1,6 +1,6 @@
 interface:
   display_name: "Orchi"
-  short_description: "Route initiative work by durable state"
-  default_prompt: "Use $orchi to continue the initiative from its current controller state."
+  short_description: "Develop through branches and GitHub Issues"
+  default_prompt: "Use $orchi to continue the work from its GitHub issue and branch."
 policy:
   allow_implicit_invocation: true

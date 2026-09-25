@@ -1,8 +1,0 @@
-{
-  "kind": "codex",
-  "executable": "codex",
-  "pass_env": [
-    "HOME",
-    "CODEX_HOME"
-  ]
-}

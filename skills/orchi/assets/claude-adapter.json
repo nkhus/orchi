@@ -1,6 +1,0 @@
-{
-  "kind": "claude",
-  "executable": "claude",
-  "pass_env": ["HOME", "CLAUDE_CONFIG_DIR"],
-  "allowed_tools": ["Read", "Glob", "Grep", "Edit", "Write", "Bash"]
-}

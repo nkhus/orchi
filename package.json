@@ -1,7 +1,7 @@
 {
   "name": "@nkhus/orchi",
-  "version": "0.1.0",
-  "description": "Install shared Orchi skills and workflow instructions for Codex, Copilot, and Claude Code.",
+  "version": "0.2.0",
+  "description": "Install the Orchi development workflow skill for Codex, Copilot, and Claude Code.",
   "type": "module",
   "bin": {
     "orchi": "bin/orchi.js"
@@ -9,12 +9,10 @@
   "files": [
     "bin/orchi.js",
     "tools/install.py",
-    "skills/*/SKILL.md",
-    "skills/*/agents/openai.yaml",
-    "skills/orchi/assets",
+    "skills/orchi/SKILL.md",
+    "skills/orchi/agents/openai.yaml",
     "skills/orchi/references",
     "skills/orchi/scripts/**/*.py",
-    "skills/orchi/scripts/requirements.txt",
     "README.md"
   ],
   "scripts": {
@@ -40,7 +38,8 @@
     "codex",
     "copilot",
     "claude-code",
-    "orchestration"
+    "github-issues",
+    "workflow"
   ],
   "license": "UNLICENSED",
   "publishConfig": {

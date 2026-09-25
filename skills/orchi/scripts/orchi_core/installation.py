@@ -11,7 +11,7 @@ import sys
 import tempfile
 import uuid
 
-from .agents import AGENTS, SKILLS, agent_names
+from .agents import LEGACY_SKILLS, SKILLS, agent_names
 
 NAMES = SKILLS
 SOURCE = Path(__file__).resolve().parents[3]
@@ -57,11 +57,10 @@ def instruction_blocks(root: Path, agents: list[str], global_scope: bool) -> dic
     body = (
         "## Orchi workflow\n\n"
         f"For implementation work and Orchi continuation, read and follow `{skill}` before planning or editing.\n"
-        "Use Orchi's controller state to route planning, execution, review, and delivery.\n"
-        "For documentation-only questions, use its retrieval procedure without starting an initiative.\n"
-        "If assigned an Orchi task packet, follow TASK.md and return the requested phase result; do not start a coordinator.\n"
-        "Preserve exact human approvals, bounded task scope, final-only Core reconciliation, and operator-controlled publication.\n"
-        "If Orchi is unavailable or not configured, report the missing setup; do not invent approvals or silently bypass the workflow."
+        "Research first and agree the outcome, approach, and scope (Task, Epic, or Initiative) with the user before creating branches, issues, or changes.\n"
+        "Track work in Git branches and GitHub Issues; resume from the existing issue, branch, and PR instead of duplicating work.\n"
+        "For documentation-only questions, use its retrieval guidance without creating tracking.\n"
+        "Do not infer merge or deployment permission from permission to implement."
     )
     if global_scope:
         locations = {"codex": ".codex/AGENTS.md", "copilot": ".copilot/copilot-instructions.md", "claude": ".claude/CLAUDE.md"}
@@ -77,7 +76,7 @@ def instruction_blocks(root: Path, agents: list[str], global_scope: bool) -> dic
     if "copilot" in agents:
         blocks[".github/copilot-instructions.md"] = (
             "## Orchi\n\nRead and follow the Orchi workflow in the repository root `AGENTS.md` before implementation.\n"
-            "The entrypoint is `.agents/skills/orchi/SKILL.md`. Assigned packet workers follow TASK.md instead."
+            "The entrypoint is `.agents/skills/orchi/SKILL.md`."
         )
     return blocks
 
@@ -108,19 +107,29 @@ def install(project: Path, replace: bool = False, dry: bool = False,
     replacements: dict[str, tuple[str, object]] = {}
     conflicts = []
     skill_changes = []
-    for name in NAMES:
+    legacy = [name for name in LEGACY_SKILLS if name in previous.get("skills", {})]
+    for name in (*NAMES, *legacy):
         relative = ".agents/skills/" + name
         target = safe_destination(root, relative)
         if target.exists() and not target.is_dir():
             raise ValueError("Expected a skill directory: " + str(target))
         existing = inventory(target) if target.exists() else None
+        if name in legacy and not uninstall:
+            # Retired stage skill: remove it, keeping a backup when it was edited.
+            if existing is not None:
+                if existing != previous["skills"][name]:
+                    conflicts.append(name)
+                skill_changes.append(name)
+                replacements[relative] = ("remove", None)
+            continue
         if uninstall:
             if existing is not None:
                 if existing != previous.get("skills", {}).get(name):
                     raise ValueError("Modified skill must be preserved before uninstalling: " + name)
                 replacements[relative] = ("remove", None)
         elif existing != desired[name]:
-            if existing is not None:
+            # An unmodified managed copy updates in place; local edits need explicit replacement.
+            if existing is not None and existing != previous.get("skills", {}).get(name):
                 conflicts.append(name)
             skill_changes.append(name)
             replacements[relative] = ("directory", SOURCE / name)
@@ -136,20 +145,22 @@ def install(project: Path, replace: bool = False, dry: bool = False,
             if alias.exists() or alias.is_symlink():
                 if not alias.is_symlink() or alias.resolve() != root / ".agents/skills" / name:
                     raise ValueError("Conflicting Copilot skill shadows Orchi: " + str(alias))
-    for relative, destination in links.items():
-        if relative not in {f".claude/skills/{name}" for name in NAMES} or destination != "../../.agents/skills/" + Path(relative).name:
+    managed_links = {f".claude/skills/{name}" for name in (*NAMES, *LEGACY_SKILLS)}
+    for relative, destination in list(links.items()):
+        if relative not in managed_links or destination != "../../.agents/skills/" + Path(relative).name:
             raise ValueError("Invalid managed link in installation manifest")
         safe_destination(root, str(Path(relative).parent))
         target = root / relative
         if target.is_symlink():
             if os.readlink(target) != destination:
                 raise ValueError("Conflicting skill link: " + str(target))
-            if uninstall:
+            if uninstall or Path(relative).name in LEGACY_SKILLS:
                 replacements[relative] = ("remove", None)
         elif target.exists():
             raise ValueError("Refusing to replace an existing agent skill: " + str(target))
-        elif not uninstall:
+        elif not uninstall and Path(relative).name not in LEGACY_SKILLS:
             replacements[relative] = ("link", destination)
+    links = {relative: destination for relative, destination in links.items() if Path(relative).name not in LEGACY_SKILLS}
 
     managed = {}
     bodies = instruction_blocks(root, selected, global_scope)
@@ -199,11 +210,10 @@ def install(project: Path, replace: bool = False, dry: bool = False,
         replacements[MANIFEST] = ("file", encoded)
     report = {"project": str(root), "scope": manifest["scope"], "agents": selected, "install": skill_changes,
               "changes": list(replacements), "preserved": ["unmanaged instruction content", "assistant settings", "non-Orchi skills"],
-              "adapters": {name: str(root / f".agents/skills/orchi/assets/{name}-adapter.json") for name in selected},
-              "prerequisites": [{"agent": name, "executable": shutil.which(AGENTS[name]["executable"]),
-                                 "install_url": AGENTS[name]["install_url"]} for name in selected]}
-    report["next_steps"] = ["Install/authenticate any missing selected assistant CLI before automatic worker execution.",
-                            "Run the installed doctor; complete operator setup before starting an initiative."] if not uninstall else []
+              "prerequisites": {tool: shutil.which(tool) for tool in ("git", "gh")}}
+    report["next_steps"] = ["Commit the installed files to share them with your team.",
+                            "Authenticate the GitHub CLI (gh auth login) so assistants can manage Issues and PRs.",
+                            "Open a new assistant session and ask it to use Orchi."] if not uninstall else []
     if dry:
         return {**report, "dry_run": True}
     if not replacements:

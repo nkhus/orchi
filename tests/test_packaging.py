@@ -1,4 +1,4 @@
-"""Installed-runtime tests independent of the consuming project's toolchain."""
+"""Source validation and self-contained installation of the skill bundle."""
 from pathlib import Path
 import importlib.util
 import json
@@ -6,11 +6,8 @@ import os
 import subprocess
 import sys
 import tomllib
+
 import pytest
-from orchi_core import diagnostics
-from orchi_core.cli import parser
-from orchi_core.operator_cli import main as operator_main
-from orchi_core.signing import verify
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,6 +19,9 @@ def load_tool(name):
     return module
 
 
+installer = load_tool('install')
+
+
 def test_source_validation():
     report = load_tool('validate_package').validate()
     assert report['ok'], report['errors']
@@ -30,110 +30,66 @@ def test_source_validation():
 def test_runtime_has_no_application_package_metadata():
     config = tomllib.loads((ROOT / 'pyproject.toml').read_text())
     assert 'project' not in config and 'build-system' not in config
-    package = json.loads((ROOT / 'package.json').read_text())
-    assert package['name'] == '@nkhus/orchi'
+    assert json.loads((ROOT / 'package.json').read_text())['name'] == '@nkhus/orchi'
 
 
-def test_entrypoints_declare_same_isolated_dependencies():
-    validator = load_tool('validate_package')
-    requirements = (ROOT / 'skills/orchi/scripts/requirements.txt').read_text().splitlines()
-    for script in ('orchi.py', 'orchi_operator.py'):
-        metadata = validator.inline_metadata(ROOT / 'skills/orchi/scripts' / script)
-        assert metadata['dependencies'] == requirements
-        assert metadata['requires-python'] == '>=3.11'
+def test_fresh_install_preserves_user_files(tmp_path):
+    (tmp_path / 'AGENTS.md').write_text('User rules')
+    (tmp_path / '.codex').mkdir(); (tmp_path / '.codex/config.toml').write_text('model="operator-model"')
+    assert installer.install(tmp_path)['status'] == 'installed'
+    assert (tmp_path / 'AGENTS.md').read_text().startswith('User rules\n\n<!-- orchi:begin -->')
+    assert (tmp_path / '.codex/config.toml').read_text() == 'model="operator-model"'
+    assert sorted(p.name for p in (tmp_path / '.agents/skills').iterdir()) == sorted(installer.NAMES)
+    assert installer.install(tmp_path)['status'] == 'unchanged'
 
 
-def test_doctor_does_not_create_control_state(tmp_path):
-    control = tmp_path / 'nonexistent-control'
-    env = {**os.environ, 'ORCHI_CONTROL': str(control)}
-    result = subprocess.run([sys.executable, str(ROOT / 'skills/orchi/scripts/orchi.py'), 'doctor'],
-                            env=env, capture_output=True, text=True, check=False)
-    assert result.returncode == 0, result.stdout + result.stderr
-    assert json.loads(result.stdout)['result']['status'] == 'ready'
-    assert not control.exists()
+def test_dry_run_no_mutation(tmp_path):
+    installer.install(tmp_path, dry=True)
+    assert list(tmp_path.iterdir()) == []
 
 
-def test_doctor_detects_partial_skill_installation(tmp_path, monkeypatch):
-    bundle = tmp_path / 'skills/orchi/scripts/orchi_core/diagnostics.py'
-    bundle.parent.mkdir(parents=True)
-    monkeypatch.setattr(diagnostics, '__file__', str(bundle))
-    report = diagnostics.doctor()
-    assert report['status'] == 'blocked'
-    assert any(item['name'] == 'skill:orchi-plan' and not item['passed'] for item in report['checks'])
+def test_modified_skill_refuses_silent_overwrite(tmp_path):
+    installer.install(tmp_path)
+    skill = tmp_path / '.agents/skills/orchi/SKILL.md'; skill.write_text('User customizations')
+    with pytest.raises(ValueError):
+        installer.install(tmp_path)
+    result = installer.install(tmp_path, replace=True)
+    assert (Path(result['backup']) / '.agents/skills/orchi/SKILL.md').read_text() == 'User customizations'
 
 
-def test_doctor_distinguishes_missing_optional_codex(monkeypatch):
-    actual = diagnostics.shutil.which
-    monkeypatch.setattr(diagnostics.shutil, 'which', lambda name: None if name == 'codex' else actual(name))
-    assert diagnostics.doctor()['status'] == 'ready'
-    assert diagnostics.doctor(require_codex=True)['status'] == 'blocked'
+def test_unrelated_skills_are_preserved(tmp_path):
+    other = tmp_path / '.agents/skills/custom-skill'; other.mkdir(parents=True)
+    (other / 'SKILL.md').write_text('User skill')
+    installer.install(tmp_path)
+    assert (other / 'SKILL.md').read_text() == 'User skill'
 
 
-def test_doctor_checks_existing_git_repository(tmp_path):
-    subprocess.run(['git', 'init', '-b', 'main', str(tmp_path)], check=True, capture_output=True)
-    assert diagnostics.doctor(str(tmp_path))['status'] == 'ready'
-    assert diagnostics.doctor(str(tmp_path / 'missing'))['status'] == 'blocked'
+def test_install_symlink_rejected(tmp_path):
+    outside = tmp_path / 'outside'; outside.mkdir()
+    project = tmp_path / 'project'; project.mkdir()
+    (project / '.agents').symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ValueError):
+        installer.install(project)
+    assert list(outside.iterdir()) == []
 
 
-def test_control_environment_and_explicit_precedence(monkeypatch):
-    monkeypatch.setenv('ORCHI_CONTROL', '/operator/default-control')
-    assert parser().parse_args(['next']).control == '/operator/default-control'
-    assert parser().parse_args(['--control', '/operator/explicit-control', 'next']).control == '/operator/explicit-control'
-
-
-def test_complete_installed_bundle_does_not_need_source_checkout(tmp_path):
-    load_tool('install').install(tmp_path)
-    scripts = tmp_path / '.agents/skills/orchi/scripts'
+def test_installed_knowledge_tool_runs_without_source_checkout(tmp_path):
+    subprocess.run(['git', 'init', '-q', str(tmp_path)], check=True)
+    (tmp_path / 'docs').mkdir(); (tmp_path / 'docs/guide.md').write_text('# Guide\nSession rules.\n')
+    installer.install(tmp_path)
     (tmp_path / 'pyproject.toml').write_text('[project]\nname="unrelated-app"\nrequires-python=">=3.99"\n')
-    env = {k: v for k, v in os.environ.items() if k not in {'PYTHONPATH', 'ORCHI_CONTROL'}}
-    for script, args in [('orchi.py', ['doctor']), ('orchi_operator.py', ['--help']),
-                         ('orchi.py', ['schemas', '--out', str(tmp_path / 'exported-schemas')])]:
-        result = subprocess.run([sys.executable, str(scripts / script), *args], cwd=tmp_path,
-                                env=env, capture_output=True, text=True, check=False)
-        assert result.returncode == 0, result.stdout + result.stderr
-    assert len(list((tmp_path / 'exported-schemas').glob('*.json'))) == 9
+    env = {k: v for k, v in os.environ.items() if k != 'PYTHONPATH'}
+    script = tmp_path / '.agents/skills/orchi/scripts/knowledge.py'
+    result = subprocess.run([sys.executable, str(script), 'search', 'session'], cwd=tmp_path,
+                            env=env, capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+    assert [hit['path'] for hit in json.loads(result.stdout)['results']] == ['docs/guide.md']
+    lint = subprocess.run([sys.executable, str(script), 'lint'], cwd=tmp_path, env=env, capture_output=True, text=True)
+    assert lint.returncode == 0, lint.stdout
     assert not list((tmp_path / '.agents').rglob('__pycache__'))
 
 
-def test_operator_key_generation_and_overwrite_refusal(tmp_path, capsys):
-    private, public = tmp_path / 'private.pem', tmp_path / 'public.pem'
-    args = ['keygen', '--private', str(private), '--public', str(public)]
-    assert operator_main(args) == 0
-    before = private.read_bytes()
-    assert private.stat().st_mode & 0o777 == 0o600
-    assert operator_main(args) == 2
-    assert private.read_bytes() == before
-
-
-def test_operator_existing_public_key_does_not_leave_new_private_key(tmp_path, capsys):
-    public = tmp_path / 'public.pem'; public.write_text('Do not replace')
-    private = tmp_path / 'private.pem'
-    assert operator_main(['keygen', '--private', str(private), '--public', str(public)]) == 2
-    assert not private.exists() and public.read_text() == 'Do not replace'
-
-
-def test_operator_signs_exact_gate_and_refuses_output_overwrite(tmp_path, capsys):
-    private, public = tmp_path / 'private.pem', tmp_path / 'public.pem'
-    assert operator_main(['keygen', '--private', str(private), '--public', str(public)]) == 0
-    request = {'format': 'orchi-gate', 'id': 'test-request', 'inputs': {'intent': 'Test only'}}
-    source = tmp_path / 'request.json'; source.write_text(json.dumps(request))
-    output = tmp_path / 'decision.json'
-    args = ['sign', '--request', str(source), '--private', str(private), '--decision', 'approve',
-            '--operator', 'test-operator', '--out', str(output)]
-    assert operator_main(args) == 0
-    verify(request, json.loads(output.read_text()), public.read_text())
-    assert operator_main(args) == 2
-
-
-def test_operator_rejects_non_gate_input(tmp_path, capsys):
-    source = tmp_path / 'request.json'; source.write_text('{"arbitrary": true}')
-    assert operator_main(['sign', '--request', str(source), '--private', str(tmp_path / 'absent-key'),
-                          '--decision', 'approve', '--operator', 'test', '--out', str(tmp_path / 'output')]) == 2
-    assert not (tmp_path / 'output').exists()
-
-
 def test_copy_install_rollback_preserves_modified_skill(tmp_path, monkeypatch):
-    installer = load_tool('install')
     installer.install(tmp_path)
     target = tmp_path / '.agents/skills/orchi/SKILL.md'; target.write_text('User customization')
     original_move = installer.shutil.move
@@ -141,5 +97,6 @@ def test_copy_install_rollback_preserves_modified_skill(tmp_path, monkeypatch):
         if '.orchi-stage-' in str(source): raise OSError('Injected staging failure')
         return original_move(source, destination)
     monkeypatch.setattr(installer.shutil, 'move', fail_staged_move)
-    with pytest.raises(OSError): installer.install(tmp_path, replace=True)
+    with pytest.raises(OSError):
+        installer.install(tmp_path, replace=True)
     assert target.read_text() == 'User customization'

@@ -1,6 +1,6 @@
 # Contributing
 
-Use English for source documentation, instructions, examples, diagnostics, and tests. Describe the implemented system directly. Keep product release labels, changelogs, historical design comparisons, generated execution logs, and local keys out of the source package.
+Use English for source documentation, instructions, examples, diagnostics, and tests. Describe the implemented system directly. Keep product release labels, changelogs, historical design comparisons, and generated logs out of the source package.
 
 ## Development environment
 
@@ -12,31 +12,18 @@ python tools/validate_package.py
 python -m pytest -q
 ```
 
-The repository is a skill distribution with a dependency-free npm installation wrapper, not a Python application package. `pyproject.toml` contains test configuration. Target projects run the bundled scripts with `uv` or a separately provisioned Python environment.
+The repository is a skill distribution with a dependency-free npm installation wrapper, not a Python application package. `pyproject.toml` contains test configuration only.
 
 ## Source ownership
 
-Keep shared runtime code under `skills/orchi/scripts/orchi_core/`. Every resource needed after skill installation must be inside `skills/`. Root `docs/`, `tests/`, and `tools/` serve repository readers and contributors; installed skills must not rely on them at runtime.
+Everything needed after installation lives in `skills/orchi/`: `SKILL.md`, `references/`, `agents/openai.yaml`, the knowledge tool in `scripts/knowledge.py`, and the installer in `scripts/orchi_core/`. Root `docs/`, `tests/`, and `tools/` serve contributors; installed files must not rely on them.
 
-Use short `SKILL.md` files for routing and procedures, focused references for detailed rules, and assets for templates. The four explicit stage skills share the `orchi` runtime and references; install them together. Avoid duplicating implementation logic or authoring generated task packets by hand.
-
-## Contracts and dependencies
-
-Python models are authoritative for generated JSON Schemas. After an intentional contract change:
-
-```bash
-python skills/orchi/scripts/orchi.py schemas --out schemas
-python tools/validate_package.py
-```
-
-Keep inline dependency declarations in both entrypoints aligned with `skills/orchi/scripts/requirements.txt`. Third-party dependency constraints and plan revision counters are technical requirements, not Orchi release identifiers. Preserve bounded verification and fail-closed behavior when changing contracts.
+Keep `SKILL.md` as the complete workflow and move stage detail into a focused reference. Keep references free of project-specific paths, commands, and tools; a target repository's own instructions take precedence and supply those.
 
 ## Behavioral changes
 
-Preserve initiative-level publication, sequential epic planning, task design before execution, exact human gates, Core freeze, verified knowledge checkpoints, ticket fencing, real candidate/combined checks, bounded review, and explicit recovery. A claimed invariant needs a meaningful test. Update the corresponding reference and project document when the mechanism changes; do not rewrite unrelated documentation for a routine implementation detail.
-
-Use disposable repositories and test-only keys. Never run synthetic automatic approvals, demo fixtures, or untrusted workers against a real project. Tests of agent intelligence belong in `evals/`; do not count an unexecuted scenario or synthetic worker as a live model result.
+Preserve research-and-agree before tracking, proportional scope, GitHub Issues as shared state, documentation alongside code, bounded review, and user-controlled merge. A claimed installer or tool invariant needs a meaningful test. A skill-text change needs a try-out with each supported assistant in a disposable repository; see [testing](docs/testing.md).
 
 ## Before committing
 
-Run source validation and the full test suite, then test a fresh installation into a temporary project. Confirm that operator tooling, schema export, and diagnostics work from the installed directories without the source checkout. Keep caches, environments, generated reports, audit exports, and private state out of the commit.
+Run source validation and the full test suite, then run `python tools/smoke_install.py --out <new directory>`. Keep caches, environments, and generated reports out of the commit.

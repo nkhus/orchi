@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""Read-only Orchi Markdown search, exact reads, and local-link validation."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path, PurePosixPath
+import posixpath
+import re
+import subprocess
+from urllib.parse import unquote, urlsplit
+
+
+# Installed skill bundles and vendored trees are not project documentation.
+EXCLUDED_PREFIXES = ('.agents/skills/', '.claude/skills/', '.github/skills/')
+EXCLUDED_PARTS = {'node_modules', 'vendor', '.venv', 'venv', 'site-packages'}
+
+
+def git(repo: Path, *args: str) -> str:
+    return subprocess.check_output(['git', '-C', str(repo), *args], stderr=subprocess.PIPE).decode('utf-8')
+
+
+class Documents:
+    def __init__(self, repo: Path, ref: str | None = None, prefixes: list[str] | None = None):
+        self.root = Path(git(repo, 'rev-parse', '--show-toplevel').strip())
+        self.revision = git(self.root, 'rev-parse', '--verify', '--end-of-options', ref + '^{commit}').strip() if ref else None
+        if self.revision:
+            self.paths = set(git(self.root, 'ls-tree', '-rz', '--name-only', self.revision).split('\0')) - {''}
+        else:
+            self.paths = {p for p in git(self.root, 'ls-files', '-z', '--cached', '--others', '--exclude-standard').split('\0') if p and (self.root / p).is_file()}
+        scope = tuple(prefix.strip('/') + '/' for prefix in prefixes or [] if prefix.strip('/'))
+        self.names = sorted(p for p in self.paths if p.endswith('.md')
+                            and not p.startswith(EXCLUDED_PREFIXES)
+                            and not EXCLUDED_PARTS.intersection(PurePosixPath(p).parts)
+                            and (not scope or p.startswith(scope)))
+
+    def read(self, path: str) -> str:
+        if path not in self.paths or PurePosixPath(path).is_absolute() or '..' in PurePosixPath(path).parts:
+            raise ValueError(f'Not a repository file in this snapshot: {path}')
+        if self.revision:
+            return git(self.root, 'show', f'{self.revision}:{path}')
+        source = (self.root / path).resolve()
+        if not source.is_relative_to(self.root):
+            raise ValueError(f'File escapes repository: {path}')
+        return source.read_bytes().decode('utf-8')
+
+    def exists(self, path: str) -> bool:
+        if path == '.':
+            return True
+        return path in self.paths or any(p.startswith(path.rstrip('/') + '/') for p in self.paths)
+
+
+def prose(text: str, strip_code: bool = True) -> list[tuple[int, str]]:
+    """Omit fenced examples and inline code from structural link checks."""
+    result = []
+    fence = None
+    for number, line in enumerate(text.splitlines(), 1):
+        match = re.match(r'^\s{0,3}(`{3,}|~{3,})', line)
+        if match:
+            marker = match[1]
+            if fence is None:
+                fence = marker
+            elif marker[0] == fence[0] and len(marker) >= len(fence):
+                fence = None
+            continue
+        if fence is None:
+            result.append((number, re.sub(r'(`+).*?\1', '', line) if strip_code else line))
+    return result
+
+
+def anchors(text: str) -> set[str]:
+    found = set()
+    counts: dict[str, int] = {}
+    # Preserve heading code text, whose characters contribute to GitHub anchors.
+    for _, line in prose(text, strip_code=False):
+        heading = re.match(r'^ {0,3}#{1,6}\s+(.+?)\s*#*$', line)
+        if heading:
+            slug = re.sub(r'[^\w\- ]', '', heading[1].lower()).replace(' ', '-')
+            count = counts.get(slug, 0)
+            counts[slug] = count + 1
+            found.add(slug + (f'-{count}' if count else ''))
+        found.update(re.findall(r'(?:id|name)=["\']([^"\']+)["\']', line))
+    return found
+
+
+def lint(docs: Documents) -> list[str]:
+    errors = []
+    for name in docs.names:
+        text = docs.read(name)
+        rows = prose(text)
+        definitions = {}
+        for _, line in rows:
+            match = re.match(r'^\s{0,3}\[([^]]+)\]:\s*(<[^>]+>|\S+)', line)
+            if match:
+                definitions[' '.join(match[1].casefold().split())] = match[2].strip('<>')
+        for number, line in rows:
+            targets = re.findall(r'!?\[[^\]]*\]\(\s*(<[^>]+>|[^\s()]*(?:\([^()]*\)[^\s()]*)*)(?:\s+["\'][^\n]*?["\'])?\s*\)', line)
+            for label, reference in re.findall(r'\[([^]]+)\]\[([^]]*)\]', line):
+                key = ' '.join((reference or label).casefold().split())
+                if key not in definitions:
+                    errors.append(f'{name}:{number}: undefined link reference [{reference or label}]')
+                else:
+                    targets.append(definitions[key])
+            for target in targets:
+                target = target.strip('<>')
+                parsed = urlsplit(target)
+                if parsed.scheme or parsed.netloc or target.startswith('//'):
+                    continue
+                raw = unquote(parsed.path)
+                resolved = posixpath.normpath(posixpath.join(posixpath.dirname(name), raw)) if raw else name
+                if raw.startswith('/'):
+                    resolved = posixpath.normpath(raw.lstrip('/'))
+                if resolved.startswith('../') or not docs.exists(resolved):
+                    errors.append(f'{name}:{number}: missing local target {target}')
+                elif parsed.fragment and resolved.endswith('.md'):
+                    if unquote(parsed.fragment) not in anchors(docs.read(resolved)):
+                        errors.append(f'{name}:{number}: missing anchor {target}')
+    return errors
+
+
+def search(docs: Documents, query: str, limit: int) -> list[dict]:
+    terms = list(dict.fromkeys(re.findall(r'\w+', query.casefold())))
+    if not terms:
+        raise ValueError('Search needs at least one word')
+    hits = []
+    for name in docs.names:
+        content = docs.read(name)
+        heading = ''
+        for number, line in enumerate(content.splitlines(), 1):
+            if re.match(r'^#{1,6}\s', line):
+                heading = line.lstrip('# ').strip()
+            context = f'{name} {heading} {line}'.casefold()
+            if all(term in context for term in terms):
+                hits.append({'path': name, 'line': number, 'heading': heading,
+                             'snippet': line[:400], 'sha256': hashlib.sha256(content.encode()).hexdigest()})
+    return hits[:limit]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--repo', default='.')
+    parser.add_argument('--ref', help='Explicit Git revision; default is the working tree, including drafts')
+    parser.add_argument('--path', action='append', default=[], help='Limit search/lint to this directory prefix (repeatable)')
+    commands = parser.add_subparsers(dest='command', required=True)
+    find = commands.add_parser('search')
+    find.add_argument('query')
+    find.add_argument('--limit', type=int, default=20)
+    get = commands.add_parser('get')
+    get.add_argument('path')
+    get.add_argument('--sha256', help='Refuse content that changed since search')
+    commands.add_parser('lint')
+    args = parser.parse_args()
+    try:
+        docs = Documents(Path(args.repo), args.ref, args.path)
+        if args.command == 'get':
+            content = docs.read(args.path)
+            if args.sha256 and hashlib.sha256(content.encode()).hexdigest() != args.sha256:
+                raise ValueError('Content hash changed; repeat search in the intended snapshot')
+            print(content, end='')
+        elif args.command == 'search':
+            if not 1 <= args.limit <= 100:
+                raise ValueError('limit must be between 1 and 100')
+            print(json.dumps({'source': docs.revision or 'working-tree (may contain unverified drafts)',
+                              'results': search(docs, args.query, args.limit)}, ensure_ascii=False, indent=2))
+        else:
+            errors = lint(docs)
+            for error in errors:
+                print(error)
+            print(f'Orchi documentation lint: {len(docs.names)} files, {len(errors)} errors')
+            return int(bool(errors))
+    except (ValueError, OSError, UnicodeError, subprocess.CalledProcessError) as error:
+        print(f'Orchi knowledge error: {error}', file=__import__('sys').stderr)
+        return 2
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

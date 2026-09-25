@@ -1,13 +1,11 @@
-"""Assistant identities shared by installation, diagnostics, and worker execution."""
+"""Assistant identities and skill names shared by installation."""
 from __future__ import annotations
 
-AGENTS = {
-    "codex": {"executable": "codex", "install_url": "https://developers.openai.com/codex/cli/"},
-    "copilot": {"executable": "copilot", "install_url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/install-copilot-cli"},
-    "claude": {"executable": "claude", "install_url": "https://code.claude.com/docs/en/setup"},
-}
+AGENTS = ("codex", "copilot", "claude")
 ALIASES = {"github-copilot": "copilot", "claude-code": "claude"}
-SKILLS = ("orchi", "orchi-plan", "orchi-work", "orchi-review", "orchi-deliver")
+SKILLS = ("orchi",)
+# Stage skills from the former controller workflow; removed on upgrade when unmodified.
+LEGACY_SKILLS = ("orchi-plan", "orchi-work", "orchi-review", "orchi-deliver")
 
 
 def agent_names(values: list[str] | tuple[str, ...]) -> list[str]:

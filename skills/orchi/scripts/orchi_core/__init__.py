@@ -1,1 +1,1 @@
-"""Orchi: iterative planning, bounded execution, and verified delivery."""
+"""Orchi installer support: shared skill registration for coding assistants."""

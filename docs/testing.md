@@ -2,58 +2,26 @@
 
 ## Deterministic validation
 
-Run from the Orchi repository, not from a production initiative:
-
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 python tools/validate_package.py
 python -m pytest -q
-python tools/demo.py --out /tmp/orchi-demo
 ```
 
-The output directory for the demo must not exist. The demo creates a disposable Git repository, synthetic process workers, and a test-only signing key. It exercises two epics, intermediate Working Knowledge, final Core reconciliation, and a single canonical publication. Its generated packet, audit export, and report are local evidence, not source files to commit.
+`tools/validate_package.py` checks skill metadata, local Markdown links (installed references must stay inside the bundle), Python syntax, standard-library-only installed scripts, JSON/YAML syntax, the npm publish allowlist, English-only text, and absence of product release markers.
 
-## Coverage
-
-Contract tests cover exact paths, protected writes, explicit task designs, future-epic boundaries, acceptance coverage, safe context parsing, and generated schemas. State-machine tests cover approvals, signature replay, readiness, knowledge scoping, mandatory checkpoints, retained budgets, finalization, and canonical drift.
-
-Execution tests use real Git worktrees, SQLite, signatures, and subprocesses. They cover parallel claims and workers, read assumptions, resource serialization, actual combined-tree verification, process timeout/output limits, recovery, transactional rollback, and content-addressed artifacts. Review tests cover clean passes, causal scope, retained blockers, bounded repair, and incomplete reviews.
-
-Packaging tests cover all seven assistant selections in project and user scopes, additive selection, managed instruction preservation/removal, relative Claude links, rollback, explicit replacement backups, symlink refusal, installed registration without a source checkout, schema parity, and complete skill resources. Provider tests use synthetic CLI executables through real subprocesses to check Codex/Claude/Copilot packet execution and block malformed results, preparation writes, unresolved questions, and invalid fingerprints before execution. Diagnostics distinguish local prerequisite checks from live authentication or model validation.
-
-`tools/validate_package.py` checks Python syntax, metadata, local Markdown links, bundled resources, JSON, schema drift, English-only repository text, and absence of product release metadata. It is an offline source validation tool, not a model evaluation.
+Installer tests cover all seven assistant selections in project and user scopes, additive selection, managed instruction preservation and removal, relative Claude links, rollback, backups on explicit replacement, symlink refusal, upgrade from the five-skill layout, and registration from an installed bundle without a source checkout. Knowledge tests cover snapshot isolation, exact reads with hash checks, corpus scope, and link/anchor validation.
 
 ## Installed-skill smoke test
 
-Validate installation into a disposable project rather than only running from this repository:
-
 ```bash
-ORCHI_SOURCE="$PWD"
-TARGET="$(mktemp -d)"
-git -C "$TARGET" init -b main
-(
-  cd "$TARGET"
-  npx --yes "$ORCHI_SOURCE" --project "$PWD" --agents all
-  uv run .agents/skills/orchi/scripts/orchi.py doctor --repo .
-  uv run .agents/skills/orchi/scripts/orchi_operator.py --help
-  uv run .agents/skills/orchi/scripts/orchi.py schemas --out "$TARGET/generated-schemas"
-)
+python tools/smoke_install.py --out /tmp/orchi-installation
 ```
 
-The same checks, including preservation of existing user files and isolation from an incompatible application manifest, are automated by `python tools/smoke_install.py --out /tmp/orchi-installation`. The default `--installer npm` mode invokes the npm wrapper for all three assistants. Its `--installer local --runner python` mode checks a pre-provisioned offline environment. All modes require a new output directory. `--installer skills` checks the third-party Skills CLI; it does not install Orchi's managed instruction sections.
+The output directory must not exist. The default `--installer npm` mode runs the npm wrapper for all three assistants in a new Git project, checks that existing user files survive, and runs the installed knowledge tool. `--installer local` uses the Python installer directly. `--installer skills` checks the third-party Skills CLI, which does not install Orchi's managed instruction sections.
 
-The first invocation may need network access to obtain the external CLI and Python packages. In a provisioned offline environment, use the bundled copying tool and managed Python environment instead. The installed runtime must work without importing from the source checkout or the target application's package configuration.
+## Live behavior
 
-## Continuous integration
-
-CI should run source validation, the deterministic suite, and the installed-skill smoke test in a new disposable directory using `uv`. No production keys or live model credentials are required.
-
-## Live model evaluation
-
-`evals/scenarios.json` defines model-behavior scenarios separately from pytest. A scenario needs an appropriate controller state, repository, model/CLI configuration, and observed evidence; a prompt alone cannot validate state routing.
-
-Assess correct next action, forbidden writes, unsupported approvals, source-selection mistakes, unnecessary interventions, review-loop waste, and actual root acceptance. Semantic assessment is required for task design and knowledge prose. Record traces, tool calls, final state, outcomes, cost, and intervention rate in a private report as appropriate. For each supported assistant, verify fresh-session skill discovery and root instruction routing, then a read-only preparation, an approved edit with real checks, a blocked permission request, and recovery from interrupted output. Record actual CLI versions and tool settings; a provider flag or output format change must not silently become a successful task.
-
-Synthetic workers validate protocol execution, not coding intelligence. A green test suite does not establish correct live skill selection, design quality, sandbox isolation, authentication, or production readiness. Do not report the live scenarios as passed unless they have actually been executed and assessed.
+Tests do not establish that an assistant follows the workflow. When changing the skill text, try it in a disposable repository with each supported assistant: a read-only question, a small fix, and an Epic with Tasks. Check that the assistant researches and agrees scope before creating branches or Issues, uses the right branch and label conventions, and does not merge without authority.
