@@ -9,7 +9,7 @@ import sys
 import pytest
 
 from orchi_core import installation
-from orchi_core.agents import AGENTS, SKILLS
+from orchi_core.agents import AGENTS, LEGACY_SKILLS, SKILLS
 
 COMBINATIONS = [list(items) for count in (1, 2, 3) for items in itertools.combinations(AGENTS, count)]
 
@@ -65,7 +65,7 @@ def test_project_can_move_with_all_claude_references(tmp_path):
     moved = tmp_path / "after"
     for name in SKILLS:
         assert (moved / ".claude/skills" / name / "SKILL.md").is_file()
-        assert (moved / ".claude/skills" / name / "../orchi/scripts/orchi.py").is_file()
+        assert (moved / ".claude/skills" / name / "scripts/knowledge.py").is_file()
 
 
 @pytest.mark.parametrize("relative", ["AGENTS.md", "CLAUDE.md", ".github/copilot-instructions.md"])
@@ -139,7 +139,7 @@ def test_installed_installer_adds_agent_without_source_checkout(tmp_path):
                             env={key: value for key, value in os.environ.items() if key != "PYTHONPATH"})
     assert result.returncode == 0, result.stdout + result.stderr
     assert json.loads(result.stdout)["agents"] == ["copilot", "claude"]
-    assert (tmp_path / ".claude/skills/orchi/scripts/orchi.py").is_file()
+    assert (tmp_path / ".claude/skills/orchi/scripts/knowledge.py").is_file()
 
 
 def test_cli_rejects_invalid_selection_and_scope_without_mutation(tmp_path, capsys):
@@ -196,26 +196,138 @@ def test_global_cli_uses_home_without_editing_current_project(tmp_path, monkeypa
     assert (home / ".claude/skills/orchi/SKILL.md").is_file()
 
 
-@pytest.mark.parametrize("provider", ["codex", "copilot", "claude"])
-def test_doctor_requires_only_requested_cli(tmp_path, monkeypatch, provider):
-    from orchi_core import diagnostics
-    installation.install(tmp_path, agents=[provider])
-    monkeypatch.setattr(diagnostics, "__file__", str(tmp_path / ".agents/skills/orchi/scripts/orchi_core/diagnostics.py"))
-    original_which = diagnostics.shutil.which
-    monkeypatch.setattr(diagnostics.shutil, "which", lambda name: None if name in AGENTS else original_which(name))
-    assert diagnostics.doctor()["status"] == "ready"
-    result = diagnostics.doctor(require_agents=[provider])
-    assert result["status"] == "blocked"
-    failures = [item["name"] for item in result["checks"] if not item["passed"]]
-    assert failures == [provider]
+def write_legacy_installation(root, edited=None):
+    """Simulate a manifest written by the former five-skill installer."""
+    skills = {}
+    for name in LEGACY_SKILLS:
+        folder = root / ".agents/skills" / name
+        folder.mkdir(parents=True)
+        (folder / "SKILL.md").write_text("Legacy " + name)
+        skills[name] = installation.inventory(folder)
+        (root / ".claude/skills").mkdir(parents=True, exist_ok=True)
+        (root / ".claude/skills" / name).symlink_to("../../.agents/skills/" + name, target_is_directory=True)
+    manifest = {"scope": "project", "agents": ["claude"], "skills": skills, "instructions": {},
+                "links": {f".claude/skills/{name}": f"../../.agents/skills/{name}" for name in LEGACY_SKILLS}}
+    (root / ".agents/.orchi-install.json").write_text(json.dumps(manifest))
+    if edited:
+        (root / ".agents/skills" / edited / "SKILL.md").write_text("User edit")
 
 
-def test_doctor_detects_missing_links_and_instruction_sections(tmp_path, monkeypatch):
-    from orchi_core import diagnostics
-    installation.install(tmp_path, agents=["all"])
-    monkeypatch.setattr(diagnostics, "__file__", str(tmp_path / ".agents/skills/orchi/scripts/orchi_core/diagnostics.py"))
-    (tmp_path / ".claude/skills/orchi-plan").unlink()
-    (tmp_path / "AGENTS.md").write_text("User replaced file")
-    result = diagnostics.doctor()
-    assert result["status"] == "blocked"
-    assert {item["name"] for item in result["checks"] if not item["passed"]} == {"registration:claude:orchi-plan", "instructions:AGENTS.md"}
+def test_upgrade_removes_unmodified_legacy_stage_skills(tmp_path):
+    write_legacy_installation(tmp_path)
+    result = installation.install(tmp_path)
+    assert result["agents"] == ["claude"]
+    for name in LEGACY_SKILLS:
+        assert not (tmp_path / ".agents/skills" / name).exists()
+        assert not (tmp_path / ".claude/skills" / name).is_symlink()
+    assert (tmp_path / ".claude/skills/orchi/SKILL.md").is_file()
+    manifest = json.loads((tmp_path / ".agents/.orchi-install.json").read_text())
+    assert list(manifest["skills"]) == ["orchi"] and list(manifest["links"]) == [".claude/skills/orchi"]
+    assert installation.install(tmp_path)["status"] == "unchanged"
+
+
+def test_upgrade_updates_unmodified_managed_entrypoint_without_replace(tmp_path):
+    write_legacy_installation(tmp_path)
+    folder = tmp_path / ".agents/skills/orchi"; folder.mkdir()
+    (folder / "SKILL.md").write_text("Former controller entrypoint")
+    manifest_path = tmp_path / ".agents/.orchi-install.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["skills"]["orchi"] = installation.inventory(folder)
+    manifest_path.write_text(json.dumps(manifest))
+    result = installation.install(tmp_path)
+    assert result["status"] == "installed"
+    assert (folder / "scripts/knowledge.py").is_file()
+    assert sorted(p.name for p in (tmp_path / ".agents/skills").iterdir()) == ["orchi"]
+
+
+def test_upgrade_preserves_edited_legacy_skill_until_replace(tmp_path):
+    write_legacy_installation(tmp_path, edited="orchi-plan")
+    with pytest.raises(ValueError, match="orchi-plan"):
+        installation.install(tmp_path)
+    assert (tmp_path / ".agents/skills/orchi-plan/SKILL.md").read_text() == "User edit"
+    result = installation.install(tmp_path, replace=True)
+    assert (Path(result["backup"]) / ".agents/skills/orchi-plan/SKILL.md").read_text() == "User edit"
+    assert not (tmp_path / ".agents/skills/orchi-plan").exists()
+
+
+def test_unmanaged_skill_with_legacy_name_is_left_alone(tmp_path):
+    folder = tmp_path / ".agents/skills/orchi-plan"; folder.mkdir(parents=True)
+    (folder / "SKILL.md").write_text("User skill")
+    installation.install(tmp_path, agents=["codex"])
+    assert (folder / "SKILL.md").read_text() == "User skill"
+
+
+@pytest.fixture
+def labels(monkeypatch):
+    calls = []
+    monkeypatch.setattr(installation, "ensure_labels", lambda root: calls.append(root) or {"created": ["Epic"]})
+    return calls
+
+
+def test_github_setup_installs_managed_files_and_persists(tmp_path, labels):
+    result = installation.install(tmp_path, agents=["codex"], github=True)
+    assert result["labels"] == {"created": ["Epic"]} and labels == [tmp_path.resolve()]
+    for relative in ("ISSUE_TEMPLATE/orchi-epic.yml", "ISSUE_TEMPLATE/orchi-task.yml",
+                     "ISSUE_TEMPLATE/orchi-initiative.yml", "workflows/orchi-docs.yml"):
+        assert (tmp_path / ".github" / relative).is_file()
+    assert "## Documentation impact" in (tmp_path / ".github/pull_request_template.md").read_text()
+    # A later installation without the flag keeps the GitHub setup.
+    assert installation.install(tmp_path, agents=["claude"])["github"] is True
+    installation.install(tmp_path, uninstall=True)
+    assert not (tmp_path / ".github").exists() or not list((tmp_path / ".github").rglob("*.*"))
+
+
+def test_github_setup_extends_existing_pr_template_and_preserves_edits(tmp_path, labels):
+    template = tmp_path / ".github/PULL_REQUEST_TEMPLATE.md"
+    template.parent.mkdir(parents=True)
+    template.write_text("Team checklist\n")
+    installation.install(tmp_path, github=True)
+    text = template.read_text()
+    assert text.startswith("Team checklist\n") and text.count("<!-- orchi:begin -->") == 1
+    assert sorted(p.name for p in template.parent.iterdir() if p.is_file()) == ["PULL_REQUEST_TEMPLATE.md"]
+    workflow = tmp_path / ".github/workflows/orchi-docs.yml"
+    workflow.write_text("# customized\n")
+    with pytest.raises(ValueError, match="orchi-docs.yml"):
+        installation.install(tmp_path)
+    with pytest.raises(ValueError, match="Modified managed file"):
+        installation.install(tmp_path, uninstall=True)
+    installation.install(tmp_path, replace=True)
+    assert "knowledge.py impact" in workflow.read_text()
+    installation.install(tmp_path, uninstall=True)
+    assert template.read_text() == "Team checklist\n"
+
+
+def test_github_setup_refuses_unmanaged_file_and_global_scope(tmp_path, labels):
+    workflow = tmp_path / ".github/workflows/orchi-docs.yml"
+    workflow.parent.mkdir(parents=True)
+    workflow.write_text("user workflow")
+    with pytest.raises(ValueError, match="differs"):
+        installation.install(tmp_path, github=True)
+    assert workflow.read_text() == "user workflow" and not (tmp_path / ".agents").exists()
+    with pytest.raises(ValueError, match="--global"):
+        installation.install(tmp_path / ".github", github=True, global_scope=True)
+
+
+def test_label_setup_reports_unavailable_github(tmp_path, monkeypatch):
+    def missing(*args, **kwargs):
+        raise OSError("gh not found")
+    monkeypatch.setattr(installation.subprocess, "run", missing)
+    result = installation.ensure_labels(tmp_path)
+    assert result["created"] == [] and "gh not found" in result["error"]
+
+
+def test_dry_run_reports_conflicts_instead_of_failing(tmp_path):
+    installation.install(tmp_path)
+    (tmp_path / ".agents/skills/orchi/SKILL.md").write_text("Local edit")
+    result = installation.install(tmp_path, dry=True)
+    assert result["conflicts"] == ["orchi"] and result["requires_replace"] is True
+    assert (tmp_path / ".agents/skills/orchi/SKILL.md").read_text() == "Local edit"
+
+
+def test_manifest_records_version_and_cli_reports_upgrade(tmp_path, capsys):
+    from orchi_core.agents import VERSION
+    installation.install(tmp_path)
+    assert json.loads((tmp_path / ".agents/.orchi-install.json").read_text())["version"] == VERSION
+    assert installation.main(["--project", str(tmp_path), "--version"]) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report == {"installed": VERSION, "bundle": VERSION, "upgrade": "npx --yes github:nkhus/orchi"}

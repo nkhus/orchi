@@ -10,29 +10,28 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi', 'orchi-plan', 'orchi-work', 'orchi-review', 'orchi-deliver')
+SKILLS = ('orchi',)
 
 
-def smoke(out: Path, installer: str, runner: str, agents: list[str] | None = None) -> dict:
-    """Never use an existing destination or a production control directory."""
+def smoke(out: Path, installer: str, agents: list[str] | None = None, github: bool = False) -> dict:
+    """Never use an existing destination."""
     out = out.resolve()
     out.mkdir(parents=True, exist_ok=False)
     project = out / 'project'
     project.mkdir()
     agents = agents or ['codex', 'copilot', 'claude']
-    env = {key: value for key, value in os.environ.items()
-           if key not in {'PYTHONPATH', 'PYTHONHOME', 'ORCHI_CONTROL', 'VIRTUAL_ENV'}}
+    env = {key: value for key, value in os.environ.items() if key not in {'PYTHONPATH', 'PYTHONHOME', 'VIRTUAL_ENV'}}
     env.update(DISABLE_TELEMETRY='1', DO_NOT_TRACK='1')
     log = out / 'commands.log'
 
-    def run(argv: list[str]) -> str:
+    def run(argv: list[str], extra: dict | None = None, expect: int = 0) -> str:
         with log.open('a', encoding='utf-8') as stream:
             stream.write('\n$ ' + repr(argv) + '\n')
             stream.flush()
-            result = subprocess.run(argv, cwd=project, env=env, capture_output=True,
+            result = subprocess.run(argv, cwd=project, env={**env, **(extra or {})}, capture_output=True,
                                     text=True, timeout=300, check=False)
             stream.write(result.stdout + result.stderr)
-        if result.returncode:
+        if result.returncode != expect:
             raise RuntimeError(f'Command failed ({result.returncode}); see {log}: {argv!r}')
         return result.stdout
 
@@ -41,10 +40,8 @@ def smoke(out: Path, installer: str, runner: str, agents: list[str] | None = Non
         'AGENTS.md': '# Existing project instructions\nKeep these instructions.\n',
         '.codex/config.toml': 'model = "operator-selected-model"\n',
         '.agents/skills/unrelated/SKILL.md': '---\nname: unrelated\ndescription: Existing skill\n---\n',
-        'pyproject.toml': (
-            '[project]\nname = "unrelated-application"\nrequires-python = ">=3.99"\n'
-            'dependencies = ["deliberately-unresolvable-orchi-smoke-dependency"]\n'
-        ),
+        'docs/guide.md': '# Guide\nSession behavior.\n',
+        'pyproject.toml': '[project]\nname = "unrelated-application"\nrequires-python = ">=3.99"\n',
     }
     for relative, text in preserved.items():
         target = project / relative
@@ -54,27 +51,26 @@ def smoke(out: Path, installer: str, runner: str, agents: list[str] | None = Non
         names = {'codex': 'codex', 'copilot': 'github-copilot', 'claude': 'claude-code'}
         run(['npx', '--yes', 'skills', 'add', str(ROOT), '--skill', '*', '--agent', *[names[name] for name in agents], '--yes'])
     elif installer == 'npm':
-        run(['node', str(ROOT / 'bin/orchi.js'), '--project', str(project), '--agents', *agents])
+        run(['node', str(ROOT / 'bin/orchi.js'), '--project', str(project), '--agents', *agents, *(['--github'] if github else [])])
     else:
-        run([sys.executable, str(ROOT / 'tools/install.py'), '--project', str(project), '--agents', *agents])
+        run([sys.executable, str(ROOT / 'tools/install.py'), '--project', str(project), '--agents', *agents,
+             *(['--github'] if github else [])])
     for name in SKILLS:
         if not (project / '.agents/skills' / name / 'SKILL.md').is_file():
             raise RuntimeError('Missing installed skill: ' + name)
-    scripts = project / '.agents/skills/orchi/scripts'
-    prefix = ['uv', 'run'] if runner == 'uv' else [sys.executable]
-    diagnostics = json.loads(run([*prefix, str(scripts / 'orchi.py'), 'doctor', '--repo', '.']))
-    if diagnostics.get('result', {}).get('status') != 'ready':
-        raise RuntimeError('Installed diagnostics did not report ready')
-    run([*prefix, str(scripts / 'orchi_operator.py'), '--help'])
-    generated = out / 'schemas'
-    run([*prefix, str(scripts / 'orchi.py'), 'schemas', '--out', str(generated)])
-    expected = {p.name: json.loads(p.read_text()) for p in (ROOT / 'schemas').glob('*.json')}
-    actual = {p.name: json.loads(p.read_text()) for p in generated.glob('*.json')}
-    if actual != expected:
-        raise RuntimeError('Installed contracts differ from the repository schemas')
-    # The test-only key stays outside the consuming project.
-    run([*prefix, str(scripts / 'orchi_operator.py'), 'keygen',
-         '--private', str(out / 'test-only-private.pem'), '--public', str(out / 'test-only-public.pem')])
+    knowledge = project / '.agents/skills/orchi/scripts/knowledge.py'
+    hits = json.loads(run([sys.executable, str(knowledge), 'search', 'session']))['results']
+    if [hit['path'] for hit in hits] != ['docs/guide.md']:
+        raise RuntimeError('Installed knowledge search returned unexpected results')
+    run([sys.executable, str(knowledge), 'lint'])
+    if github and installer != 'skills':
+        for relative in ('.github/workflows/orchi-docs.yml', '.github/ISSUE_TEMPLATE/orchi-epic.yml'):
+            if not (project / relative).is_file():
+                raise RuntimeError('Missing GitHub setup file: ' + relative)
+        template = (project / '.github/pull_request_template.md').read_text(encoding='utf-8')
+        run([sys.executable, str(knowledge), 'impact'], {'PR_BODY': template}, expect=1)
+        run([sys.executable, str(knowledge), 'impact'], {'PR_BODY': template.replace(
+            '## Documentation impact\n', '## Documentation impact\n\nUpdated docs/guide.md.\n')})
     for relative, text in preserved.items():
         installed_text = (project / relative).read_text(encoding='utf-8')
         if relative == 'AGENTS.md' and installer != 'skills':
@@ -86,12 +82,8 @@ def smoke(out: Path, installer: str, runner: str, agents: list[str] | None = Non
         for name in SKILLS:
             if (project / '.claude/skills' / name).resolve() != project / '.agents/skills' / name:
                 raise RuntimeError('Claude does not share the canonical skill bundle')
-    for unexpected in ('.venv', 'uv.lock'):
-        if (project / unexpected).exists():
-            raise RuntimeError('Runtime used the consuming application environment: ' + unexpected)
-    result = {'ok': True, 'installer': installer, 'runner': runner, 'agents': agents, 'skills': len(SKILLS),
-              'schemas': len(actual), 'preserved_files': len(preserved),
-              'live_model': False, 'out': str(out)}
+    result = {'ok': True, 'installer': installer, 'agents': agents, 'github': github, 'skills': len(SKILLS),
+              'preserved_files': len(preserved), 'live_model': False, 'out': str(out)}
     (out / 'smoke-report.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     return result
 
@@ -101,10 +93,10 @@ def main() -> int:
     parser.add_argument('--out', type=Path, required=True, help='A new disposable output directory')
     parser.add_argument('--installer', choices=('skills', 'local', 'npm'), default='npm')
     parser.add_argument('--agents', nargs='+', choices=('codex', 'copilot', 'claude'), default=['codex', 'copilot', 'claude'])
-    parser.add_argument('--runner', choices=('uv', 'python'), default='uv')
+    parser.add_argument('--github', action='store_true', help='Also install and check the GitHub setup files')
     args = parser.parse_args()
     try:
-        result = smoke(args.out, args.installer, args.runner, args.agents)
+        result = smoke(args.out, args.installer, args.agents, args.github)
     except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
