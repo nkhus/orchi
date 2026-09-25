@@ -1,0 +1,46 @@
+name: Orchi Epic
+description: An independently verifiable outcome delivered as sequential Tasks on one branch and PR.
+title: "Epic: "
+labels: [Epic]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: The bounded result, not a list of components.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: Authoritative documents and stable requirement IDs.
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: In scope and out of scope.
+    validations:
+      required: true
+  - type: textarea
+    id: design
+    attributes:
+      label: Design
+      description: Approach, interfaces, invariants, tradeoffs, and affected documentation, or a link to them.
+  - type: textarea
+    id: exit
+    attributes:
+      label: Exit criteria
+      description: Observable acceptance and required verification.
+    validations:
+      required: true
+  - type: textarea
+    id: questions
+    attributes:
+      label: Open questions
+      description: Unresolved inputs, not presented as decided facts. Record dependencies as native blocked-by relationships.
+  - type: textarea
+    id: work
+    attributes:
+      label: Work reference
+      description: Filled by the owner on claim - assistant session or identifier, branch, and PR.

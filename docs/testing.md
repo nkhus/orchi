@@ -12,7 +12,7 @@ python -m pytest -q
 
 `tools/validate_package.py` checks skill metadata, local Markdown links (installed references must stay inside the bundle), Python syntax, standard-library-only installed scripts, JSON/YAML syntax, the npm publish allowlist, English-only text, and absence of product release markers.
 
-Installer tests cover all seven assistant selections in project and user scopes, additive selection, managed instruction preservation and removal, relative Claude links, rollback, backups on explicit replacement, symlink refusal, upgrade from the five-skill layout, and registration from an installed bundle without a source checkout. Knowledge tests cover snapshot isolation, exact reads with hash checks, corpus scope, and link/anchor validation.
+Installer tests cover all seven assistant selections in project and user scopes, additive selection, managed instruction preservation and removal, relative Claude links, rollback, backups on explicit replacement, symlink refusal, upgrade from the five-skill layout, and registration from an installed bundle without a source checkout. The `--github` tests cover managed template and workflow files, extending an existing PR template, conflicts, persistence, and reporting when labels cannot be created. Knowledge tests cover snapshot isolation, exact reads with hash checks, corpus scope, link/anchor validation, and the documentation impact check. Status tests cover readiness classification (ready, check, blocked, claimed), standalone Task selection, ordering, and pagination against a fake `gh`.
 
 ## Installed-skill smoke test
 
@@ -20,7 +20,7 @@ Installer tests cover all seven assistant selections in project and user scopes,
 python tools/smoke_install.py --out /tmp/orchi-installation
 ```
 
-The output directory must not exist. The default `--installer npm` mode runs the npm wrapper for all three assistants in a new Git project, checks that existing user files survive, and runs the installed knowledge tool. `--installer local` uses the Python installer directly. `--installer skills` checks the third-party Skills CLI, which does not install Orchi's managed instruction sections.
+Add `--github` to also install and check the GitHub setup files and the documentation impact check; label creation reports an error in the disposable project because it has no GitHub remote. The output directory must not exist. The default `--installer npm` mode runs the npm wrapper for all three assistants in a new Git project, checks that existing user files survive, and runs the installed knowledge tool. `--installer local` uses the Python installer directly. `--installer skills` checks the third-party Skills CLI, which does not install Orchi's managed instruction sections.
 
 ## Live behavior
 

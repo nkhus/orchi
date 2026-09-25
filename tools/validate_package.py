@@ -13,7 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ('orchi',)
 IGNORED = {'__pycache__', '.pytest_cache', '.venv', '.git', 'reports', 'build', 'dist', 'node_modules'}
 PACKAGE_FILES = ['bin/orchi.js', 'tools/install.py', 'skills/orchi/SKILL.md', 'skills/orchi/agents/openai.yaml',
-                 'skills/orchi/references', 'skills/orchi/scripts/**/*.py', 'README.md']
+                 'skills/orchi/assets', 'skills/orchi/references', 'skills/orchi/scripts/**/*.py', 'README.md']
+SKILL_LINES = 100
 
 
 def files() -> list[Path]:
@@ -44,7 +45,7 @@ def validate() -> dict:
             text = (folder / 'SKILL.md').read_text()
             metadata = yaml.safe_load(text.split('---', 2)[1])
             ui = yaml.safe_load((folder / 'agents/openai.yaml').read_text())
-            if metadata.get('name') != name or not metadata.get('description') or len(text.splitlines()) >= 250:
+            if metadata.get('name') != name or not metadata.get('description') or len(text.splitlines()) > SKILL_LINES:
                 errors.append('Invalid skill metadata or oversized instructions: ' + name)
             if len(metadata['description']) > 1024: errors.append('Skill description exceeds 1024 characters: ' + name)
             if not 25 <= len(ui['interface']['short_description']) <= 64: errors.append('Invalid interface description: ' + name)
@@ -87,6 +88,10 @@ def validate() -> dict:
         package = json.loads((ROOT / 'package.json').read_text())
         if package.get('name') != '@nkhus/orchi' or package.get('bin') != {'orchi': 'bin/orchi.js'}:
             errors.append('Invalid npm installer identity or executable')
+        sys.path.insert(0, str(ROOT / 'skills/orchi/scripts'))
+        from orchi_core.agents import VERSION
+        if package.get('version') != VERSION:
+            errors.append('package.json version differs from the bundled installer version')
         if package.get('files') != PACKAGE_FILES:
             errors.append('The npm publish allowlist must contain only installer resources')
         if package.get('dependencies') or package.get('devDependencies'):

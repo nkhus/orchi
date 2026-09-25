@@ -44,11 +44,13 @@ npx --yes github:nkhus/orchi --global --agents copilot claude
 
 | Option | Effect |
 | --- | --- |
-| `--dry-run` | Show planned file changes without writing |
-| `--replace-orchi` | Back up and replace locally edited Orchi skill files |
+| `--github` | Also add issue templates, a PR template, a documentation check workflow, and Orchi labels (project scope) |
+| `--dry-run` | Show planned file changes and conflicts without writing |
+| `--replace-orchi` | Back up and replace locally edited Orchi files |
+| `--version` | Show the installed and bundled versions and the upgrade command |
 | `--uninstall` | Remove the complete managed Orchi installation at the selected scope |
 
-See the [installation guide](docs/installation.md) for paths, conflict handling, upgrading from the five-skill layout, offline installation, and removal.
+To upgrade, rerun the same `npx` command; unmodified managed files update in place. See the [installation guide](docs/installation.md) for paths, conflict handling, upgrading from the five-skill layout, offline installation, and removal.
 
 </details>
 
@@ -81,9 +83,9 @@ flowchart TD
 
 - **Agree before tracking.** Research and a proposed scope come first. Branches, Issues, and changes follow the user's agreement, not an agent's guess.
 - **Scale the ceremony to the work.** A small fix is one Task and one PR. An Epic is one branch and one PR with sequential Tasks. An Initiative integrates several Epic PRs on its own branch before one final PR to main.
-- **GitHub is the shared state.** `Initiative`, `Epic`, and `Task` labels, native sub-issues and `blocked by` dependencies, assignees, and `in-progress` describe hierarchy and ownership. Several assistants can work on independent Epics in parallel, each in its own branch and worktree.
-- **Documentation follows the code.** Core documentation changes land with the implementation in the Epic branch. Initiative plans live in `docs/initiatives/<slug>/README.md` and are never presented as current behavior.
-- **Verify once, repair precisely.** Each Epic gets one full review; demonstrated blockers are repaired and rechecked with a targeted follow-up. Merging and deployment stay within the user's authority.
+- **GitHub is the shared state.** `Initiative`, `Epic`, and `Task` labels, native sub-issues and `blocked by` dependencies, assignees, and `in-progress` describe hierarchy and ownership. Several assistants can work on independent Epics in parallel, each in its own branch and worktree. `scripts/status.py` shows which Epics are ready, blocked, or claimed.
+- **Documentation follows the code.** Core documentation changes land with the implementation in the Epic branch, and every PR states its documentation impact. With `--github`, CI fails on broken local links or an empty impact section. Initiative plans live in `docs/initiatives/<slug>/README.md` and are never presented as current behavior.
+- **Verify once, repair precisely.** Each Epic gets one full review; demonstrated blockers are repaired and rechecked with a targeted follow-up. Interrupted work leaves a fixed Handoff section in the PR. Merging and deployment stay within the user's authority.
 
 The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references cover [planning](skills/orchi/references/planning.md), [execution](skills/orchi/references/execution.md), [knowledge](skills/orchi/references/knowledge.md), [review and delivery](skills/orchi/references/review-delivery.md), [GitHub conventions](skills/orchi/references/github.md), and [documentation retrieval](skills/orchi/references/retrieval.md).
 
@@ -96,6 +98,8 @@ The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references co
 | `.github/copilot-instructions.md` | Copilot pointer to the shared root instructions, when selected |
 | Root `CLAUDE.md` | Claude import of `AGENTS.md`, when selected |
 | `.claude/skills/orchi` | Relative link to the shared skill, when Claude is selected |
+| `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml` | Issue forms and documentation check, with `--github` |
+| PR template | Managed Summary, Verification, Documentation impact, and Handoff sections, with `--github` |
 
 The installer preserves your existing instruction text. It maintains only the section between `<!-- orchi:begin -->` and `<!-- orchi:end -->` and refuses to overwrite a locally edited managed section. Repository instructions take precedence over Orchi's defaults, so an existing issue template or check command keeps working.
 

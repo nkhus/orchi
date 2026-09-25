@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Read-only Orchi Markdown search, exact reads, and local-link validation."""
+"""Read-only Orchi Markdown search, exact reads, local-link validation, and PR documentation-impact checks."""
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import posixpath
 import re
@@ -137,6 +138,21 @@ def search(docs: Documents, query: str, limit: int) -> list[dict]:
     return hits[:limit]
 
 
+PLACEHOLDERS = {'', 'n/a', 'na', 'none', 'todo', 'tbd', '-', '...'}
+
+
+def impact(body: str) -> str | None:
+    """Return an error unless the PR body has a filled Documentation impact section."""
+    text = re.sub(r'<!--.*?-->', '', body.replace('\r\n', '\n'), flags=re.S)
+    match = re.search(r'^#{1,6}\s+Documentation impact\s*#*\s*$(.*?)(?=^#{1,6}\s|\Z)', text, re.M | re.S | re.I)
+    if not match:
+        return 'The PR body has no "Documentation impact" section.'
+    content = ' '.join(match[1].split()).strip(' .')
+    if content.casefold() in PLACEHOLDERS:
+        return 'The "Documentation impact" section is empty: list the pages updated, or explain why none change.'
+    return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', default='.')
@@ -150,7 +166,14 @@ def main() -> int:
     get.add_argument('path')
     get.add_argument('--sha256', help='Refuse content that changed since search')
     commands.add_parser('lint')
+    check = commands.add_parser('impact', help='Require a filled Documentation impact section in a PR body')
+    check.add_argument('--body-file', help='File containing the PR body; default is the PR_BODY environment variable')
     args = parser.parse_args()
+    if args.command == 'impact':
+        body = Path(args.body_file).read_text(encoding='utf-8') if args.body_file else os.environ.get('PR_BODY', '')
+        error = impact(body)
+        print(error or 'Documentation impact: recorded')
+        return int(bool(error))
     try:
         docs = Documents(Path(args.repo), args.ref, args.path)
         if args.command == 'get':

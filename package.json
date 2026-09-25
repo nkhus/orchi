@@ -11,6 +11,7 @@
     "tools/install.py",
     "skills/orchi/SKILL.md",
     "skills/orchi/agents/openai.yaml",
+    "skills/orchi/assets",
     "skills/orchi/references",
     "skills/orchi/scripts/**/*.py",
     "README.md"

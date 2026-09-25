@@ -1,59 +1,62 @@
 # Plan the next verifiable result
 
-Use after initial research and direction agreement. Read the actual integration
-branch, relevant code, owning documentation, and completed dependency results.
-A plan describes intended behavior; it is not evidence that behavior exists.
+Use after research and direction agreement. Read the actual integration branch,
+relevant code, owning documentation, and completed dependency results. A plan
+describes intended behavior; it is not evidence that behavior exists.
+
+Plan proportionately. A fix needs only an outcome, acceptance, and verification in
+its Task. An Epic needs the design below in its issue or a linked branch document,
+then its Tasks. Do not create a planning Task per field or empty design documents.
 
 ## Initiative
 
-Capture the original request faithfully, agreed outcome, exclusions, observable
-acceptance, constraints, major decisions, and remaining unknowns in the initiative
-document. Keep the source request distinguishable from later decisions. Retain
-useful stable requirement IDs and links, without inventing IDs for every sentence.
+Record the plan in `docs/initiatives/<slug>/README.md` on the Initiative branch,
+or in an existing project location that already serves this purpose. Capture the
+original request faithfully, the agreed outcome, exclusions, observable
+acceptance, constraints, major decisions, and remaining unknowns. Keep the source
+request distinguishable from later decisions. Link existing requirements and
+stable IDs instead of copying them or inventing IDs for every sentence.
 
-Outline Epics as independently verifiable outcomes. Explain direct dependencies
-through the result or contract they supply. Keep future Epics at outcome level;
-expand an Epic into Tasks when preparing to execute it. GitHub stores the native
-hierarchy and status; documentation stores reasoning and requirements. Do not
-maintain a second child/status checklist.
+Outline Epics as independently verifiable outcomes. Explain each direct dependency
+through the result or contract it supplies. Keep future Epics at outcome level and
+expand an Epic into Tasks only when preparing to execute it. GitHub stores the
+hierarchy and status; the document stores reasoning and requirements. Do not keep
+a second child or status checklist.
 
 Check that every agreed requirement has a planned home in an Epic. A short mapping
-in the existing plan is enough when coverage is hard to see; no coverage database
-or mandatory matrix is needed. Do not silently drop requirements during decomposition.
+is enough when coverage is hard to see. Do not silently drop requirements.
 
 ## Epic design
 
-Before coding, write enough design in the Epic issue or a linked branch document
-for its owner and reviewer to agree on what the result means:
+Before coding, write enough design for the owner and reviewer to agree on what
+the result means:
 
 - outcome, boundaries, and requirements addressed;
 - relevant current implementation and the change needed;
-- public interfaces, data/ownership boundaries, and invariants that must hold;
-- chosen approach and significant tradeoffs, including a no-architecture-change
-  statement when that is the actual decision;
-- observable acceptance, relevant failure/recovery cases, and verification;
+- public interfaces, data and ownership boundaries, and invariants;
+- chosen approach and significant tradeoffs, including an explicit
+  no-architecture-change statement when that is the decision;
+- observable acceptance, relevant failure and recovery cases, and verification;
 - affected documentation, direct dependencies, and unresolved material questions.
 
-Resolve questions that affect the chosen approach before dependent implementation.
-A bounded investigation Task can answer a technical unknown discovered later;
-it produces findings and a recommendation, not silently adopted product code.
-Discuss a material change of direction with the user. Ordinary implementation
-choices within the agreed approach do not need a new approval.
+Resolve questions that affect the approach before dependent implementation. A
+bounded investigation Task can answer a later technical unknown; it produces
+findings and a recommendation, not silently adopted product code. Discuss a
+material change of direction with the user; ordinary implementation choices
+within the agreed approach need no new approval.
 
 ## Tasks
 
-Derive sequential Tasks from that design. Each owns one reviewable result and
-states the acceptance/verification plus relevant sources and constraints. Use
-likely affected areas to orient the implementer, not a permission list of files.
-Task order should follow real dependencies; GitHub's native child order or concise
-ordering text is sufficient. All Tasks share the Epic branch and PR.
+Derive sequential Tasks from the design. Each owns one reviewable result and
+states acceptance, verification, and relevant sources and constraints. Name likely
+affected areas to orient the implementer, not as a permission list. Order Tasks by
+real dependencies; native child order or brief ordering text is enough.
 
 Design shared contracts before independent Epics depend on them. When a contract
-is not yet implemented, model its producer Epic as a blocker rather than claiming
-its output exists. Check coverage from Epic acceptance to Tasks before starting;
-avoid both missing integration work and tasks that merely duplicate template fields.
+is not implemented yet, make its producer Epic a native blocker instead of
+assuming its output exists. Check coverage from Epic acceptance to Tasks, avoiding
+both missing integration work and Tasks that merely restate template fields.
 
-A documentation-only outcome needs no fake code Tasks. A small fix needs only its
-Task's outcome, acceptance, and verification. Do not create empty design documents.
-If the decomposition changes within the agreed direction, update affected pending
-Tasks and links in place, preserving completed history and explaining why.
+A documentation-only outcome needs no fake code Tasks. If the decomposition changes
+within the agreed direction, update pending Tasks and links in place, preserving
+completed history and explaining why.

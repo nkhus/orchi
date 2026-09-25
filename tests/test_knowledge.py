@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from knowledge import Documents, anchors, lint, main, search
+from knowledge import Documents, anchors, impact, lint, main, search
 
 
 class KnowledgeTests(unittest.TestCase):
@@ -74,6 +74,13 @@ class KnowledgeTests(unittest.TestCase):
         self.assertNotIn('node_modules/pkg/README.md', docs.names)
         self.assertEqual(Documents(self.root, prefixes=['docs']).names, ['docs/README.md', 'docs/accounts.md'])
         self.assertEqual(lint(Documents(self.root, prefixes=['docs/'])), [])
+
+    def test_documentation_impact_requires_filled_section(self):
+        self.assertIsNotNone(impact('## Summary\nDone.'))
+        self.assertIsNotNone(impact('## Documentation impact\n<!-- pages or reason -->\n\n## Handoff\n'))
+        self.assertIsNotNone(impact('## Documentation impact\nN/A\n'))
+        self.assertIsNone(impact('## Documentation impact\r\n- Updated docs/accounts.md\r\n## Handoff\r\n'))
+        self.assertIsNone(impact('### documentation impact\nNone: internal refactor with no behavior change.'))
 
     def test_search_and_lint_do_not_create_files(self):
         before = self.run_git('status', '--porcelain', '--untracked-files=all')

@@ -16,9 +16,9 @@ The repository is a skill distribution with a dependency-free npm installation w
 
 ## Source ownership
 
-Everything needed after installation lives in `skills/orchi/`: `SKILL.md`, `references/`, `agents/openai.yaml`, the knowledge tool in `scripts/knowledge.py`, and the installer in `scripts/orchi_core/`. Root `docs/`, `tests/`, and `tools/` serve contributors; installed files must not rely on them.
+Everything needed after installation lives in `skills/orchi/`: `SKILL.md`, `references/`, `agents/openai.yaml`, the GitHub setup files in `assets/github/`, the read-only tools `scripts/knowledge.py` and `scripts/status.py`, and the installer in `scripts/orchi_core/`. Keep `VERSION` in `orchi_core/agents.py` equal to the `package.json` version. Root `docs/`, `tests/`, and `tools/` serve contributors; installed files must not rely on them.
 
-Keep `SKILL.md` as the complete workflow and move stage detail into a focused reference. Keep references free of project-specific paths, commands, and tools; a target repository's own instructions take precedence and supply those.
+Keep `SKILL.md` to routing and core rules (at most 100 lines, enforced by validation) and give each detailed rule exactly one home in a reference; link instead of repeating. Keep references free of project-specific paths, commands, and tools; a target repository's own instructions take precedence and supply those.
 
 ## Behavioral changes
 

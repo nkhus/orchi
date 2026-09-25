@@ -36,6 +36,25 @@ Sections are delimited by `<!-- orchi:begin -->` and `<!-- orchi:end -->`. Exist
 
 Instruction discovery improves routing but does not prove model compliance. More specific instructions, explicit user instructions, disabled skills, instruction-size limits, and application settings can affect behavior. Start a fresh session and verify the entrypoint is exposed: `$orchi` in Codex CLI, `/orchi` in Claude Code and Copilot CLI, or the IDE's skill selection interface.
 
+## GitHub setup
+
+```bash
+npx --yes github:nkhus/orchi --agents all --github
+```
+
+`--github` is opt-in and applies to project installations. Once chosen, later installations keep it. It adds:
+
+| File or resource | Purpose |
+| --- | --- |
+| `.github/ISSUE_TEMPLATE/orchi-initiative.yml`, `orchi-epic.yml`, `orchi-task.yml` | Issue forms that apply the matching type label |
+| PR template section | Summary, Verification, Documentation impact, and Handoff, as a managed section in an existing template (`.github/pull_request_template.md` or another location GitHub reads) or a new one |
+| `.github/workflows/orchi-docs.yml` | On every PR, runs `knowledge.py lint` and fails when the Documentation impact section is missing or empty |
+| Labels `Initiative`, `Epic`, `Task`, `in-progress` | Created with `gh` when missing; existing labels are not changed |
+
+The template and workflow files are recorded in the manifest with their hashes, so they follow the same rules as the skill: unmodified files update in place, edited or pre-existing files need `--replace-orchi`, and uninstalling refuses edited files. Label creation needs a GitHub remote and an authenticated `gh`. If either is missing, the installation still completes and reports the error in `labels`; rerun it later to create them. Uninstalling leaves labels in place.
+
+The workflow lints every project Markdown file, so enabling it in a repository with existing broken links fails until they are fixed. Run `python3 .agents/skills/orchi/scripts/knowledge.py lint` first to see what it reports. Make the check required in branch protection if it should block merges.
+
 ## User-wide installation
 
 ```bash
@@ -60,7 +79,7 @@ npx --yes github:nkhus/orchi --project "$PWD" --agents all --replace-orchi
 npx --yes github:nkhus/orchi --project "$PWD" --uninstall
 ```
 
-Dry-run lists file changes without writing. A manifest at `.agents/.orchi-install.json` records selection, hashes, links, and managed sections. Identical installation is a no-op. Rerunning the installer updates unmodified managed files. Skill files edited since installation, or unmanaged files in the Orchi destination, require `--replace-orchi`; changed files are backed up beside the project, or inside the home directory for user-wide installation. Skills, links, instructions, and manifest are staged together and rolled back on an ordinary installation error. A process or host crash during mutation requires inspecting the backup and target before retrying.
+Dry-run lists file changes and conflicts (`conflicts`, `requires_replace`) without writing. A manifest at `.agents/.orchi-install.json` records selection, hashes, links, and managed sections. Identical installation is a no-op. Rerunning the installer updates unmodified managed files. Skill files edited since installation, or unmanaged files in the Orchi destination, require `--replace-orchi`; changed files are backed up beside the project, or inside the home directory for user-wide installation. Skills, links, instructions, and manifest are staged together and rolled back on an ordinary installation error. A process or host crash during mutation requires inspecting the backup and target before retrying.
 
 The installer refuses symlinked canonical skill destinations, unrelated conflicting skill directories, and instruction symlinks other than the explicit Claude-to-AGENTS bridge. It preserves unrelated skills, assistant settings, and application manifests. Do not alternate installers to manage the same installation.
 
@@ -83,7 +102,11 @@ The Python installer uses only the standard library. The npm wrapper invokes the
 python3 .agents/skills/orchi/scripts/orchi_install.py --project "$PWD" --agents claude
 ```
 
-## Upgrading from the five-skill layout
+## Upgrading
+
+Rerun the installation command. The manifest records the installed version; `python3 .agents/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy can add assistants but cannot fetch a newer version, so upgrades come from `npx` or a source checkout.
+
+### From the five-skill layout
 
 Earlier versions installed `orchi-plan`, `orchi-work`, `orchi-review`, and `orchi-deliver` alongside `orchi`, plus a controller runtime. Reinstalling removes those stage skills and their Claude links when the manifest records them and they are unmodified. Edited stage skills stop the installation until you review them and pass `--replace-orchi`, which backs them up first. Stage skills that the manifest does not record are left untouched. Controller state directories, operator keys, and adapter configuration live outside the installation and are not touched; remove them yourself once no longer needed.
 

@@ -1,0 +1,29 @@
+name: Orchi Task
+description: One reviewable result, either inside an Epic or as a standalone fix.
+title: ""
+labels: [Task]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: The one reviewable result this Task owns. Set the parent Epic as a native sub-issue relationship.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: Documents, requirement IDs, and constraints.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance and verification
+      description: Observable behavior and the checks that establish it.
+    validations:
+      required: true
+  - type: textarea
+    id: work
+    attributes:
+      label: Work reference
+      description: For a standalone Task, filled by the owner on claim - assistant session or identifier, branch, and PR.

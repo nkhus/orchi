@@ -255,3 +255,79 @@ def test_unmanaged_skill_with_legacy_name_is_left_alone(tmp_path):
     (folder / "SKILL.md").write_text("User skill")
     installation.install(tmp_path, agents=["codex"])
     assert (folder / "SKILL.md").read_text() == "User skill"
+
+
+@pytest.fixture
+def labels(monkeypatch):
+    calls = []
+    monkeypatch.setattr(installation, "ensure_labels", lambda root: calls.append(root) or {"created": ["Epic"]})
+    return calls
+
+
+def test_github_setup_installs_managed_files_and_persists(tmp_path, labels):
+    result = installation.install(tmp_path, agents=["codex"], github=True)
+    assert result["labels"] == {"created": ["Epic"]} and labels == [tmp_path.resolve()]
+    for relative in ("ISSUE_TEMPLATE/orchi-epic.yml", "ISSUE_TEMPLATE/orchi-task.yml",
+                     "ISSUE_TEMPLATE/orchi-initiative.yml", "workflows/orchi-docs.yml"):
+        assert (tmp_path / ".github" / relative).is_file()
+    assert "## Documentation impact" in (tmp_path / ".github/pull_request_template.md").read_text()
+    # A later installation without the flag keeps the GitHub setup.
+    assert installation.install(tmp_path, agents=["claude"])["github"] is True
+    installation.install(tmp_path, uninstall=True)
+    assert not (tmp_path / ".github").exists() or not list((tmp_path / ".github").rglob("*.*"))
+
+
+def test_github_setup_extends_existing_pr_template_and_preserves_edits(tmp_path, labels):
+    template = tmp_path / ".github/PULL_REQUEST_TEMPLATE.md"
+    template.parent.mkdir(parents=True)
+    template.write_text("Team checklist\n")
+    installation.install(tmp_path, github=True)
+    text = template.read_text()
+    assert text.startswith("Team checklist\n") and text.count("<!-- orchi:begin -->") == 1
+    assert sorted(p.name for p in template.parent.iterdir() if p.is_file()) == ["PULL_REQUEST_TEMPLATE.md"]
+    workflow = tmp_path / ".github/workflows/orchi-docs.yml"
+    workflow.write_text("# customized\n")
+    with pytest.raises(ValueError, match="orchi-docs.yml"):
+        installation.install(tmp_path)
+    with pytest.raises(ValueError, match="Modified managed file"):
+        installation.install(tmp_path, uninstall=True)
+    installation.install(tmp_path, replace=True)
+    assert "knowledge.py impact" in workflow.read_text()
+    installation.install(tmp_path, uninstall=True)
+    assert template.read_text() == "Team checklist\n"
+
+
+def test_github_setup_refuses_unmanaged_file_and_global_scope(tmp_path, labels):
+    workflow = tmp_path / ".github/workflows/orchi-docs.yml"
+    workflow.parent.mkdir(parents=True)
+    workflow.write_text("user workflow")
+    with pytest.raises(ValueError, match="differs"):
+        installation.install(tmp_path, github=True)
+    assert workflow.read_text() == "user workflow" and not (tmp_path / ".agents").exists()
+    with pytest.raises(ValueError, match="--global"):
+        installation.install(tmp_path / ".github", github=True, global_scope=True)
+
+
+def test_label_setup_reports_unavailable_github(tmp_path, monkeypatch):
+    def missing(*args, **kwargs):
+        raise OSError("gh not found")
+    monkeypatch.setattr(installation.subprocess, "run", missing)
+    result = installation.ensure_labels(tmp_path)
+    assert result["created"] == [] and "gh not found" in result["error"]
+
+
+def test_dry_run_reports_conflicts_instead_of_failing(tmp_path):
+    installation.install(tmp_path)
+    (tmp_path / ".agents/skills/orchi/SKILL.md").write_text("Local edit")
+    result = installation.install(tmp_path, dry=True)
+    assert result["conflicts"] == ["orchi"] and result["requires_replace"] is True
+    assert (tmp_path / ".agents/skills/orchi/SKILL.md").read_text() == "Local edit"
+
+
+def test_manifest_records_version_and_cli_reports_upgrade(tmp_path, capsys):
+    from orchi_core.agents import VERSION
+    installation.install(tmp_path)
+    assert json.loads((tmp_path / ".agents/.orchi-install.json").read_text())["version"] == VERSION
+    assert installation.main(["--project", str(tmp_path), "--version"]) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report == {"installed": VERSION, "bundle": VERSION, "upgrade": "npx --yes github:nkhus/orchi"}
