@@ -51,6 +51,11 @@ only direct ones. Create all issues first, then add dependencies, then verify wi
 `gh issue view <n> --json parent,subIssues,blockedBy,blocking`. Report any
 relationship the API could not establish.
 
+GitHub links closing PRs only for the default branch, so an Epic merged into its
+Initiative branch has no closing link. `status.py` then counts a blocker as
+satisfied only when a merged PR from the branch recorded in the blocker's Issue
+references it; record the branch in the Issue and link the Issue from the PR.
+
 Search open and closed issues for duplicates before creating. Never close, delete,
 or rewrite existing issues merely to tidy the hierarchy without user authorization.
 
