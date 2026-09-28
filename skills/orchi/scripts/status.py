@@ -22,9 +22,13 @@ query($owner: String!, $name: String!, $cursor: String) {
         parent { number title }
         subIssues(first: 100) { totalCount nodes { number title state } }
         blockedBy(first: 50) { nodes {
-          number title state stateReason
+          number title state stateReason body
           closedByPullRequestsReferences(first: 10, includeClosedPrs: true) {
             nodes { number merged baseRefName } }
+          timelineItems(first: 30, itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT]) { nodes {
+            ... on CrossReferencedEvent { source { ... on PullRequest { number merged baseRefName headRefName } } }
+            ... on ConnectedEvent { subject { ... on PullRequest { number merged baseRefName headRefName } } }
+          } }
         } }
       }
     }
@@ -32,6 +36,8 @@ query($owner: String!, $name: String!, $cursor: String) {
 }
 '''
 TAGS = re.compile(r'\[([A-Z][A-Z0-9]{1,7})\]')
+# Branch names an Issue body records for its work, such as `epic/pay-token-tokenize-cards`.
+BRANCH = re.compile(r'(?<![\w/.-])((?:epic|fix|initiative)/[A-Za-z0-9._/-]*[A-Za-z0-9])')
 ORDER = {'ready': 0, 'check': 1, 'blocked': 2, 'claimed': 3}
 
 Runner = Callable[[list[str]], str]
@@ -80,6 +86,16 @@ def naming(issue: dict, kind: str) -> list[str]:
     return warnings
 
 
+def referencing_prs(node: dict) -> list[dict]:
+    """Pull requests that cross-reference or were connected to an Issue."""
+    prs = []
+    for item in (node.get('timelineItems') or {}).get('nodes', []):
+        pr = (item or {}).get('source') or (item or {}).get('subject')
+        if pr and 'number' in pr:
+            prs.append(pr)
+    return prs
+
+
 def blocker_state(node: dict) -> tuple[str, str]:
     """Classify one native blocker as satisfied, unverified, or blocking."""
     if node['state'] == 'OPEN':
@@ -89,6 +105,15 @@ def blocker_state(node: dict) -> tuple[str, str]:
     merged = [pr for pr in (node.get('closedByPullRequestsReferences') or {}).get('nodes', []) if pr['merged']]
     if merged:
         return 'satisfied', 'merged into ' + ', '.join(sorted({pr['baseRefName'] for pr in merged}))
+    # GitHub links closing PRs only for the default branch, so an Epic merged into its Initiative branch has no
+    # closing link. Accept a merged PR that references the blocker from the branch its Issue records; an unrelated
+    # cross-reference is not proof.
+    recorded = set(BRANCH.findall(node.get('body') or ''))
+    from_branch = {pr['number']: pr for pr in referencing_prs(node) if pr.get('merged') and pr.get('headRefName') in recorded}
+    if from_branch:
+        prs = [from_branch[number] for number in sorted(from_branch)]
+        return 'satisfied', ('merged into ' + ', '.join(sorted({pr['baseRefName'] for pr in prs}))
+                             + ' via ' + ', '.join(f"#{pr['number']}" for pr in prs))
     return 'unverified', 'closed without a linked merged PR'
 
 
