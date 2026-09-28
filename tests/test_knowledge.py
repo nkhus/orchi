@@ -64,13 +64,14 @@ class KnowledgeTests(unittest.TestCase):
                 self.assertEqual(main(), 2)
 
     def test_corpus_skips_installed_skills_and_honours_path_scope(self):
-        for relative in ('.agents/skills/orchi/SKILL.md', 'node_modules/pkg/README.md', 'README.md'):
+        for relative in ('.agents/skills/orchi/SKILL.md', '.claude/agents/orchi-scout.md', 'node_modules/pkg/README.md', 'README.md'):
             target = self.root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text('# Session\n[Broken](absent.md)\n')
         docs = Documents(self.root)
         self.assertIn('README.md', docs.names)
         self.assertNotIn('.agents/skills/orchi/SKILL.md', docs.names)
+        self.assertNotIn('.claude/agents/orchi-scout.md', docs.names)
         self.assertNotIn('node_modules/pkg/README.md', docs.names)
         self.assertEqual(Documents(self.root, prefixes=['docs']).names, ['docs/README.md', 'docs/accounts.md'])
         self.assertEqual(lint(Documents(self.root, prefixes=['docs/'])), [])

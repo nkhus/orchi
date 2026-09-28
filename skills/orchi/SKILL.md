@@ -66,11 +66,23 @@ Read only the reference needed for the current stage.
 | Stage | Reference |
 | --- | --- |
 | Design an Initiative or Epic and derive Tasks | [Planning](references/planning.md) |
+| Check that a Task or Epic is ready to start or delegate | [Readiness](references/readiness.md) |
 | Find ready work, claim, execute, hand off, resume | [Execution](references/execution.md) |
 | Review, integrate, and close | [Review and delivery](references/review-delivery.md) |
 | Update Core documentation or reconcile branches | [Knowledge](references/knowledge.md) |
 | Create, relate, or close Issues; PR conventions | [GitHub conventions](references/github.md) |
 | Search or read documentation; validate links | [Retrieval](references/retrieval.md) |
+
+## Entry skills and subagents
+
+`orchi-plan` (research → agreed, ready Issues) and `orchi-deliver` (Issue → PR)
+are optional explicit entry points: `/orchi-plan` and `/orchi-deliver` in Claude
+Code, `$orchi-plan` and `$orchi-deliver` in Codex. The rules above apply without
+them. In Claude Code and Codex the main session may delegate to the installed
+subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
+`orchi-implementer` executes one ready Epic Task, and `orchi-reviewer` reviews.
+Subagents never talk to the user, change Issues, push, or merge; their reports
+are claims to verify. Delegation is optional; the readiness checklists are not.
 
 ## Tools
 

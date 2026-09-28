@@ -38,9 +38,13 @@ def test_fresh_install_preserves_user_files(tmp_path):
     (tmp_path / '.codex').mkdir(); (tmp_path / '.codex/config.toml').write_text('model="operator-model"')
     assert installer.install(tmp_path)['status'] == 'installed'
     assert (tmp_path / 'AGENTS.md').read_text().startswith('User rules\n\n<!-- orchi:begin -->')
-    assert (tmp_path / '.codex/config.toml').read_text() == 'model="operator-model"'
+    config = (tmp_path / '.codex/config.toml').read_text()
+    assert config.startswith('model="operator-model"\n\n# orchi:begin\n')
+    assert tomllib.loads(config) == {'model': 'operator-model', 'agents': {'max_depth': 3}}
     assert sorted(p.name for p in (tmp_path / '.agents/skills').iterdir()) == sorted(installer.NAMES)
     assert installer.install(tmp_path)['status'] == 'unchanged'
+    installer.install(tmp_path, uninstall=True)
+    assert (tmp_path / '.codex/config.toml').read_text() == 'model="operator-model"'
 
 
 def test_dry_run_no_mutation(tmp_path):

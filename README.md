@@ -4,9 +4,9 @@
 
 **Research first. Agree the scope. Deliver through branches and GitHub Issues.**
 
-Orchi is a development convention packaged as one agent skill. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. Install it for **Codex**, **GitHub Copilot**, **Claude Code**, or any combination of the three.
+Orchi is a development convention packaged as one agent skill, with two optional entry skills and three model-tiered subagents. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. Install it for **Codex**, **GitHub Copilot**, **Claude Code**, or any combination of the three.
 
-[Quick start](#quick-start) · [How it works](#how-it-works) · [Project instructions](#project-instructions) · [Documentation](#documentation)
+[Quick start](#quick-start) · [How it works](#how-it-works) · [Subagents and entry skills](#subagents-and-entry-skills) · [Project instructions](#project-instructions) · [Documentation](#documentation)
 
 ---
 
@@ -62,7 +62,7 @@ Open a fresh assistant session and ask:
 Use Orchi to add CSV export to the orders page.
 ```
 
-Or invoke it explicitly: `$orchi` in Codex CLI, `/orchi` in Copilot CLI and Claude Code, or the IDE's skill picker. The installed project instructions also route implementation requests to Orchi.
+Or invoke it explicitly: `$orchi` in Codex CLI, `/orchi` in Copilot CLI and Claude Code, or the IDE's skill picker. The installed project instructions also route implementation requests to Orchi. In Claude Code and Codex you can also start with the [entry skills](#subagents-and-entry-skills): `/orchi-plan <request>` or `$orchi-plan <request>`.
 
 ## How it works
 
@@ -88,7 +88,26 @@ flowchart TD
 - **Documentation follows the code.** Core documentation changes land with the implementation in the Epic branch, and every PR states its documentation impact. With `--github`, CI fails on broken local links the PR introduces or an empty impact section. Initiative plans live in `docs/initiatives/<tag>-<slug>/README.md` and are never presented as current behavior.
 - **Verify once, repair precisely.** Each Epic gets one full review; demonstrated blockers are repaired and rechecked with a targeted follow-up. Interrupted work leaves a fixed Handoff section in the PR. Merging and deployment stay within the user's authority.
 
-The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references cover [planning](skills/orchi/references/planning.md), [execution](skills/orchi/references/execution.md), [knowledge](skills/orchi/references/knowledge.md), [review and delivery](skills/orchi/references/review-delivery.md), [GitHub conventions](skills/orchi/references/github.md), and [documentation retrieval](skills/orchi/references/retrieval.md).
+The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references cover [planning](skills/orchi/references/planning.md), [readiness](skills/orchi/references/readiness.md), [execution](skills/orchi/references/execution.md), [knowledge](skills/orchi/references/knowledge.md), [review and delivery](skills/orchi/references/review-delivery.md), [GitHub conventions](skills/orchi/references/github.md), and [documentation retrieval](skills/orchi/references/retrieval.md).
+
+## Subagents and entry skills
+
+For Claude Code and Codex, the installer renders three subagents from one shared definition each in [`skills/orchi/roles/`](skills/orchi/roles/README.md). The main session talks to the user, owns Issues, pushes, and merges; it may delegate retrieval, one Epic Task at a time, and review.
+
+| Agent | Claude Code model / effort | Codex model / effort | Writes | Role |
+| --- | --- | --- | --- | --- |
+| `orchi-scout` | haiku / medium | gpt-6-luna / medium | nothing | Returns paths, line ranges, and excerpts |
+| `orchi-implementer` | opus / low | gpt-6-sol / low | one commit per Task | Runs the Task readiness gate, then implements and verifies one Epic Task |
+| `orchi-reviewer` | opus / high | gpt-6-sol / medium | nothing | Reviews an assembled Epic or a final Initiative candidate |
+
+Subagents may start `orchi-scout` or `orchi-reviewer` for independent sub-questions; only the main session starts `orchi-implementer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows three levels of nesting by default; for Codex the installer sets `[agents] max_depth = 3` in `.codex/config.toml`. If a model or agent is unavailable, the main session does the step itself.
+
+Two explicit entry skills fix the order of steps; they are conveniences, not a required facade:
+
+- `orchi-plan` (`/orchi-plan <request>` in Claude Code, `$orchi-plan <request>` in Codex) researches, proposes a scope, waits for agreement, creates ready Issues, and ends with `Deliver with: /orchi-deliver #<n>`.
+- `orchi-deliver` (`/orchi-deliver #<n> [--merge-epics]` or `$orchi-deliver #<n> [--merge-epics]`) delivers a standalone Task, Epic, or Initiative through the subagents and resumes interrupted delivery. It never merges into main; `--merge-epics` allows merging reviewed Epic PRs into their Initiative branch.
+
+Both enforce the [readiness checklists](skills/orchi/references/readiness.md) for Tasks and Epics. GitHub Copilot uses the same workflow without subagents.
 
 ## Project instructions
 
@@ -98,13 +117,16 @@ The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references co
 | Root `AGENTS.md` | Managed Orchi workflow instructions |
 | `.github/copilot-instructions.md` | Copilot pointer to the shared root instructions, when selected |
 | Root `CLAUDE.md` | Claude import of `AGENTS.md`, when selected |
-| `.claude/skills/orchi` | Relative link to the shared skill, when Claude is selected |
+| `.agents/skills/orchi-plan/`, `.agents/skills/orchi-deliver/` | Optional explicit entry skills |
+| `.claude/skills/orchi*` | Relative links to the shared skills, when Claude is selected |
+| `.claude/agents/orchi-*.md` | Rendered subagents, when Claude is selected |
+| `.codex/agents/orchi-*.toml`, `.codex/config.toml` | Rendered subagents and a managed `[agents] max_depth = 3` block, when Codex is selected |
 | `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml` | Issue forms and documentation check, with `--github` |
 | PR template | Managed Summary, Verification, Documentation impact, and Handoff sections, with `--github` |
 
 The installer preserves your existing instruction text. It maintains only the section between `<!-- orchi:begin -->` and `<!-- orchi:end -->` and refuses to overwrite a locally edited managed section. Repository instructions take precedence over Orchi's defaults, so an existing issue template or check command keeps working.
 
-Commit the installed files, link, instruction changes, and installation manifest to share the setup with your team.
+Commit the installed files, links, rendered agents, instruction changes, and installation manifest to share the setup with your team.
 
 ## Documentation
 
@@ -116,7 +138,7 @@ Commit the installed files, link, instruction changes, and installation manifest
 
 ## Contributing
 
-The installable skill lives in `skills/orchi/`. Repository-only validation, tests, and documentation live in `tools/`, `tests/`, and `docs/`.
+The installable skills live in `skills/`; subagent roles live in `skills/orchi/roles/`. Repository-only validation, tests, and documentation live in `tools/`, `tests/`, and `docs/`.
 
 ```bash
 python3 -m venv .venv

@@ -24,8 +24,8 @@ Search is case-insensitive lexical matching of all query words against a line,
 its heading, and its path; it is not semantic or cross-language search. Results
 are deterministic in path/line order, limited by `--limit` (1–100, default 20).
 The corpus is every Markdown file in the snapshot except installed skill bundles
-(`.agents/skills/`, `.claude/skills/`, `.github/skills/`) and vendored directories
-such as `node_modules/`. Narrow it with one or more `--path PREFIX` options. Use
+(`.agents/skills/`, `.claude/skills/`, `.github/skills/`), Claude Code agent
+definitions (`.claude/agents/`), and vendored directories such as `node_modules/`. Narrow it with one or more `--path PREFIX` options. Use
 `rg` when looking for code or other files; `get` can read any selected text file.
 
 `lint` checks local Markdown inline links, defined reference links, and ATX

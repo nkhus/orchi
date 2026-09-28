@@ -8,8 +8,12 @@ import sys
 
 import pytest
 
-from orchi_core import installation
+import tomllib
+
+from orchi_core import installation, roles
 from orchi_core.agents import AGENTS, LEGACY_SKILLS, SKILLS
+
+ROLES = ("orchi-implementer", "orchi-reviewer", "orchi-scout")
 
 COMBINATIONS = [list(items) for count in (1, 2, 3) for items in itertools.combinations(AGENTS, count)]
 
@@ -32,7 +36,27 @@ def test_each_selection_and_scope(tmp_path, agents, global_scope):
         assert not (tmp_path / "AGENTS.md").exists()
         for agent, relative in {"codex": ".codex/AGENTS.md", "copilot": ".copilot/copilot-instructions.md", "claude": ".claude/CLAUDE.md"}.items():
             assert (tmp_path / relative).exists() == (agent in agents)
+    root = tmp_path.resolve()
+    skill = str(root / ".agents/skills/orchi") if global_scope else ".agents/skills/orchi"
+    claude_agents = sorted(p.name for p in (tmp_path / ".claude/agents").iterdir()) if (tmp_path / ".claude/agents").exists() else []
+    codex_agents = sorted(p.name for p in (tmp_path / ".codex/agents").iterdir()) if (tmp_path / ".codex/agents").exists() else []
+    assert claude_agents == ([name + ".md" for name in ROLES] if "claude" in agents else [])
+    assert codex_agents == ([name + ".toml" for name in ROLES] if "codex" in agents else [])
+    for path in [*(tmp_path / ".claude/agents").glob("*.md"), *(tmp_path / ".codex/agents").glob("*.toml")]:
+        text = path.read_text()
+        assert "{{" not in text and (f" {skill}/scripts/" in text or f"`{skill}/references/" in text)
+    if "codex" in agents:
+        implementer = tomllib.loads((tmp_path / ".codex/agents/orchi-implementer.toml").read_text())
+        assert f"`{skill}/references/readiness.md`" in implementer["developer_instructions"]
+        assert tomllib.loads((tmp_path / ".codex/config.toml").read_text()) == {"agents": {"max_depth": 3}}
+    else:
+        assert not (tmp_path / ".codex/config.toml").exists()
+    trust = "Trust the project in Codex so .codex/config.toml and .codex/agents load."
+    assert (trust in result["next_steps"]) == ("codex" in agents and not global_scope)
     assert installation.install(tmp_path, agents=agents, global_scope=global_scope)["status"] == "unchanged"
+    installation.install(tmp_path, global_scope=global_scope, uninstall=True)
+    for directory in (".claude/agents", ".codex"):
+        assert not [path for path in (tmp_path / directory).rglob("*") if path.is_file()]
 
 
 def test_add_selection_and_uninstall_preserves_user_content(tmp_path):
@@ -65,7 +89,7 @@ def test_project_can_move_with_all_claude_references(tmp_path):
     moved = tmp_path / "after"
     for name in SKILLS:
         assert (moved / ".claude/skills" / name / "SKILL.md").is_file()
-        assert (moved / ".claude/skills" / name / "scripts/knowledge.py").is_file()
+    assert (moved / ".claude/skills/orchi/scripts/knowledge.py").is_file()
 
 
 @pytest.mark.parametrize("relative", ["AGENTS.md", "CLAUDE.md", ".github/copilot-instructions.md"])
@@ -196,10 +220,13 @@ def test_global_cli_uses_home_without_editing_current_project(tmp_path, monkeypa
     assert (home / ".claude/skills/orchi/SKILL.md").is_file()
 
 
+FORMER_STAGE_SKILLS = ("orchi-plan", "orchi-work", "orchi-review", "orchi-deliver")
+
+
 def write_legacy_installation(root, edited=None):
     """Simulate a manifest written by the former five-skill installer."""
     skills = {}
-    for name in LEGACY_SKILLS:
+    for name in FORMER_STAGE_SKILLS:
         folder = root / ".agents/skills" / name
         folder.mkdir(parents=True)
         (folder / "SKILL.md").write_text("Legacy " + name)
@@ -207,7 +234,7 @@ def write_legacy_installation(root, edited=None):
         (root / ".claude/skills").mkdir(parents=True, exist_ok=True)
         (root / ".claude/skills" / name).symlink_to("../../.agents/skills/" + name, target_is_directory=True)
     manifest = {"scope": "project", "agents": ["claude"], "skills": skills, "instructions": {},
-                "links": {f".claude/skills/{name}": f"../../.agents/skills/{name}" for name in LEGACY_SKILLS}}
+                "links": {f".claude/skills/{name}": f"../../.agents/skills/{name}" for name in FORMER_STAGE_SKILLS}}
     (root / ".agents/.orchi-install.json").write_text(json.dumps(manifest))
     if edited:
         (root / ".agents/skills" / edited / "SKILL.md").write_text("User edit")
@@ -217,13 +244,40 @@ def test_upgrade_removes_unmodified_legacy_stage_skills(tmp_path):
     write_legacy_installation(tmp_path)
     result = installation.install(tmp_path)
     assert result["agents"] == ["claude"]
+    assert LEGACY_SKILLS == ("orchi-work", "orchi-review")
     for name in LEGACY_SKILLS:
         assert not (tmp_path / ".agents/skills" / name).exists()
         assert not (tmp_path / ".claude/skills" / name).is_symlink()
-    assert (tmp_path / ".claude/skills/orchi/SKILL.md").is_file()
+    for name in SKILLS:
+        assert (tmp_path / ".claude/skills" / name / "SKILL.md").is_file()
     manifest = json.loads((tmp_path / ".agents/.orchi-install.json").read_text())
-    assert list(manifest["skills"]) == ["orchi"] and list(manifest["links"]) == [".claude/skills/orchi"]
+    assert list(manifest["skills"]) == list(SKILLS)
+    assert sorted(manifest["links"]) == sorted(f".claude/skills/{name}" for name in SKILLS)
     assert installation.install(tmp_path)["status"] == "unchanged"
+
+
+def test_upgrade_updates_unmodified_former_entry_skills_in_place(tmp_path):
+    write_legacy_installation(tmp_path)
+    link = tmp_path / ".claude/skills/orchi-plan"
+    result = installation.install(tmp_path)
+    assert {"orchi-plan", "orchi-deliver"} <= set(result["install"])
+    for name in ("orchi-plan", "orchi-deliver"):
+        folder = tmp_path / ".agents/skills" / name
+        assert installation.inventory(folder) == installation.inventory(installation.SOURCE / name)
+        assert "Legacy" not in (folder / "SKILL.md").read_text()
+    assert link.is_symlink() and link.resolve() == tmp_path / ".agents/skills/orchi-plan"
+    assert result["backup"] and (Path(result["backup"]) / ".agents/skills/orchi-plan/SKILL.md").read_text() == "Legacy orchi-plan"
+
+
+def test_unrecorded_repository_entry_skill_needs_replace(tmp_path):
+    folder = tmp_path / ".agents/skills/orchi-plan"; folder.mkdir(parents=True)
+    (folder / "SKILL.md").write_text("Repository-local plan skill")
+    with pytest.raises(ValueError, match="orchi-plan"):
+        installation.install(tmp_path, agents=["codex"])
+    assert (folder / "SKILL.md").read_text() == "Repository-local plan skill"
+    result = installation.install(tmp_path, agents=["codex"], replace=True)
+    assert (Path(result["backup"]) / ".agents/skills/orchi-plan/SKILL.md").read_text() == "Repository-local plan skill"
+    assert "name: orchi-plan" in (folder / "SKILL.md").read_text()
 
 
 def test_upgrade_updates_unmodified_managed_entrypoint_without_replace(tmp_path):
@@ -237,21 +291,31 @@ def test_upgrade_updates_unmodified_managed_entrypoint_without_replace(tmp_path)
     result = installation.install(tmp_path)
     assert result["status"] == "installed"
     assert (folder / "scripts/knowledge.py").is_file()
-    assert sorted(p.name for p in (tmp_path / ".agents/skills").iterdir()) == ["orchi"]
+    assert sorted(p.name for p in (tmp_path / ".agents/skills").iterdir()) == sorted(SKILLS)
 
 
 def test_upgrade_preserves_edited_legacy_skill_until_replace(tmp_path):
+    write_legacy_installation(tmp_path, edited="orchi-review")
+    with pytest.raises(ValueError, match="orchi-review"):
+        installation.install(tmp_path)
+    assert (tmp_path / ".agents/skills/orchi-review/SKILL.md").read_text() == "User edit"
+    result = installation.install(tmp_path, replace=True)
+    assert (Path(result["backup"]) / ".agents/skills/orchi-review/SKILL.md").read_text() == "User edit"
+    assert not (tmp_path / ".agents/skills/orchi-review").exists()
+
+
+def test_upgrade_preserves_edited_former_entry_skill_until_replace(tmp_path):
     write_legacy_installation(tmp_path, edited="orchi-plan")
     with pytest.raises(ValueError, match="orchi-plan"):
         installation.install(tmp_path)
     assert (tmp_path / ".agents/skills/orchi-plan/SKILL.md").read_text() == "User edit"
     result = installation.install(tmp_path, replace=True)
     assert (Path(result["backup"]) / ".agents/skills/orchi-plan/SKILL.md").read_text() == "User edit"
-    assert not (tmp_path / ".agents/skills/orchi-plan").exists()
+    assert "name: orchi-plan" in (tmp_path / ".agents/skills/orchi-plan/SKILL.md").read_text()
 
 
 def test_unmanaged_skill_with_legacy_name_is_left_alone(tmp_path):
-    folder = tmp_path / ".agents/skills/orchi-plan"; folder.mkdir(parents=True)
+    folder = tmp_path / ".agents/skills/orchi-work"; folder.mkdir(parents=True)
     (folder / "SKILL.md").write_text("User skill")
     installation.install(tmp_path, agents=["codex"])
     assert (folder / "SKILL.md").read_text() == "User skill"
@@ -331,3 +395,133 @@ def test_manifest_records_version_and_cli_reports_upgrade(tmp_path, capsys):
     assert installation.main(["--project", str(tmp_path), "--version"]) == 0
     report = json.loads(capsys.readouterr().out)
     assert report == {"installed": VERSION, "bundle": VERSION, "upgrade": "npx --yes github:nkhus/orchi"}
+
+
+def test_adding_a_host_adds_its_agent_files(tmp_path):
+    installation.install(tmp_path, agents=["copilot"])
+    assert not (tmp_path / ".claude/agents").exists() and not (tmp_path / ".codex").exists()
+    result = installation.install(tmp_path, agents=["claude"])
+    assert ".claude/agents/orchi-scout.md" in result["changes"]
+    assert not (tmp_path / ".codex").exists()
+    installation.install(tmp_path, agents=["codex"])
+    assert sorted(p.name for p in (tmp_path / ".codex/agents").iterdir()) == [name + ".toml" for name in ROLES]
+    manifest = json.loads((tmp_path / ".agents/.orchi-install.json").read_text())
+    assert len([path for path in manifest["files"] if "/agents/" in path]) == 6
+    assert list(manifest["config"]) == [".codex/config.toml"]
+
+
+def test_agent_files_install_without_github_setup(tmp_path):
+    result = installation.install(tmp_path, agents=["claude"])
+    assert result["github"] is False and not (tmp_path / ".github").exists()
+    assert (tmp_path / ".claude/agents/orchi-reviewer.md").read_text().startswith("---\nname: orchi-reviewer\n")
+
+
+@pytest.mark.parametrize("relative", [".claude/agents/orchi-implementer.md", ".codex/agents/orchi-scout.toml"])
+def test_edited_agent_file_needs_replace_and_blocks_uninstall(tmp_path, relative):
+    installation.install(tmp_path, agents=["all"])
+    target = tmp_path / relative
+    rendered = target.read_bytes()
+    target.write_text("Local agent edit")
+    with pytest.raises(ValueError, match=relative):
+        installation.install(tmp_path)
+    assert installation.install(tmp_path, dry=True)["conflicts"] == [relative]
+    with pytest.raises(ValueError, match="Modified managed file"):
+        installation.install(tmp_path, uninstall=True)
+    result = installation.install(tmp_path, replace=True)
+    assert target.read_bytes() == rendered
+    assert (Path(result["backup"]) / relative).read_text() == "Local agent edit"
+
+
+def test_preexisting_unmanaged_agent_file_is_a_conflict(tmp_path):
+    target = tmp_path / ".claude/agents/orchi-scout.md"
+    target.parent.mkdir(parents=True)
+    target.write_text("Repository-local scout")
+    with pytest.raises(ValueError, match="orchi-scout.md"):
+        installation.install(tmp_path, agents=["claude"])
+    assert target.read_text() == "Repository-local scout" and not (tmp_path / ".agents").exists()
+
+
+def test_codex_config_block_preserves_user_settings(tmp_path):
+    config = tmp_path / ".codex/config.toml"
+    config.parent.mkdir()
+    user = b'model = "operator-model"\r\n\n[profiles.fast]\nmodel_reasoning_effort = "low"'
+    config.write_bytes(user)
+    installation.install(tmp_path, agents=["codex"])
+    text = config.read_text()
+    assert text.count("# orchi:begin") == 1 and text.endswith("max_depth = 3\n# orchi:end\n")
+    assert tomllib.loads(text)["agents"] == {"max_depth": 3}
+    assert tomllib.loads(text)["profiles"] == {"fast": {"model_reasoning_effort": "low"}}
+    with config.open("ab") as file:
+        file.write(b"\n[mcp_servers.docs]\ncommand = \"docs\"\n")
+    installation.install(tmp_path, uninstall=True)
+    assert config.read_bytes() == user + b"\n[mcp_servers.docs]\ncommand = \"docs\"\n"
+    assert not (tmp_path / ".codex/agents").exists() or not list((tmp_path / ".codex/agents").iterdir())
+
+
+def test_codex_config_created_by_orchi_is_removed_on_uninstall(tmp_path):
+    installation.install(tmp_path, agents=["codex"])
+    assert (tmp_path / ".codex/config.toml").is_file()
+    installation.install(tmp_path, uninstall=True)
+    assert not (tmp_path / ".codex/config.toml").exists()
+
+
+@pytest.mark.parametrize("existing", ['[agents]\nmax_depth = 5\n', 'agents.max_threads = 4\n'])
+def test_existing_agents_table_is_left_to_the_user(tmp_path, existing):
+    config = tmp_path / ".codex/config.toml"
+    config.parent.mkdir()
+    config.write_text(existing)
+    result = installation.install(tmp_path, agents=["codex"])
+    assert config.read_text() == existing
+    assert result["notes"] == ["Set max_depth = 3 under [agents] in .codex/config.toml to allow nested Orchi agents."]
+    assert (tmp_path / ".codex/agents/orchi-scout.toml").is_file()
+    assert json.loads((tmp_path / ".agents/.orchi-install.json").read_text())["config"] == {}
+    assert installation.install(tmp_path)["status"] == "unchanged"
+
+
+def test_user_agents_table_added_later_replaces_the_managed_block(tmp_path):
+    installation.install(tmp_path, agents=["codex"])
+    config = tmp_path / ".codex/config.toml"
+    config.write_text("[agents]\nmax_threads = 2\n\n" + config.read_text())
+    result = installation.install(tmp_path)
+    assert config.read_text() == "[agents]\nmax_threads = 2\n\n"
+    assert result["notes"] and tomllib.loads(config.read_text()) == {"agents": {"max_threads": 2}}
+
+
+def test_global_note_names_the_home_configuration(tmp_path):
+    (tmp_path / ".codex").mkdir()
+    (tmp_path / ".codex/config.toml").write_text("[agents]\n")
+    result = installation.install(tmp_path, agents=["codex"], global_scope=True)
+    assert result["notes"] == ["Set max_depth = 3 under [agents] in ~/.codex/config.toml to allow nested Orchi agents."]
+
+
+def test_invalid_codex_config_stops_before_mutation(tmp_path):
+    config = tmp_path / ".codex/config.toml"
+    config.parent.mkdir()
+    config.write_text("model = \n")
+    with pytest.raises(ValueError, match="Invalid TOML in .codex/config.toml"):
+        installation.install(tmp_path, agents=["codex"])
+    assert config.read_text() == "model = \n" and not (tmp_path / ".agents").exists()
+
+
+def test_edited_codex_config_block_is_not_overwritten(tmp_path):
+    installation.install(tmp_path, agents=["codex"])
+    config = tmp_path / ".codex/config.toml"
+    config.write_text(config.read_text().replace("max_depth = 3", "max_depth = 4"))
+    before = config.read_bytes()
+    for kwargs in ({"replace": True}, {"uninstall": True}):
+        with pytest.raises(ValueError, match="section was edited"):
+            installation.install(tmp_path, **kwargs)
+        assert config.read_bytes() == before
+
+
+def test_codex_block_markers_do_not_confuse_instruction_sections(tmp_path):
+    installation.install(tmp_path, agents=["codex", "claude"])
+    assert installation.block_span((tmp_path / ".codex/config.toml").read_text()) is None
+    assert installation.block_span((tmp_path / "AGENTS.md").read_text()) is not None
+
+
+def test_installed_agents_match_bundled_roles(tmp_path):
+    installation.install(tmp_path, agents=["claude", "codex"])
+    for role in roles.load_roles():
+        assert (tmp_path / ".claude/agents" / (role.name + ".md")).read_text() == roles.render_claude(role, ".agents/skills/orchi")
+        assert (tmp_path / ".codex/agents" / (role.name + ".toml")).read_text() == roles.render_codex(role, ".agents/skills/orchi")

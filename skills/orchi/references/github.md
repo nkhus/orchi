@@ -66,6 +66,9 @@ instead of copying them.
 - **Task:** parent; one reviewable outcome; sources; acceptance and verification;
   dependencies not implied by Task order.
 
+The [readiness checklists](readiness.md) define what a Task or Epic must contain
+before delivery. A repository's own stricter checklist applies in addition.
+
 ## Pull requests
 
 Use Conventional Commits for commit subjects, PR titles, and squash titles:

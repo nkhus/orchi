@@ -1,0 +1,182 @@
+"""Render Orchi subagents for Claude Code and Codex from shared role sources.
+
+Each role is defined once in `roles/<name>.md` inside the Orchi skill: TOML front
+matter between `+++` lines, then the Markdown instructions. Role bodies write the
+installed Orchi skill directory as `{{ORCHI_SKILL}}`; rendering substitutes it, so
+agents installed outside the skill directory can still name its references and
+scripts. No other `{{NAME}}` placeholder is allowed.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+import json
+from pathlib import Path
+import re
+import tomllib
+
+ROLES_DIR = Path(__file__).resolve().parents[2] / "roles"
+ROLES_PATH = ".agents/skills/orchi/roles"
+PLACEHOLDER = "{{ORCHI_SKILL}}"
+PLACEHOLDER_PATTERN = re.compile(r"\{\{[A-Za-z0-9_]+\}\}")
+CLAUDE_DIR = ".claude/agents"
+CODEX_DIR = ".codex/agents"
+
+REQUIRED = {
+    "": ("name", "description"),
+    "claude": ("model", "effort", "tools"),
+    "codex": ("model", "model_reasoning_effort"),
+}
+# Claude front matter values are written as plain YAML scalars, so restrict them.
+PLAIN = {
+    "name": re.compile(r"[a-z0-9]+(-[a-z0-9]+)*"),
+    "model": re.compile(r"[A-Za-z0-9][A-Za-z0-9._\[\]-]*"),
+    "effort": re.compile(r"[a-z]+"),
+    "tools": re.compile(r"[A-Za-z][A-Za-z0-9_]*(\([^,#\n]*\))?"),
+}
+
+
+class RoleError(ValueError):
+    """A role source is malformed; the message names the file and key."""
+
+
+@dataclass(frozen=True)
+class Role:
+    source: Path
+    meta: dict
+    body: str
+
+    @property
+    def name(self) -> str:
+        return self.meta["name"]
+
+
+def parse_role(path: Path) -> Role:
+    lines = path.read_text(encoding="utf-8").split("\n")
+    if lines[0] != "+++":
+        raise RoleError(f'{path}: must start with a "+++" front matter line')
+    try:
+        end = lines.index("+++", 1)
+    except ValueError:
+        raise RoleError(f'{path}: front matter is not closed with a "+++" line') from None
+    try:
+        meta = tomllib.loads("\n".join(lines[1:end]))
+    except tomllib.TOMLDecodeError as exc:
+        raise RoleError(f"{path}: invalid TOML front matter: {exc}") from None
+    for table, keys in REQUIRED.items():
+        section = meta if not table else meta.get(table)
+        if not isinstance(section, dict):
+            raise RoleError(f"{path}: missing table [{table}]")
+        for key in keys:
+            label = f"{table}.{key}" if table else key
+            value = section.get(key)
+            if key == "tools":
+                if not isinstance(value, list) or not value or not all(isinstance(v, str) and v for v in value):
+                    raise RoleError(f"{path}: key [{label}] must be a non-empty list of strings")
+            elif not isinstance(value, str) or not value.strip():
+                raise RoleError(f"{path}: missing or empty key [{label}]")
+    plain = [("name", meta["name"]), ("claude.model", meta["claude"]["model"]),
+             ("claude.effort", meta["claude"]["effort"])]
+    plain += [("claude.tools", tool) for tool in meta["claude"]["tools"]]
+    for label, value in plain:
+        if not PLAIN[label.rsplit(".", 1)[-1]].fullmatch(value) or ": " in value:
+            raise RoleError(f"{path}: key [{label}] has an unsupported value {value!r}")
+    if meta["name"] != path.stem:
+        raise RoleError(f'{path}: name "{meta["name"]}" must match the file stem "{path.stem}"')
+    body = "\n".join(lines[end + 1:]).lstrip("\n")
+    if not body.strip():
+        raise RoleError(f"{path}: body is empty")
+    unknown = sorted(set(PLACEHOLDER_PATTERN.findall(body)) - {PLACEHOLDER})
+    if unknown:
+        raise RoleError(f"{path}: unknown placeholder {', '.join(unknown)}; only {PLACEHOLDER} is substituted")
+    if not body.endswith("\n"):
+        body += "\n"
+    return Role(path, meta, body)
+
+
+def load_roles(directory: Path = ROLES_DIR) -> list[Role]:
+    """Every `orchi-*.md` role source, sorted by name; all errors are reported together."""
+    sources = sorted(directory.glob("orchi-*.md"))
+    if not sources:
+        raise RoleError(f"{directory}: no role sources found")
+    roles, errors = [], []
+    for source in sources:
+        try:
+            roles.append(parse_role(source))
+        except RoleError as exc:
+            errors.append(str(exc))
+    if errors:
+        raise RoleError("\n".join(errors))
+    return roles
+
+
+def quoted(value: str) -> str:
+    """Double-quoted string valid in both YAML and TOML."""
+    # JSON leaves DEL unescaped, which TOML basic strings forbid.
+    return json.dumps(value, ensure_ascii=False).replace("\x7f", "\\u007f")
+
+
+def toml_multiline(body: str) -> str:
+    """A TOML multi-line string that parses back to exactly `body`."""
+    if "'''" not in body and all(c in "\n\t" or ord(c) >= 0x20 and c != "\x7f" for c in body):
+        return "'''\n" + body + "'''"
+    out = []
+    for c in body:
+        if c == "\\":
+            out.append("\\\\")
+        elif c == '"':
+            out.append('\\"')
+        elif c in "\n\t":
+            out.append(c)
+        elif ord(c) < 0x20 or c == "\x7f":
+            out.append(f"\\u{ord(c):04x}")
+        else:
+            out.append(c)
+    return '"""\n' + "".join(out) + '"""'
+
+
+def instructions(role: Role, skill: str) -> str:
+    """The role body with the installed skill directory substituted."""
+    return role.body.replace(PLACEHOLDER, skill)
+
+
+def notice(role: Role) -> str:
+    return f"Generated by Orchi from {ROLES_PATH}/{role.name}.md; reinstall to update, do not edit."
+
+
+def render_claude(role: Role, skill: str) -> str:
+    claude = role.meta["claude"]
+    return (
+        "---\n"
+        f"name: {role.name}\n"
+        f"description: {quoted(role.meta['description'])}\n"
+        f"tools: {', '.join(claude['tools'])}\n"
+        f"model: {claude['model']}\n"
+        f"effort: {claude['effort']}\n"
+        "---\n"
+        f"<!-- {notice(role)} -->\n"
+        "\n"
+        f"{instructions(role, skill)}"
+    )
+
+
+def render_codex(role: Role, skill: str) -> str:
+    codex = role.meta["codex"]
+    return (
+        f"# {notice(role)}\n"
+        f"name = {quoted(role.name)}\n"
+        f"description = {quoted(role.meta['description'])}\n"
+        f"model = {quoted(codex['model'])}\n"
+        f"model_reasoning_effort = {quoted(codex['model_reasoning_effort'])}\n"
+        f"developer_instructions = {toml_multiline(instructions(role, skill))}\n"
+    )
+
+
+def agent_files(agents: list[str], skill: str, directory: Path = ROLES_DIR) -> dict[str, bytes]:
+    """Rendered agent files, keyed by path relative to the installation root, for the selected hosts."""
+    files = {}
+    for role in load_roles(directory):
+        if "claude" in agents:
+            files[f"{CLAUDE_DIR}/{role.name}.md"] = render_claude(role, skill).encode("utf-8")
+        if "codex" in agents:
+            files[f"{CODEX_DIR}/{role.name}.toml"] = render_codex(role, skill).encode("utf-8")
+    return files

@@ -14,8 +14,8 @@ import subprocess
 from urllib.parse import unquote, urlsplit
 
 
-# Installed skill bundles and vendored trees are not project documentation.
-EXCLUDED_PREFIXES = ('.agents/skills/', '.claude/skills/', '.github/skills/')
+# Installed skill bundles, assistant agent definitions, and vendored trees are not project documentation.
+EXCLUDED_PREFIXES = ('.agents/skills/', '.claude/skills/', '.github/skills/', '.claude/agents/')
 EXCLUDED_PARTS = {'node_modules', 'vendor', '.venv', 'venv', 'site-packages'}
 
 
