@@ -5,7 +5,7 @@ labels: [Epic]
 body:
   - type: markdown
     attributes:
-      value: "Start the title with the Initiative tag and this Epic's own tag, for example [PAY][TOKEN] Tokenize stored cards. A standalone Epic uses only its own tag: [CSV] Export orders as CSV."
+      value: "Start the title with the Initiative tag and this Epic's own tag, for example [PAY][TOKEN] Tokenize stored cards. A standalone Epic uses only its own tag: [CSV] Export orders as CSV. Write it so an owner who has not seen the planning conversation can execute and review it. A future Epic in an Initiative may answer a field with 'Deferred until #<n>: <reason>' only when the decision depends on that predecessor's result; see the Epic readiness checklist in Orchi's readiness reference (and the repository's own rules)."
   - type: textarea
     id: outcome
     attributes:
@@ -17,7 +17,16 @@ body:
     id: sources
     attributes:
       label: Sources
-      description: Authoritative documents and stable requirement IDs.
+      description: Authoritative documents, exact sections, and stable requirement/decision IDs.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current state
+      description: Evidence of the relevant current implementation (files, symbols, behavior) and the change needed.
+    validations:
+      required: true
   - type: textarea
     id: scope
     attributes:
@@ -29,19 +38,42 @@ body:
     id: design
     attributes:
       label: Design
-      description: Approach, interfaces, invariants, tradeoffs, and affected documentation, or a link to them.
+      description: Approach, domain and interface decisions, data and ownership boundaries, invariants, and tradeoffs, or a link to them. State explicitly when there is no architecture change.
+    validations:
+      required: true
+  - type: textarea
+    id: surfaces
+    attributes:
+      label: Affected surfaces
+      description: Code, schema, contract, test, and documentation areas expected to change.
+    validations:
+      required: true
+  - type: textarea
+    id: failure
+    attributes:
+      label: Failure and recovery
+      description: Success and failure scenarios, inputs and outputs, risks, and the expected recovery behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: branch
+    attributes:
+      label: Branch and PR
+      description: The Epic branch and the PR target (the Initiative branch, or main for a standalone Epic). Record dependencies as native blocked-by relationships, and add the Tasks in execution order as native sub-issues.
+    validations:
+      required: true
   - type: textarea
     id: exit
     attributes:
       label: Exit criteria
-      description: Observable acceptance and required verification.
+      description: Observable acceptance mapped to requirements, and the required verification.
     validations:
       required: true
   - type: textarea
     id: questions
     attributes:
       label: Open questions
-      description: Unresolved inputs, not presented as decided facts. Record dependencies as native blocked-by relationships.
+      description: Unresolved inputs, not presented as decided facts. Mark any question that affects the approach; the Epic is not ready for delivery until it is resolved.
   - type: textarea
     id: work
     attributes:

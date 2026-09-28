@@ -30,6 +30,7 @@ CODEX_CONFIG_BODY = """# Let Orchi subagents start their own agents (Claude Code
 max_depth = 3
 # Add your own settings above this block."""
 GITHUB_ASSETS = SOURCE / "orchi/assets/github"
+DOCS_WORKFLOW = ".github/workflows/orchi-docs.yml"
 LABELS = {
     "Initiative": ("5319e7", "Orchi: a request decomposed into Epics"),
     "Epic": ("0e8a16", "Orchi: an outcome decomposed into Tasks"),
@@ -219,7 +220,7 @@ def instruction_blocks(root: Path, agents: list[str], global_scope: bool, pr_tem
 
 def install(project: Path, replace: bool = False, dry: bool = False,
             agents: list[str] | None = None, global_scope: bool = False,
-            uninstall: bool = False, github: bool = False) -> dict:
+            uninstall: bool = False, github: bool = False, docs_workflow: bool | None = None) -> dict:
     if project.is_symlink():
         raise ValueError("Installation root must not be a symlink")
     root = project.resolve()
@@ -232,6 +233,8 @@ def install(project: Path, replace: bool = False, dry: bool = False,
     for field in ("skills", "links", "instructions", "files", "config"):
         if not isinstance(previous.get(field, {}), dict):
             raise ValueError("Invalid installation manifest field: " + field)
+    if not isinstance(previous.get("docs_workflow", True), bool):
+        raise ValueError("Invalid installation manifest field: docs_workflow")
     if not isinstance(previous.get("agents", []), list) or not all(isinstance(name, str) for name in previous.get("agents", [])):
         raise ValueError("Invalid assistant list in installation manifest")
     if uninstall and not previous:
@@ -273,9 +276,12 @@ def install(project: Path, replace: bool = False, dry: bool = False,
     github = bool(github or previous.get("github"))
     if github and global_scope:
         raise ValueError("--github applies to a project installation, not --global")
+    # The documentation check is on by default; an opt-out is kept until explicitly re-enabled.
+    docs_workflow = previous.get("docs_workflow", True) if docs_workflow is None else docs_workflow
+    github_wanted = {relative: content for relative, content in github_files().items()
+                     if docs_workflow or relative != DOCS_WORKFLOW} if github else {}
     # Rendered subagents are managed like GitHub files: hash-tracked, replaced only when unmodified.
-    wanted = {} if uninstall else {**(github_files() if github else {}),
-                                   **agent_files(selected, skill_path(root, global_scope))}
+    wanted = {} if uninstall else {**github_wanted, **agent_files(selected, skill_path(root, global_scope))}
     old_files = previous.get("files", {})
     managed_files = {}
     for relative in sorted(set(old_files) | set(wanted)):
@@ -285,7 +291,10 @@ def install(project: Path, replace: bool = False, dry: bool = False,
         if content is None:
             if current is not None:
                 if current != old_files.get(relative):
-                    raise ValueError("Modified managed file must be preserved before uninstalling: " + relative)
+                    if uninstall:
+                        raise ValueError("Modified managed file must be preserved before uninstalling: " + relative)
+                    # A file Orchi no longer wants but the user edited: remove only with --replace-orchi.
+                    conflicts.append(relative)
                 replacements[relative] = ("remove", None)
             continue
         managed_files[relative] = hashlib.sha256(content).hexdigest()
@@ -379,14 +388,14 @@ def install(project: Path, replace: bool = False, dry: bool = False,
             config[CODEX_CONFIG] = config_entry
 
     manifest = {"version": VERSION, "scope": "user" if global_scope else "project", "agents": selected,
-                "github": github, "skills": desired, "links": links, "instructions": managed, "files": managed_files,
+                "github": github, "docs_workflow": docs_workflow, "skills": desired, "links": links, "instructions": managed, "files": managed_files,
                 "config": config}
     encoded = (json.dumps(manifest, indent=2) + "\n").encode()
     if uninstall:
         replacements[MANIFEST] = ("remove", None)
     elif not manifest_path.exists() or manifest_path.read_bytes() != encoded:
         replacements[MANIFEST] = ("file", encoded)
-    report = {"project": str(root), "scope": manifest["scope"], "agents": selected, "github": github,
+    report = {"project": str(root), "scope": manifest["scope"], "agents": selected, "github": github, "docs_workflow": docs_workflow,
               "version": {"installed": previous.get("version"), "bundle": VERSION}, "install": skill_changes,
               "changes": list(replacements), "preserved": ["unmanaged instruction content", "assistant settings outside Orchi's marked block in .codex/config.toml",
                             "non-Orchi skills and agents"],
@@ -478,6 +487,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--uninstall", action="store_true", help="Remove the managed bundle and instruction sections; refuse modified content")
     parser.add_argument("--github", action="store_true",
                         help="Also install issue templates, a PR template, a documentation check workflow, and Orchi labels")
+    workflow = parser.add_mutually_exclusive_group()
+    workflow.add_argument("--no-docs-workflow", dest="docs_workflow", action="store_const", const=False,
+                          help="With --github, do not install the documentation check workflow; later runs keep this choice")
+    workflow.add_argument("--docs-workflow", dest="docs_workflow", action="store_const", const=True,
+                          help="Install the documentation check workflow again after --no-docs-workflow")
     parser.add_argument("--version", action="store_true", help="Show installed and bundled versions and the upgrade command")
     args = parser.parse_args(argv)
     if args.version:
@@ -494,7 +508,8 @@ def main(argv: list[str] | None = None) -> int:
             choices = input().replace(",", " ").split() or ["codex"]
             agents = [{"1": "codex", "2": "copilot", "3": "claude"}.get(item, item) for item in choices]
         result = install(Path.home() if args.global_scope else args.project or Path.cwd(),
-                         args.replace_orchi, args.dry_run, agents, args.global_scope, args.uninstall, args.github)
+                         args.replace_orchi, args.dry_run, agents, args.global_scope, args.uninstall, args.github,
+                         args.docs_workflow)
         print(json.dumps(result, indent=2))
         return 0
     except (ValueError, OSError, EOFError) as exc:

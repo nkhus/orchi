@@ -45,6 +45,7 @@ npx --yes github:nkhus/orchi --global --agents copilot claude
 | Option | Effect |
 | --- | --- |
 | `--github` | Also add issue templates, a PR template, a documentation check workflow, and Orchi labels (project scope) |
+| `--no-docs-workflow` | With `--github`, skip the documentation check workflow; `--docs-workflow` restores it |
 | `--dry-run` | Show planned file changes and conflicts without writing |
 | `--replace-orchi` | Back up and replace locally edited Orchi files |
 | `--version` | Show the installed and bundled versions and the upgrade command |
