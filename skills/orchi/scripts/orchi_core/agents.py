@@ -1,12 +1,12 @@
 """Assistant identities and skill names shared by installation."""
 from __future__ import annotations
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 AGENTS = ("codex", "copilot", "claude")
 ALIASES = {"github-copilot": "copilot", "claude-code": "claude"}
-SKILLS = ("orchi",)
+SKILLS = ("orchi", "orchi-plan", "orchi-deliver")
 # Stage skills from the former controller workflow; removed on upgrade when unmodified.
-LEGACY_SKILLS = ("orchi-plan", "orchi-work", "orchi-review", "orchi-deliver")
+LEGACY_SKILLS = ("orchi-work", "orchi-review")
 
 
 def agent_names(values: list[str] | tuple[str, ...]) -> list[str]:

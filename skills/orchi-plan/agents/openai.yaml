@@ -1,0 +1,6 @@
+interface:
+  display_name: "Orchi plan"
+  short_description: "Turn a request into agreed, delivery-ready Orchi Issues"
+  default_prompt: "Use $orchi-plan to research and plan: <request>"
+policy:
+  allow_implicit_invocation: false

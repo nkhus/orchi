@@ -10,15 +10,25 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import uuid
 
 from .agents import LEGACY_SKILLS, SKILLS, VERSION, agent_names
+from .roles import agent_files
 
 NAMES = SKILLS
 SOURCE = Path(__file__).resolve().parents[3]
 START = "<!-- orchi:begin -->"
 END = "<!-- orchi:end -->"
 MANIFEST = ".agents/.orchi-install.json"
+CONFIG_START = "# orchi:begin"
+CONFIG_END = "# orchi:end"
+CODEX_CONFIG = ".codex/config.toml"
+# The block ends inside [agents]; its last line keeps user keys out of that table.
+CODEX_CONFIG_BODY = """# Let Orchi subagents start their own agents (Claude Code's default depth is also 3).
+[agents]
+max_depth = 3
+# Add your own settings above this block."""
 GITHUB_ASSETS = SOURCE / "orchi/assets/github"
 LABELS = {
     "Initiative": ("5319e7", "Orchi: a request decomposed into Epics"),
@@ -70,12 +80,12 @@ def safe_destination(root: Path, relative: str) -> Path:
     return path
 
 
-def block_span(text: str) -> tuple[int, int] | None:
-    if START not in text and END not in text:
+def block_span(text: str, start: str = START, end: str = END) -> tuple[int, int] | None:
+    if start not in text and end not in text:
         return None
-    if text.count(START) != 1 or text.count(END) != 1 or text.index(START) > text.index(END):
+    if text.count(start) != 1 or text.count(end) != 1 or text.index(start) > text.index(end):
         raise ValueError("Malformed Orchi instruction markers; repair them before installing")
-    return text.index(START), text.index(END) + len(END)
+    return text.index(start), text.index(end) + len(end)
 
 
 def digest(path: Path) -> str | None:
@@ -105,6 +115,66 @@ def ensure_labels(root: Path) -> dict:
                 "fix": "Check that the repository has a GitHub remote and gh is authenticated, then rerun the installer."}
 
 
+def skill_path(root: Path, global_scope: bool) -> str:
+    """How installed instructions and agents name the shared skill directory."""
+    return str(root / ".agents/skills/orchi") if global_scope else ".agents/skills/orchi"
+
+
+def codex_config(root: Path, old: dict | None, wanted: bool, global_scope: bool) -> tuple[dict | None, tuple | None, str | None]:
+    """Plan the managed nesting block in the Codex configuration.
+
+    Returns the manifest entry to keep, the replacement (None when unchanged), and a note for the user.
+    """
+    target = safe_destination(root, CODEX_CONFIG)
+    before = target.read_bytes() if target.exists() else b""
+    try:
+        text = before.decode("utf-8")
+    except UnicodeDecodeError:
+        raise ValueError(CODEX_CONFIG + " is not UTF-8 text; fix it before installing") from None
+    try:
+        span = block_span(text, CONFIG_START, CONFIG_END)
+    except ValueError:
+        raise ValueError("Malformed Orchi markers in " + CODEX_CONFIG + "; repair them before installing") from None
+    block = CONFIG_START + "\n" + CODEX_CONFIG_BODY + "\n" + CONFIG_END
+    if span and text[span[0]:span[1]] != (old or {}).get("block", block):
+        raise ValueError("Orchi section was edited; preserve or restore it before installing: " + CODEX_CONFIG)
+    if old and not span:
+        raise ValueError("Orchi section was removed; restore it or remove its manifest entry: " + CODEX_CONFIG)
+    note = None
+    if wanted:
+        outside = text[:span[0]] + text[span[1]:] if span else text
+        try:
+            existing = tomllib.loads(outside)
+        except tomllib.TOMLDecodeError as exc:
+            raise ValueError("Invalid TOML in " + CODEX_CONFIG + "; fix it before installing: " + str(exc)) from None
+        if "agents" in existing:
+            # The user owns an [agents] table; a second one would make the file invalid.
+            wanted = False
+            location = ("~/" if global_scope else "") + CODEX_CONFIG
+            note = "Set max_depth = 3 under [agents] in " + location + " to allow nested Orchi agents."
+    if wanted:
+        if span:
+            # An unedited block from an earlier installation is refreshed to the current one.
+            entry = {"block": block, "separator": (old or {}).get("separator", ""), "existed": (old or {}).get("existed", True)}
+            if text[span[0]:span[1]] == block:
+                return entry, None, note
+            return entry, ("file", (text[:span[0]] + block + text[span[1]:]).encode("utf-8")), note
+        separator = "" if not text else "\n" if text.endswith("\n") else "\n\n"
+        entry = {"block": block, "separator": separator, "existed": target.exists()}
+        return entry, ("file", (text + separator + block + "\n").encode("utf-8")), note
+    if not old:
+        return None, None, note
+    start, end = span
+    if old.get("separator") and text[:start].endswith(old["separator"]):
+        start -= len(old["separator"])
+    if text[end:end + 1] == "\n":
+        end += 1
+    updated = text[:start] + text[end:]
+    if not old.get("existed", True) and not updated:
+        return None, ("remove", None), note
+    return None, ("file", updated.encode("utf-8")), note
+
+
 def pr_template_path(root: Path, managed: dict) -> str:
     recorded = [path for path in PR_TEMPLATE_PATHS if path in managed]
     if recorded:
@@ -117,7 +187,7 @@ def pr_template_path(root: Path, managed: dict) -> str:
 
 
 def instruction_blocks(root: Path, agents: list[str], global_scope: bool, pr_template: str | None = None) -> dict[str, str]:
-    skill = str(root / ".agents/skills/orchi/SKILL.md") if global_scope else ".agents/skills/orchi/SKILL.md"
+    skill = skill_path(root, global_scope) + "/SKILL.md"
     body = (
         "## Orchi workflow\n\n"
         f"For implementation work and Orchi continuation, read and follow `{skill}` before planning or editing.\n"
@@ -159,7 +229,7 @@ def install(project: Path, replace: bool = False, dry: bool = False,
     previous = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     if not isinstance(previous, dict) or (previous and previous.get("scope", "project") != ("user" if global_scope else "project")):
         raise ValueError("Installation manifest has the wrong scope or format")
-    for field in ("skills", "links", "instructions", "files"):
+    for field in ("skills", "links", "instructions", "files", "config"):
         if not isinstance(previous.get(field, {}), dict):
             raise ValueError("Invalid installation manifest field: " + field)
     if not isinstance(previous.get("agents", []), list) or not all(isinstance(name, str) for name in previous.get("agents", [])):
@@ -203,7 +273,9 @@ def install(project: Path, replace: bool = False, dry: bool = False,
     github = bool(github or previous.get("github"))
     if github and global_scope:
         raise ValueError("--github applies to a project installation, not --global")
-    wanted = {} if uninstall or not github else github_files()
+    # Rendered subagents are managed like GitHub files: hash-tracked, replaced only when unmodified.
+    wanted = {} if uninstall else {**(github_files() if github else {}),
+                                   **agent_files(selected, skill_path(root, global_scope))}
     old_files = previous.get("files", {})
     managed_files = {}
     for relative in sorted(set(old_files) | set(wanted)):
@@ -290,8 +362,25 @@ def install(project: Path, replace: bool = False, dry: bool = False,
         if updated.encode("utf-8") != before:
             replacements[relative] = ("file", updated.encode("utf-8"))
 
+    old_config = previous.get("config", {}).get(CODEX_CONFIG)
+    if old_config is not None and not isinstance(old_config, dict):
+        raise ValueError("Invalid installation manifest field: config")
+    notes = []
+    config = {}
+    codex_wanted = not uninstall and "codex" in selected
+    # Without Codex and without an earlier block, the Codex configuration is none of Orchi's business.
+    if codex_wanted or old_config:
+        config_entry, config_change, note = codex_config(root, old_config, codex_wanted, global_scope)
+        if note:
+            notes.append(note)
+        if config_change:
+            replacements[CODEX_CONFIG] = config_change
+        if config_entry:
+            config[CODEX_CONFIG] = config_entry
+
     manifest = {"version": VERSION, "scope": "user" if global_scope else "project", "agents": selected,
-                "github": github, "skills": desired, "links": links, "instructions": managed, "files": managed_files}
+                "github": github, "skills": desired, "links": links, "instructions": managed, "files": managed_files,
+                "config": config}
     encoded = (json.dumps(manifest, indent=2) + "\n").encode()
     if uninstall:
         replacements[MANIFEST] = ("remove", None)
@@ -299,11 +388,14 @@ def install(project: Path, replace: bool = False, dry: bool = False,
         replacements[MANIFEST] = ("file", encoded)
     report = {"project": str(root), "scope": manifest["scope"], "agents": selected, "github": github,
               "version": {"installed": previous.get("version"), "bundle": VERSION}, "install": skill_changes,
-              "changes": list(replacements), "preserved": ["unmanaged instruction content", "assistant settings", "non-Orchi skills"],
-              "prerequisites": {tool: shutil.which(tool) for tool in ("git", "gh")}}
+              "changes": list(replacements), "preserved": ["unmanaged instruction content", "assistant settings outside Orchi's marked block in .codex/config.toml",
+                            "non-Orchi skills and agents"],
+              "prerequisites": {tool: shutil.which(tool) for tool in ("git", "gh")}, "notes": notes}
     report["next_steps"] = ["Commit the installed files to share them with your team.",
                             "Authenticate the GitHub CLI (gh auth login) so assistants can manage Issues and PRs.",
                             "Open a new assistant session and ask it to use Orchi."] if not uninstall else []
+    if not uninstall and not global_scope and "codex" in selected:
+        report["next_steps"].append("Trust the project in Codex so .codex/config.toml and .codex/agents load.")
     if dry:
         return {**report, "dry_run": True, "conflicts": conflicts, "requires_replace": bool(conflicts and not replace)}
     result = {**report, "status": "unchanged"}
@@ -380,7 +472,8 @@ def main(argv: list[str] | None = None) -> int:
     scope.add_argument("--project", type=Path, help="Target project (defaults to the current directory)")
     scope.add_argument("--global", dest="global_scope", action="store_true", help="Install for this user across projects")
     parser.add_argument("--agents", "--agent", nargs="+", action="extend", help="codex, copilot, claude, or all; comma-separated names also work")
-    parser.add_argument("--replace-orchi", action="store_true", help="Back up and replace differing shared skill files")
+    parser.add_argument("--replace-orchi", action="store_true", help="Back up and replace differing Orchi skill, agent, and GitHub files; "
+                        "edited instruction sections and the Codex configuration block must be restored by hand")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--uninstall", action="store_true", help="Remove the managed bundle and instruction sections; refuse modified content")
     parser.add_argument("--github", action="store_true",

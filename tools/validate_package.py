@@ -10,10 +10,13 @@ import tomllib
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi',)
+SKILLS = ('orchi', 'orchi-plan', 'orchi-deliver')
+# Only the workflow skill loads implicitly; the entry skills run when the user invokes them.
+IMPLICIT = {'orchi'}
 IGNORED = {'__pycache__', '.pytest_cache', '.venv', '.git', 'reports', 'build', 'dist', 'node_modules'}
 PACKAGE_FILES = ['bin/orchi.js', 'tools/install.py', 'skills/orchi/SKILL.md', 'skills/orchi/agents/openai.yaml',
-                 'skills/orchi/assets', 'skills/orchi/references', 'skills/orchi/scripts/**/*.py', 'README.md']
+                 'skills/orchi/assets', 'skills/orchi/references', 'skills/orchi/roles', 'skills/orchi/scripts/**/*.py',
+                 'skills/orchi-plan', 'skills/orchi-deliver', 'README.md']
 SKILL_LINES = 100
 
 
@@ -33,6 +36,35 @@ def third_party_imports(text: str) -> set[str]:
     return modules - set(sys.stdlib_module_names) - {'orchi_core', '__future__'}
 
 
+def validate_roles() -> tuple[list[str], int]:
+    """Every role source renders to a Claude agent and a Codex agent that parse back to its instructions."""
+    sys.path.insert(0, str(ROOT / 'skills/orchi/scripts'))
+    from orchi_core import roles
+    errors: list[str] = []
+    try:
+        loaded = roles.load_roles()
+    except (OSError, ValueError) as exc:
+        return ['Role sources: ' + str(exc)], 0
+    skill = '/home/user/.agents/skills/orchi'
+    for role in loaded:
+        body = roles.instructions(role, skill)
+        if roles.PLACEHOLDER in body or skill not in body:
+            errors.append('Role instructions must name the Orchi skill through ' + roles.PLACEHOLDER + ': ' + role.name)
+        try:
+            codex = tomllib.loads(roles.render_codex(role, skill))
+            if codex.get('developer_instructions') != body or codex.get('name') != role.name:
+                errors.append('Codex agent does not round-trip its role: ' + role.name)
+            claude = roles.render_claude(role, skill)
+            meta = yaml.safe_load(claude.split('---', 2)[1])
+            if meta.get('name') != role.name or meta.get('description') != role.meta['description']:
+                errors.append('Claude agent front matter does not match its role: ' + role.name)
+            if not claude.endswith(body):
+                errors.append('Claude agent does not carry its role instructions: ' + role.name)
+        except (tomllib.TOMLDecodeError, yaml.YAMLError, IndexError, AttributeError) as exc:
+            errors.append(role.name + ': ' + str(exc))
+    return errors, len(loaded)
+
+
 def validate() -> dict:
     errors: list[str] = []
     compiled = 0
@@ -50,7 +82,10 @@ def validate() -> dict:
             if len(metadata['description']) > 1024: errors.append('Skill description exceeds 1024 characters: ' + name)
             if not 25 <= len(ui['interface']['short_description']) <= 64: errors.append('Invalid interface description: ' + name)
             if '$' + name not in ui['interface']['default_prompt']: errors.append('Missing invocation example: ' + name)
-            if ui['policy']['allow_implicit_invocation'] is not True: errors.append('Entrypoint must allow implicit use: ' + name)
+            if name in IMPLICIT and ui['policy']['allow_implicit_invocation'] is not True:
+                errors.append('Entrypoint must allow implicit use: ' + name)
+            if name not in IMPLICIT and ui['policy']['allow_implicit_invocation'] is not False:
+                errors.append('Entry skill must be explicit-only: ' + name)
         except (OSError, ValueError, KeyError, IndexError, TypeError) as exc: errors.append(name + ': ' + str(exc))
     for file in source_files:
         rel = file.relative_to(ROOT).as_posix()
@@ -81,6 +116,8 @@ def validate() -> dict:
                 if not target.exists(): errors.append(rel + ': missing ' + link)
                 if file.relative_to(ROOT).parts[0] == 'skills' and not target.is_relative_to(ROOT / 'skills'):
                     errors.append(rel + ': installed reference escapes the skill bundle: ' + link)
+    role_errors, role_count = validate_roles()
+    errors.extend(role_errors)
     config = tomllib.loads((ROOT / 'pyproject.toml').read_text())
     if 'project' in config or 'build-system' in config:
         errors.append('The installed skill must not require a Python application package')
@@ -103,7 +140,7 @@ def validate() -> dict:
     for unwanted in ('CHANGELOG.md', 'CHECKSUMS.json', 'schemas'):
         if (ROOT / unwanted).exists(): errors.append('Unexpected source artifact: ' + unwanted)
     return {'ok': not errors, 'errors': errors, 'python_files_compiled': compiled,
-            'skills': len(SKILLS), 'files': len(source_files)}
+            'skills': len(SKILLS), 'roles': role_count, 'files': len(source_files)}
 
 
 if __name__ == '__main__':

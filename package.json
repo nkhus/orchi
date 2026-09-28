@@ -1,7 +1,7 @@
 {
   "name": "@nkhus/orchi",
-  "version": "0.2.0",
-  "description": "Install the Orchi development workflow skill for Codex, Copilot, and Claude Code.",
+  "version": "0.3.0",
+  "description": "Install the Orchi development workflow skills and subagents for Codex, Copilot, and Claude Code.",
   "type": "module",
   "bin": {
     "orchi": "bin/orchi.js"
@@ -13,7 +13,10 @@
     "skills/orchi/agents/openai.yaml",
     "skills/orchi/assets",
     "skills/orchi/references",
+    "skills/orchi/roles",
     "skills/orchi/scripts/**/*.py",
+    "skills/orchi-plan",
+    "skills/orchi-deliver",
     "README.md"
   ],
   "scripts": {

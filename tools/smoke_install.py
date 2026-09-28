@@ -8,9 +8,11 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi',)
+SKILLS = ('orchi', 'orchi-plan', 'orchi-deliver')
+ROLES = ('orchi-implementer', 'orchi-reviewer', 'orchi-scout')
 
 
 def smoke(out: Path, installer: str, agents: list[str] | None = None, github: bool = False) -> dict:
@@ -76,13 +78,27 @@ def smoke(out: Path, installer: str, agents: list[str] | None = None, github: bo
         if relative == 'AGENTS.md' and installer != 'skills':
             if not installed_text.startswith(text) or installed_text.count('<!-- orchi:begin -->') != 1:
                 raise RuntimeError('Managed root instructions were not installed correctly')
+        elif relative == '.codex/config.toml' and installer != 'skills' and 'codex' in agents:
+            if not installed_text.startswith(text) or tomllib.loads(installed_text) != {
+                    'model': 'operator-selected-model', 'agents': {'max_depth': 3}}:
+                raise RuntimeError('The Codex nesting block was not installed correctly')
         elif installed_text != text:
             raise RuntimeError('Installation modified an unrelated file: ' + relative)
     if 'claude' in agents:
         for name in SKILLS:
             if (project / '.claude/skills' / name).resolve() != project / '.agents/skills' / name:
                 raise RuntimeError('Claude does not share the canonical skill bundle')
+    if installer != 'skills':
+        for agent, directory, suffix in (('claude', '.claude/agents', '.md'), ('codex', '.codex/agents', '.toml')):
+            folder = project / directory
+            found = sorted(path.name for path in folder.iterdir()) if folder.is_dir() else []
+            if found != ([name + suffix for name in ROLES] if agent in agents else []):
+                raise RuntimeError('Unexpected Orchi subagents in ' + directory + ': ' + ', '.join(found))
+            for path in folder.glob('*.toml') if folder.is_dir() else []:
+                if '{{' in tomllib.loads(path.read_text(encoding='utf-8'))['developer_instructions']:
+                    raise RuntimeError('Unexpanded placeholder in ' + str(path))
     result = {'ok': True, 'installer': installer, 'agents': agents, 'github': github, 'skills': len(SKILLS),
+              'subagents': 0 if installer == 'skills' else len(ROLES) * len({'claude', 'codex'} & set(agents)),
               'preserved_files': len(preserved), 'live_model': False, 'out': str(out)}
     (out / 'smoke-report.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     return result

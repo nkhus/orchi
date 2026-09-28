@@ -52,6 +52,11 @@ states acceptance, verification, and relevant sources and constraints. Name like
 affected areas to orient the implementer, not as a permission list. Order Tasks by
 real dependencies; native child order or brief ordering text is enough.
 
+Check every Task against the [Task readiness checklist](readiness.md#task-readiness-checklist)
+and every Epic against the [Epic readiness checklist](readiness.md#epic-readiness-checklist)
+before anyone starts or delegates it; a project's own stricter checklist applies
+in addition.
+
 Design shared contracts before independent Epics depend on them. When a contract
 is not implemented yet, make its producer Epic a native blocker instead of
 assuming its output exists. Check coverage from Epic acceptance to Tasks, avoiding
