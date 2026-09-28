@@ -5,7 +5,7 @@ labels: [Task]
 body:
   - type: markdown
     attributes:
-      value: "Start the title with the same tags as the parent Epic, for example [PAY][TOKEN] Add token column, or [CSV] Add export endpoint under a standalone Epic. A standalone fix has no tags."
+      value: "Start the title with the same tags as the parent Epic, for example [PAY][TOKEN] Add token column, or [CSV] Add export endpoint under a standalone Epic. A standalone fix has no tags. The Task must pass the Task readiness checklist in Orchi's readiness reference (and the repository's own rules) before anyone starts it: write it for an owner who has not seen the planning conversation."
   - type: textarea
     id: outcome
     attributes:
@@ -14,17 +14,66 @@ body:
     validations:
       required: true
   - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose and consumed output
+      description: Why this result is needed and what later Tasks, Epics, or users consume from it (a contract, table, route, document section).
+    validations:
+      required: true
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Results that must already exist on the working branch, with Task or Epic references, or "None".
+    validations:
+      required: true
+  - type: textarea
     id: sources
     attributes:
       label: Sources
-      description: Documents, requirement IDs, and constraints.
+      description: Exact design sections, documents, requirement/decision IDs, and the code or issues inspected while planning. Link sections, not whole documents.
+    validations:
+      required: true
+  - type: textarea
+    id: surfaces
+    attributes:
+      label: Surfaces
+      description: Likely code symbols, routes, migrations, tables, contracts, tests, and documentation to change. Orientation, not a permission list.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and non-goals
+      description: Invariants, boundaries, and what this Task must not change or attempt.
+    validations:
+      required: true
+  - type: textarea
+    id: scenarios
+    attributes:
+      label: Scenarios
+      description: Concrete success scenarios and failure scenarios (invalid input, missing data, conflicts, unavailable dependencies) with the expected behavior of each.
+    validations:
+      required: true
   - type: textarea
     id: acceptance
     attributes:
       label: Acceptance and verification
-      description: Observable behavior and the checks that establish it.
+      description: Observable behavior and the exact checks or commands that establish it.
     validations:
       required: true
+  - type: textarea
+    id: docs
+    attributes:
+      label: Documentation impact
+      description: Owning pages to update (per the project's documentation routing), or why no documentation changes.
+    validations:
+      required: true
+  - type: textarea
+    id: questions
+    attributes:
+      label: Open questions
+      description: Unresolved inputs, not presented as decided facts. Resolve any question that affects this Task's approach, or move it to a bounded investigation Task, before anyone starts it.
   - type: textarea
     id: work
     attributes:

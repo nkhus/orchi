@@ -571,3 +571,62 @@ def test_unedited_codex_block_is_refreshed(tmp_path, monkeypatch):
     assert installation.install(tmp_path)["status"] == "unchanged"
     installation.install(tmp_path, uninstall=True)
     assert config.read_text() == 'model = "operator-model"\n'
+
+
+def test_docs_workflow_opt_out_persists_and_can_be_reenabled(tmp_path, labels):
+    workflow = tmp_path / ".github/workflows/orchi-docs.yml"
+    result = installation.install(tmp_path, agents=["codex"], github=True, docs_workflow=False)
+    assert result["docs_workflow"] is False and not workflow.exists()
+    assert (tmp_path / ".github/ISSUE_TEMPLATE/orchi-task.yml").is_file()
+    manifest = json.loads((tmp_path / ".agents/.orchi-install.json").read_text())
+    assert manifest["docs_workflow"] is False and ".github/workflows/orchi-docs.yml" not in manifest["files"]
+    # Later runs keep the choice until it is reversed explicitly.
+    assert installation.install(tmp_path, agents=["claude"])["docs_workflow"] is False and not workflow.exists()
+    assert installation.install(tmp_path)["status"] == "unchanged"
+    installation.install(tmp_path, docs_workflow=True)
+    assert "knowledge.py impact" in workflow.read_text()
+    assert installation.install(tmp_path)["docs_workflow"] is True
+    installation.install(tmp_path, uninstall=True)
+    assert not workflow.exists() and not (tmp_path / ".github/ISSUE_TEMPLATE/orchi-task.yml").exists()
+
+
+def test_docs_workflow_opt_out_removes_an_unmodified_installed_workflow(tmp_path, labels):
+    installation.install(tmp_path, github=True)
+    workflow = tmp_path / ".github/workflows/orchi-docs.yml"
+    assert workflow.is_file()
+    result = installation.install(tmp_path, docs_workflow=False)
+    assert ".github/workflows/orchi-docs.yml" in result["changes"] and not workflow.exists()
+    assert (tmp_path / ".github/ISSUE_TEMPLATE/orchi-epic.yml").is_file()
+
+
+def test_docs_workflow_opt_out_of_an_edited_workflow_is_a_conflict(tmp_path, labels):
+    installation.install(tmp_path, github=True)
+    workflow = tmp_path / ".github/workflows/orchi-docs.yml"
+    workflow.write_text("# customized\n")
+    with pytest.raises(ValueError, match="orchi-docs.yml"):
+        installation.install(tmp_path, docs_workflow=False)
+    assert workflow.read_text() == "# customized\n"
+    assert installation.install(tmp_path, docs_workflow=False, dry=True)["conflicts"] == [".github/workflows/orchi-docs.yml"]
+    result = installation.install(tmp_path, docs_workflow=False, replace=True)
+    assert not workflow.exists() and (Path(result["backup"]) / ".github/workflows/orchi-docs.yml").read_text() == "# customized\n"
+
+
+def test_manifest_without_docs_workflow_field_keeps_the_workflow(tmp_path, labels):
+    installation.install(tmp_path, github=True)
+    manifest_path = tmp_path / ".agents/.orchi-install.json"
+    manifest = json.loads(manifest_path.read_text())
+    del manifest["docs_workflow"]
+    manifest_path.write_text(json.dumps(manifest))
+    result = installation.install(tmp_path)
+    assert result["docs_workflow"] is True and (tmp_path / ".github/workflows/orchi-docs.yml").is_file()
+
+
+def test_cli_docs_workflow_flags(tmp_path, labels, capsys):
+    assert installation.main(["--project", str(tmp_path), "--agents", "codex", "--github", "--no-docs-workflow"]) == 0
+    assert json.loads(capsys.readouterr().out)["docs_workflow"] is False
+    assert not (tmp_path / ".github/workflows/orchi-docs.yml").exists()
+    assert installation.main(["--project", str(tmp_path), "--docs-workflow"]) == 0
+    assert json.loads(capsys.readouterr().out)["docs_workflow"] is True
+    assert (tmp_path / ".github/workflows/orchi-docs.yml").is_file()
+    with pytest.raises(SystemExit):
+        installation.main(["--project", str(tmp_path), "--docs-workflow", "--no-docs-workflow"])
