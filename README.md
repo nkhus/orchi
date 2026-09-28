@@ -100,7 +100,7 @@ For Claude Code and Codex, the installer renders three subagents from one shared
 | `orchi-implementer` | opus / low | gpt-6-sol / low | one commit per Task | Runs the Task readiness gate, then implements and verifies one Epic Task |
 | `orchi-reviewer` | opus / high | gpt-6-sol / medium | nothing | Reviews an assembled Epic or a final Initiative candidate |
 
-Subagents may start `orchi-scout` or `orchi-reviewer` for independent sub-questions; only the main session starts `orchi-implementer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows three levels of nesting by default; for Codex the installer sets `[agents] max_depth = 3` in `.codex/config.toml`. If a model or agent is unavailable, the main session does the step itself.
+Subagents may start `orchi-scout` or `orchi-reviewer` for independent sub-questions; only the main session starts `orchi-implementer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents.md)); for Codex the installer sets `[agents] max_depth = 3` in `.codex/config.toml`. If a model or agent is unavailable, the main session does the step itself.
 
 Two explicit entry skills fix the order of steps; they are conveniences, not a required facade:
 

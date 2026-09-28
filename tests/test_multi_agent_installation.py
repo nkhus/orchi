@@ -44,7 +44,7 @@ def test_each_selection_and_scope(tmp_path, agents, global_scope):
     assert codex_agents == ([name + ".toml" for name in ROLES] if "codex" in agents else [])
     for path in [*(tmp_path / ".claude/agents").glob("*.md"), *(tmp_path / ".codex/agents").glob("*.toml")]:
         text = path.read_text()
-        assert "{{" not in text and (f" {skill}/scripts/" in text or f"`{skill}/references/" in text)
+        assert "{{" not in text and (f'"{skill}/scripts/' in text or f"`{skill}/references/" in text)
     if "codex" in agents:
         implementer = tomllib.loads((tmp_path / ".codex/agents/orchi-implementer.toml").read_text())
         assert f"`{skill}/references/readiness.md`" in implementer["developer_instructions"]
@@ -448,7 +448,8 @@ def test_codex_config_block_preserves_user_settings(tmp_path):
     config.write_bytes(user)
     installation.install(tmp_path, agents=["codex"])
     text = config.read_text()
-    assert text.count("# orchi:begin") == 1 and text.endswith("max_depth = 3\n# orchi:end\n")
+    assert text.count("# orchi:begin") == 1
+    assert text.endswith("max_depth = 3\n# Add your own settings above this block.\n# orchi:end\n")
     assert tomllib.loads(text)["agents"] == {"max_depth": 3}
     assert tomllib.loads(text)["profiles"] == {"fast": {"model_reasoning_effort": "low"}}
     with config.open("ab") as file:
@@ -525,3 +526,48 @@ def test_installed_agents_match_bundled_roles(tmp_path):
     for role in roles.load_roles():
         assert (tmp_path / ".claude/agents" / (role.name + ".md")).read_text() == roles.render_claude(role, ".agents/skills/orchi")
         assert (tmp_path / ".codex/agents" / (role.name + ".toml")).read_text() == roles.render_codex(role, ".agents/skills/orchi")
+
+
+@pytest.mark.parametrize("global_scope", [False, True])
+def test_codex_config_is_ignored_without_codex(tmp_path, global_scope):
+    outside = tmp_path / "outside.toml"
+    outside.write_bytes(b"\xff not utf-8 # orchi:begin")
+    home = tmp_path / "root"; (home / ".codex").mkdir(parents=True)
+    (home / ".codex/config.toml").symlink_to(outside)
+    for agents in (["claude"], ["copilot"]):
+        result = installation.install(home, agents=agents, global_scope=global_scope)
+        assert ".codex/config.toml" not in result["changes"] and result["notes"] == []
+    assert json.loads((home / ".agents/.orchi-install.json").read_text())["config"] == {}
+    installation.install(home, global_scope=global_scope, uninstall=True)
+    assert (home / ".codex/config.toml").is_symlink() and outside.read_bytes() == b"\xff not utf-8 # orchi:begin"
+    with pytest.raises(ValueError, match="symlink"):
+        installation.install(home, agents=["codex"], global_scope=global_scope)
+
+
+def test_preexisting_empty_codex_config_is_kept_on_uninstall(tmp_path):
+    config = tmp_path / ".codex/config.toml"
+    config.parent.mkdir()
+    config.write_bytes(b"")
+    installation.install(tmp_path, agents=["codex"])
+    assert tomllib.loads(config.read_text()) == {"agents": {"max_depth": 3}}
+    assert json.loads((tmp_path / ".agents/.orchi-install.json").read_text())["config"][".codex/config.toml"]["existed"] is True
+    installation.install(tmp_path, uninstall=True)
+    assert config.is_file() and config.read_bytes() == b""
+
+
+def test_unedited_codex_block_is_refreshed(tmp_path, monkeypatch):
+    config = tmp_path / ".codex/config.toml"
+    config.parent.mkdir()
+    config.write_text('model = "operator-model"\n')
+    monkeypatch.setattr(installation, "CODEX_CONFIG_BODY", "[agents]\nmax_depth = 2")
+    installation.install(tmp_path, agents=["codex"])
+    assert "max_depth = 2" in config.read_text()
+    monkeypatch.undo()
+    result = installation.install(tmp_path)
+    assert result["status"] == "installed" and ".codex/config.toml" in result["changes"]
+    text = config.read_text()
+    assert text.startswith('model = "operator-model"\n\n# orchi:begin\n') and "max_depth = 2" not in text
+    assert tomllib.loads(text) == {"model": "operator-model", "agents": {"max_depth": 3}}
+    assert installation.install(tmp_path)["status"] == "unchanged"
+    installation.install(tmp_path, uninstall=True)
+    assert config.read_text() == 'model = "operator-model"\n'

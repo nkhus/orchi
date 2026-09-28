@@ -55,10 +55,11 @@ For Codex, the installer appends this block to `.codex/config.toml` so Orchi sub
 # Let Orchi subagents start their own agents (Claude Code's default depth is also 3).
 [agents]
 max_depth = 3
+# Add your own settings above this block.
 # orchi:end
 ```
 
-Content outside the markers is preserved byte-for-byte. If the file already defines an `agents` table outside the block, the installer writes no block and reports a note in `notes`: set `max_depth = 3` under your own `[agents]` table instead. A configuration file that is not valid TOML stops the installation before any change. An edited block stops installation and uninstallation, like an edited instruction section. Uninstalling removes the block, and the file too if Orchi created it and nothing else remains.
+Content outside the markers is preserved byte-for-byte. The block ends inside the `[agents]` table, so a key appended after `# orchi:end` belongs to `[agents]`; keep your own settings above the block. Reinstallation refreshes an unedited block to the current version. If the file already defines an `agents` table outside the block, the installer writes no block and reports a note in `notes`: set `max_depth = 3` under your own `[agents]` table instead. A configuration file that is not valid TOML stops the installation before any change. An edited block stops installation and uninstallation, like an edited instruction section. Uninstalling removes the block, and the file too if Orchi created it and nothing else remains; a file that existed before Orchi, even an empty one, is kept. Without Codex selected, the installer does not read or change `.codex/config.toml`.
 
 Codex loads the project's `.codex/config.toml` and `.codex/agents/` only for a trusted project: trust the project in Codex after installing. Subagent models are pinned in the roles; if a pinned model is unavailable, the main session performs the step itself.
 
@@ -107,7 +108,7 @@ npx --yes github:nkhus/orchi --project "$PWD" --uninstall
 
 Dry-run lists file changes and conflicts (`conflicts`, `requires_replace`) without writing. A manifest at `.agents/.orchi-install.json` records selection, hashes, links, managed files, and managed sections. Identical installation is a no-op. Rerunning the installer updates unmodified managed files. Skill files edited since installation, or unmanaged files in the Orchi destination, require `--replace-orchi`; changed files are backed up beside the project, or inside the home directory for user-wide installation. Skills, links, instructions, and manifest are staged together and rolled back on an ordinary installation error. A process or host crash during mutation requires inspecting the backup and target before retrying.
 
-The installer refuses symlinked canonical skill destinations, unrelated conflicting skill directories, and instruction symlinks other than the explicit Claude-to-AGENTS bridge. It preserves unrelated skills, assistant settings, and application manifests. Do not alternate installers to manage the same installation.
+The installer refuses symlinked canonical skill destinations, unrelated conflicting skill directories, symlinked agent or configuration files it manages, and instruction symlinks other than the explicit Claude-to-AGENTS bridge. It preserves unrelated skills and agents, assistant settings, and application manifests; in `.codex/config.toml` it edits only its marked block. Do not alternate installers to manage the same installation.
 
 `--uninstall` removes the complete managed Orchi installation at the selected project/user scope, including its instruction sections. It preserves surrounding user instructions and refuses modified skill files or managed sections. It does not remove assistant programs, authentication, GitHub Issues, branches, or backups.
 
@@ -135,6 +136,8 @@ Rerun the installation command. The manifest records the installed version; `pyt
 ### From the single-skill layout
 
 Versions 0.2.x installed only the `orchi` skill. Reinstalling adds the entry skills, the rendered subagents, and, for Codex, the `.codex/config.toml` block. A repository that added its own `.agents/skills/orchi-plan/` or `orchi-deliver/`, or its own `orchi-scout`, `orchi-implementer`, or `orchi-reviewer` agent files, gets a conflict: review the differences, move project-specific rules into the repository's own instructions (Orchi's readiness checklists apply together with any stricter project checklist), then rerun with `--replace-orchi`, which backs the files up first.
+
+`--replace-orchi` does not resolve conflicting skill links or aliases. A real directory or a link to another target at `.claude/skills/orchi-plan` or `.claude/skills/orchi-deliver` (or `~/.claude/skills/...` user-wide), or a Copilot skill under `.github/skills/` or `~/.copilot/skills/` with one of those names, stops the installation; move or remove it by hand, then rerun. A relative symlink to `../../.agents/skills/<name>` is adopted as is.
 
 ### From the five-skill layout
 

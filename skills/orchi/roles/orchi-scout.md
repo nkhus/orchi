@@ -27,8 +27,8 @@ you covered.
 Read-only only:
 - Read-only file and search tools.
 - Shell commands: `rg`, `git log/show/diff/grep/ls-files/branch`, `gh issue view/list`,
-  `gh pr view/list/diff`, and `python3 {{ORCHI_SKILL}}/scripts/knowledge.py`
-  or `python3 {{ORCHI_SKILL}}/scripts/status.py`.
+  `gh pr view/list/diff`, and `python3 "{{ORCHI_SKILL}}/scripts/knowledge.py"`
+  or `python3 "{{ORCHI_SKILL}}/scripts/status.py"`.
 
 Forbidden: editing or creating files; any Git or `gh` command that changes
 state; installing packages; running tests or builds.
