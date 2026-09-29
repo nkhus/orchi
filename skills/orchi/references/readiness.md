@@ -1,8 +1,8 @@
 # Readiness checklists
 
-Use before starting or delegating a Task or Epic, and when planning creates them.
-The Issue is the specification for an owner who never saw the planning
-conversation. A project's own stricter checklist, if its instructions define one,
+Use before starting or delegating a Task, Epic, or Initiative, and when planning
+creates them. The Issue is the specification for an owner who never saw the
+planning conversation. A project's own stricter checklist, if its instructions define one,
 applies in addition to these.
 
 ## Task readiness checklist
@@ -15,21 +15,29 @@ first. Items marked "when applicable" may be answered "not applicable" for a
 standalone small fix.
 
 1. States one concrete, reviewable outcome.
-2. States its purpose and the output that later work or users consume.
+2. Gives context: why the result is needed, where it fits in the product or
+   system, the relevant current behavior with code evidence (files and symbols,
+   or `path:line`), and the output that later work or users consume.
 3. Lists prerequisites, with Task/Epic references, or states "None".
 4. Names the parent Epic as a native sub-issue (when applicable).
-5. Links the exact design sections, requirement/decision IDs, or documents it
+5. Lists numbered requirements (R1, R2, ...), each individually verifiable,
+   citing the stable requirement IDs they implement when the project has them.
+6. Describes the solution vision: the intended approach, the likely change
+   points as concrete symbols, routes, migrations, tables, or file paths, and
+   why this approach was chosen over the alternatives considered.
+7. Records the decisions that shape the Task — each with its question, answer,
+   who decided, date, and reason, quoting the user's answers faithfully — or
+   states that none were needed.
+8. Links the exact design sections, requirement/decision IDs, or documents it
    implements (when applicable), and the code or issues inspected while planning.
-6. Names at least one likely code, schema, contract, test, or documentation
-   surface, using concrete symbols, routes, migrations, tables, or file paths
-   where known.
-7. States constraints and non-goals.
-8. Describes at least one success scenario and at least one failure scenario,
-   each with expected behavior, or states explicitly why no failure case exists.
-9. Gives observable acceptance and the exact checks or commands that verify it.
-10. States its documentation impact: the owning pages named by the project's
+9. States constraints and non-goals.
+10. Describes at least one success scenario and at least one failure scenario,
+    each with expected behavior, or states explicitly why no failure case exists.
+11. Gives observable acceptance mapped to the requirements, and the exact checks
+    or commands that verify it.
+12. States its documentation impact: the owning pages named by the project's
     documentation routing, or why none change.
-11. Lists no open question in the Task or its parent Epic that is marked as
+13. Lists no open question in the Task or its parent Epic that is marked as
     affecting this Task's approach; resolve such a question, or move it to a
     bounded investigation Task, first.
 
@@ -43,16 +51,39 @@ until the deferral is resolved.
 1. States one bounded outcome, with in-scope and out-of-scope lists.
 2. Links its sources (exact sections, requirement/decision IDs), and names its
    parent Initiative when applicable.
-3. Describes current state with evidence: files, symbols, or behavior.
-4. Contains a design, or a link to one, covering approach, interfaces and
-   boundaries, invariants, and tradeoffs; or states "no architecture change".
-5. Names affected code, schema, contract, test, and documentation surfaces.
-6. Describes success and failure scenarios, inputs and outputs, risks, and
+3. Gives context and describes current state with evidence: files, symbols, or
+   behavior.
+4. Lists numbered requirements (R1, R2, ...) the Epic delivers, each traceable
+   to a source or a recorded decision.
+5. Contains a design, or a link to one, covering approach, interfaces and
+   boundaries, invariants, and tradeoffs, and why this approach was chosen over
+   the alternatives considered; or states "no architecture change".
+6. Records the decisions that shape the Epic — each with its question, answer,
+   who decided, date, and reason, quoting the user's answers faithfully.
+7. Names affected code, schema, contract, test, and documentation surfaces.
+8. Describes success and failure scenarios, inputs and outputs, risks, and
    expected recovery.
-7. Names its branch and PR target, and has native blocked-by relationships for
+9. Names its branch and PR target, and has native blocked-by relationships for
    every direct dependency. Each blocker is merged into the target branch.
-8. Gives exit criteria mapped to requirements, with verification.
-9. Contains no `Deferred until` answer and no open question marked as affecting
-   the approach.
-10. Has native sub-issue Tasks in execution order, each passing the Task
+10. Gives exit criteria mapped to requirements, each with its verification.
+11. Contains no `Deferred until` answer and no open question marked as affecting
+    the approach.
+12. Has native sub-issue Tasks in execution order, each passing the Task
     readiness checklist.
+
+## Initiative readiness checklist
+
+An Initiative is ready for its first Epic only when its Issue and plan document
+together answer every item below.
+
+1. Keeps the original request, as agreed with the requester, distinct from later
+   decisions.
+2. States the agreed outcome and explicit exclusions.
+3. Lists numbered requirements (R1, R2, ...), each observable at completion.
+4. Records the decisions that shape the Initiative — each with its question,
+   answer, who decided, date, and reason, quoting the user's answers faithfully.
+5. Maps every requirement to the Epic that delivers it, and explains each
+   dependency between Epics through the result or contract it supplies.
+6. Names the integration branch and the completion criteria, including the final
+   verification on the combined candidate.
+7. Links the plan document on the integration branch.

@@ -19,7 +19,7 @@ precedence over these defaults. Preserve the user's request, decisions, and edit
 
 Before choosing a delivery scope, read the relevant code, documentation, and
 issues. Scale research to uncertainty and ask focused questions when missing
-context would change the result. Present findings, sensible approaches with
+context would change the result ([clarify](references/planning.md#clarify-with-the-user)). Present findings, sensible approaches with
 tradeoffs, and a recommended outcome and scope.
 
 Agree the direction with the user before creating branches, Issues, or changes.
@@ -65,7 +65,7 @@ Read only the reference needed for the current stage.
 
 | Stage | Reference |
 | --- | --- |
-| Design an Initiative or Epic and derive Tasks | [Planning](references/planning.md) |
+| Clarify with the user, design, and write Issues for agents | [Planning](references/planning.md) |
 | Check that a Task or Epic is ready to start or delegate | [Readiness](references/readiness.md) |
 | Find ready work, claim, execute, hand off, resume | [Execution](references/execution.md) |
 | Review, integrate, and close | [Review and delivery](references/review-delivery.md) |

@@ -109,7 +109,7 @@ Two explicit entry skills fix the order of steps; they are conveniences, not a r
 - `orchi-plan` (`/orchi-plan <request>` in Claude Code, `$orchi-plan <request>` in Codex) researches, proposes a scope, waits for agreement, creates ready Issues, and ends with `Deliver with: /orchi-deliver #<n>`.
 - `orchi-deliver` (`/orchi-deliver #<n> [--merge-epics]` or `$orchi-deliver #<n> [--merge-epics]`) delivers a standalone Task, Epic, or Initiative through the subagents and resumes interrupted delivery. It never merges into main; `--merge-epics` allows merging reviewed Epic PRs into their Initiative branch.
 
-Both enforce the [readiness checklists](skills/orchi/references/readiness.md) for Tasks and Epics. GitHub Copilot uses the same workflow without subagents.
+Both enforce the [readiness checklists](skills/orchi/references/readiness.md) for Tasks, Epics, and Initiatives. GitHub Copilot uses the same workflow without subagents.
 
 ## Project instructions
 

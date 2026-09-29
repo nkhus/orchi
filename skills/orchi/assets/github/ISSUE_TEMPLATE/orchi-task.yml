@@ -5,7 +5,7 @@ labels: [Task]
 body:
   - type: markdown
     attributes:
-      value: "Start the title with the same tags as the parent Epic, for example [PAY][TOKEN] Add token column, or [CSV] Add export endpoint under a standalone Epic. A standalone fix has no tags. The Task must pass the Task readiness checklist in Orchi's readiness reference (and the repository's own rules) before anyone starts it: write it for an owner who has not seen the planning conversation."
+      value: "Start the title with the same tags as the parent Epic, for example [PAY][TOKEN] Add token column, or [CSV] Add export endpoint under a standalone Epic. A standalone fix has no tags. The Task must pass the Task readiness checklist in Orchi's readiness reference (and the repository's own rules) before anyone starts it. Write it for an agent owner who has not seen the planning conversation: self-contained, concrete, and in plain language the user can also read and approve."
   - type: textarea
     id: outcome
     attributes:
@@ -14,10 +14,10 @@ body:
     validations:
       required: true
   - type: textarea
-    id: purpose
+    id: context
     attributes:
-      label: Purpose and consumed output
-      description: Why this result is needed and what later Tasks, Epics, or users consume from it (a contract, table, route, document section).
+      label: Context
+      description: Why this result is needed and where it fits in the product or system; the relevant current behavior with code evidence (files and symbols, or path:line); and what later Tasks, Epics, or users consume from it (a contract, table, route, document section).
     validations:
       required: true
   - type: textarea
@@ -28,17 +28,31 @@ body:
     validations:
       required: true
   - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: Numbered requirements (R1, R2, ...), one per line, each individually verifiable. Use "must" and "must not", and cite the stable requirement IDs they implement when the project has them.
+    validations:
+      required: true
+  - type: textarea
+    id: vision
+    attributes:
+      label: Solution vision
+      description: The intended approach and the likely change points - code symbols, routes, migrations, tables, contracts, tests, and documentation - and why this approach was chosen over the alternatives considered. Guidance for the owner, not a permission list.
+    validations:
+      required: true
+  - type: textarea
+    id: decisions
+    attributes:
+      label: Decisions
+      description: Each decision that shapes this Task - the question, the answer, who decided (user or planner), the date, and the reason. Quote the user's answers faithfully. Write "None needed" if nothing had to be decided.
+    validations:
+      required: true
+  - type: textarea
     id: sources
     attributes:
       label: Sources
       description: Exact design sections, documents, requirement/decision IDs, and the code or issues inspected while planning. Link sections, not whole documents.
-    validations:
-      required: true
-  - type: textarea
-    id: surfaces
-    attributes:
-      label: Surfaces
-      description: Likely code symbols, routes, migrations, tables, contracts, tests, and documentation to change. Orientation, not a permission list.
     validations:
       required: true
   - type: textarea
@@ -59,7 +73,7 @@ body:
     id: acceptance
     attributes:
       label: Acceptance and verification
-      description: Observable behavior and the exact checks or commands that establish it.
+      description: Observable behavior mapped to the requirements (R1 -> ...), and the exact checks or commands that establish it.
     validations:
       required: true
   - type: textarea
@@ -69,6 +83,11 @@ body:
       description: Owning pages to update (per the project's documentation routing), or why no documentation changes.
     validations:
       required: true
+  - type: textarea
+    id: writer
+    attributes:
+      label: Suggested writer
+      description: Optional. Whether the change is small and fully determined by this Issue (orchi-fixer) or needs orchi-implementer, and why. The delivering session makes the final choice.
   - type: textarea
     id: questions
     attributes:
