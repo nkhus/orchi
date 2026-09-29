@@ -29,7 +29,7 @@ The current directory is the installation target; use `--project /path/to/projec
 | Claude Code | `--agents claude` |
 | Copilot and Claude Code | `--agents copilot claude` |
 | All three | `--agents all` |
-| Choose interactively | Omit `--agents` in a terminal |
+| Choose interactively | Omit `--agents` in a terminal on the first installation |
 
 Adding another assistant later reuses the shared skill and preserves existing selections.
 
@@ -99,11 +99,11 @@ For Claude Code and Codex, the installer renders four subagents from one shared 
 | Agent | Claude Code model / effort | Codex model / effort | Writes | Role |
 | --- | --- | --- | --- | --- |
 | `orchi-scout` | haiku / medium | gpt-6-luna / medium | nothing | Returns paths, line ranges, and excerpts |
-| `orchi-implementer` | opus / low | gpt-6-sol / low | one commit per Task | Runs the Task readiness gate, then implements and verifies one Epic Task |
+| `orchi-implementer` | opus / low | gpt-6-sol / low | one commit per Task | Runs the Task readiness gate, then implements and verifies one Task, standalone or in an Epic |
 | `orchi-fixer` | sonnet / medium | gpt-6-luna / high | one commit per Task or repair | Makes one small, fully specified change — a simple Task or a confirmed defect repair — and escalates anything larger |
-| `orchi-reviewer` | opus / high | gpt-6-sol / medium | nothing | Reviews an assembled Epic or a final Initiative candidate |
+| `orchi-reviewer` | opus / high | gpt-6-sol / medium | nothing | Reviews a standalone Task, an assembled Epic, or a final Initiative candidate |
 
-Subagents may start `orchi-scout` or `orchi-reviewer` for independent sub-questions; only the main session starts the writers `orchi-implementer` and `orchi-fixer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents)); for Codex the installer sets `[agents] max_depth = 3` in `.codex/config.toml`. If a model or agent is unavailable, the main session does the step itself.
+Implementers, fixers, and reviewers may start `orchi-scout` or `orchi-reviewer` for independent sub-questions, and scouts only other scouts; only the main session starts the writers `orchi-implementer` and `orchi-fixer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents)); for Codex the installer sets `[agents] max_depth = 3` in `.codex/config.toml`. If a model or agent is unavailable, the main session does the step itself.
 
 Two explicit entry skills fix the order of steps; they are conveniences, not a required facade:
 
