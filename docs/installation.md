@@ -10,7 +10,7 @@ npx --yes github:nkhus/orchi --project "$PWD" --agents copilot claude
 npx --yes github:nkhus/orchi --project "$PWD" --agents all
 ```
 
-`codex`, `copilot`, and `claude` are the canonical names. Comma-separated names, repeated `--agent` options, `github-copilot`, and `claude-code` also work. Without a selection, an interactive terminal offers a numbered picker. Noninteractive installation retains the existing selection or defaults to Codex. Adding an assistant preserves previously selected assistants.
+`codex`, `copilot`, and `claude` are the canonical names. Comma-separated names, repeated `--agent` options, `github-copilot`, and `claude-code` also work. On a first installation without a selection, an interactive terminal offers a numbered picker, where an empty answer means Codex. Later runs without a selection keep the recorded selection, in a terminal or not; a first noninteractive installation defaults to Codex. Adding an assistant preserves previously selected assistants.
 
 The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the explicit entry skills `orchi-plan` and `orchi-deliver`. It renders the Orchi subagents for Claude Code and Codex, registers the selected assistants, and reports whether `git` and `gh` are available. It does not install or authenticate the assistants or the GitHub CLI.
 
@@ -32,7 +32,7 @@ Additional selected-agent integration:
 | Copilot | A managed pointer in `.github/copilot-instructions.md` directs IDE/CLI sessions to root `AGENTS.md` |
 | Claude Code | A managed `@AGENTS.md` import in root `CLAUDE.md` |
 
-Sections are delimited by `<!-- orchi:begin -->` and `<!-- orchi:end -->`. Existing content outside these markers is preserved byte-for-byte, including line endings. Reinstallation updates only an unchanged managed section and never duplicates it. Edited or malformed sections cause installation to stop before mutation, even with `--replace-orchi`; preserve custom rules outside the managed section. An existing `CLAUDE.md` symlink directly to root `AGENTS.md` is preserved. If `AGENTS.override.md` exists, its managed section is updated too so Codex does not skip the workflow.
+Sections are delimited by `<!-- orchi:begin -->` and `<!-- orchi:end -->`. Existing content outside these markers is preserved byte-for-byte, including line endings. Reinstallation updates only an unchanged managed section and never duplicates it. Edited or malformed sections cause installation to stop before mutation, even with `--replace-orchi`; preserve custom rules outside the managed section. An existing `CLAUDE.md` symlink directly to root `AGENTS.md` is preserved. If `AGENTS.override.md` exists, its managed section is updated too so Codex does not skip the workflow. A managed instruction file you delete is dropped from the manifest on the next run instead of blocking reinstallation or uninstallation.
 
 Instruction discovery improves routing but does not prove model compliance. More specific instructions, explicit user instructions, disabled skills, instruction-size limits, and application settings can affect behavior. Start a fresh session and verify the entrypoint is exposed: `$orchi` in Codex CLI, `/orchi` in Claude Code and Copilot CLI, or the IDE's skill selection interface.
 
@@ -133,11 +133,22 @@ python3 .agents/skills/orchi/scripts/orchi_install.py --project "$PWD" --agents 
 
 ## Upgrading
 
-Rerun the installation command. The manifest records the installed version; `python3 .agents/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy can add assistants but cannot fetch a newer version, so upgrades come from `npx` or a source checkout.
+Rerun the installation command. The manifest records the installed version; `python3 .agents/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy can add assistants but cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
+
+### From 0.5.x to 0.6.x
+
+- **Writers and review.** `orchi-implementer` also accepts standalone Tasks, `orchi-reviewer` has a Task mode, and `orchi-deliver` reviews every standalone Task once before its PR. A fixer `ESCALATE` names its cause (`decision` or `size`), routed per [choosing a writer](../skills/orchi/roles/README.md#choosing-a-writer). Reinstalling updates the rendered agents in place.
+- **Epic readiness.** "Each blocker is merged into the target branch" moved from item 9 to item 11, so future Initiative Epics with open blockers pass intake and are held back only at delivery.
+
+### From 0.3.x or 0.4.x to 0.5.x
+
+- **Issue forms.** With `--github`, reinstalling replaces unmodified `orchi-task.yml`, `orchi-epic.yml`, and `orchi-initiative.yml` forms with the current ones, which have a field for every readiness checklist item. A locally edited form is a conflict: review the differences, keep project-specific fields in your own template, then rerun with `--replace-orchi`, which backs the form up first.
+- **Readiness checklists.** The Task checklist now has 13 items and the Epic checklist 12, including numbered requirements, a solution vision, and a decision log, and Initiatives have their own checklist. `orchi-implementer` and `orchi-fixer` may report `NOT READY` for open Issues written against the earlier checklists. Re-check open Task, Epic, and Initiative Issues against the [readiness checklists](../skills/orchi/references/readiness.md) and fill the gaps before delivering them.
+- **`orchi-fixer` agent.** Added in 0.4.0; reinstalling from 0.3.x renders it for Claude Code and Codex when they are selected. An existing agent file with that name is a conflict that needs `--replace-orchi`.
 
 ### From the single-skill layout
 
-Versions 0.2.x installed only the `orchi` skill. Reinstalling adds the entry skills, the rendered subagents, and, for Codex, the `.codex/config.toml` block. A repository that added its own `.agents/skills/orchi-plan/` or `orchi-deliver/`, or its own `orchi-scout`, `orchi-implementer`, or `orchi-reviewer` agent files, gets a conflict: review the differences, move project-specific rules into the repository's own instructions (Orchi's readiness checklists apply together with any stricter project checklist), then rerun with `--replace-orchi`, which backs the files up first.
+Versions 0.2.x installed only the `orchi` skill. Reinstalling adds the entry skills, the rendered subagents, and, for Codex, the `.codex/config.toml` block. A repository that added its own `.agents/skills/orchi-plan/` or `orchi-deliver/`, or its own `orchi-scout`, `orchi-implementer`, `orchi-fixer`, or `orchi-reviewer` agent files, gets a conflict: review the differences, move project-specific rules into the repository's own instructions (Orchi's readiness checklists apply together with any stricter project checklist), then rerun with `--replace-orchi`, which backs the files up first.
 
 `--replace-orchi` does not resolve conflicting skill links or aliases. A real directory or a link to another target at `.claude/skills/orchi-plan` or `.claude/skills/orchi-deliver` (or `~/.claude/skills/...` user-wide), or a Copilot skill under `.github/skills/` or `~/.copilot/skills/` with one of those names, stops the installation; move or remove it by hand, then rerun. A relative symlink to `../../.agents/skills/<name>` is adopted as is.
 

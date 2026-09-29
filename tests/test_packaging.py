@@ -3,6 +3,7 @@ from pathlib import Path
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tomllib
@@ -104,3 +105,72 @@ def test_copy_install_rollback_preserves_modified_skill(tmp_path, monkeypatch):
     with pytest.raises(OSError):
         installer.install(tmp_path, replace=True)
     assert target.read_text() == 'User customization'
+
+
+def source_copy(tmp_path):
+    """A disposable copy of the source tree, so validation failures never touch the real files."""
+    validator = load_tool('validate_package')
+    copy = tmp_path / 'source'
+    shutil.copytree(ROOT, copy, ignore=shutil.ignore_patterns('.git', *validator.IGNORED, '*.pyc'))
+    return validator, copy
+
+
+@pytest.mark.parametrize('linking, target', [
+    ('skills/orchi/references/execution.md', 'skills/orchi/references/planning.md'),
+    ('docs/testing.md', 'docs/installation.md'),
+])
+def test_renamed_heading_breaks_validation(tmp_path, linking, target):
+    validator, copy = source_copy(tmp_path)
+    with (copy / target).open('a', encoding='utf-8') as stream:
+        stream.write('\n## Probe heading\n\nText.\n')
+    with (copy / linking).open('a', encoding='utf-8') as stream:
+        stream.write('\nSee [the probe](' + Path(target).name + '#probe-heading).\n')
+    report = validator.validate(copy)
+    assert report['ok'], report['errors']
+    text = (copy / target).read_text(encoding='utf-8')
+    (copy / target).write_text(text.replace('## Probe heading', '## Renamed probe'), encoding='utf-8')
+    report = validator.validate(copy)
+    assert not report['ok']
+    assert any(error.startswith(linking + ':') and 'missing anchor' in error and '#probe-heading' in error
+               for error in report['errors']), report['errors']
+
+
+def test_installed_file_outside_npm_files_breaks_validation(tmp_path):
+    validator, copy = source_copy(tmp_path)
+    new = copy / 'skills/orchi/templates/example.md'
+    new.parent.mkdir()
+    new.write_text('# Example\n', encoding='utf-8')
+    report = validator.validate(copy)
+    assert 'Installed file missing from the npm "files" allowlist: skills/orchi/templates/example.md' in report['errors']
+    package = json.loads((copy / 'package.json').read_text())
+    package['files'].append('skills/orchi/templates')
+    (copy / 'package.json').write_text(json.dumps(package, indent=2) + '\n')
+    report = validator.validate(copy)
+    assert report['ok'], report['errors']
+
+
+def test_npm_files_reject_stale_and_extra_entries(tmp_path):
+    validator, copy = source_copy(tmp_path)
+    package = json.loads((copy / 'package.json').read_text())
+    package['files'] += ['skills/orchi/missing', 'tests/**/*.py']
+    (copy / 'package.json').write_text(json.dumps(package, indent=2) + '\n')
+    errors = validator.validate(copy)['errors']
+    assert 'npm "files" entry matches no source file: skills/orchi/missing' in errors
+    assert 'npm "files" publishes a file the installer does not use: tests/test_packaging.py' in errors
+
+
+@pytest.mark.skipif(shutil.which('npm') is None, reason='npm is not installed')
+def test_npm_pack_publishes_what_validation_expects():
+    validator = load_tool('validate_package')
+    result = subprocess.run(['npm', 'pack', '--dry-run', '--json', '--ignore-scripts'], cwd=ROOT,
+                            capture_output=True, text=True, check=True)
+    packed = {entry['path'] for entry in json.loads(result.stdout)[0]['files']} - {'package.json'}
+    patterns = json.loads((ROOT / 'package.json').read_text())['files']
+    expected = {path.relative_to(ROOT).as_posix() for path in validator.files()}
+    assert packed == {path for path in expected if validator.published(patterns, path)}
+
+
+def test_repository_ci_is_not_an_installed_asset():
+    from orchi_core import installation
+    assert installation.GITHUB_ASSETS == ROOT / 'skills/orchi/assets/github'
+    assert '.github/workflows/ci.yml' not in installation.github_files()

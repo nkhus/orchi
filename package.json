@@ -1,6 +1,6 @@
 {
   "name": "@nkhus/orchi",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Install the Orchi development workflow skills and subagents for Codex, Copilot, and Claude Code.",
   "type": "module",
   "bin": {

@@ -29,7 +29,7 @@ The current directory is the installation target; use `--project /path/to/projec
 | Claude Code | `--agents claude` |
 | Copilot and Claude Code | `--agents copilot claude` |
 | All three | `--agents all` |
-| Choose interactively | Omit `--agents` in a terminal |
+| Choose interactively | Omit `--agents` in a terminal on the first installation |
 
 Adding another assistant later reuses the shared skill and preserves existing selections.
 
@@ -73,7 +73,8 @@ flowchart TD
     B --> C[Propose approach and scope]
     C --> D{User agrees?}
     D -->|No| B
-    D -->|Yes| E{Scope}
+    D -->|Yes| Q[Clarify readiness gaps with the user; log decisions]
+    Q --> E{Scope}
     E -->|Task| F[fix/* branch → PR to main]
     E -->|Epic| G[epic/* branch; Tasks in sequence → PR to main]
     E -->|Initiative| H[initiative/* branch; one epic/* PR per Epic → final PR to main]
@@ -98,18 +99,18 @@ For Claude Code and Codex, the installer renders four subagents from one shared 
 | Agent | Claude Code model / effort | Codex model / effort | Writes | Role |
 | --- | --- | --- | --- | --- |
 | `orchi-scout` | haiku / medium | gpt-6-luna / medium | nothing | Returns paths, line ranges, and excerpts |
-| `orchi-implementer` | opus / low | gpt-6-sol / low | one commit per Task | Runs the Task readiness gate, then implements and verifies one Epic Task |
+| `orchi-implementer` | opus / low | gpt-6-sol / low | one commit per Task | Runs the Task readiness gate, then implements and verifies one Task, standalone or in an Epic |
 | `orchi-fixer` | sonnet / medium | gpt-6-luna / high | one commit per Task or repair | Makes one small, fully specified change — a simple Task or a confirmed defect repair — and escalates anything larger |
-| `orchi-reviewer` | opus / high | gpt-6-sol / medium | nothing | Reviews an assembled Epic or a final Initiative candidate |
+| `orchi-reviewer` | opus / high | gpt-6-sol / medium | nothing | Reviews a standalone Task, an assembled Epic, or a final Initiative candidate |
 
-Subagents may start `orchi-scout` or `orchi-reviewer` for independent sub-questions; only the main session starts the writers `orchi-implementer` and `orchi-fixer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents.md)); for Codex the installer sets `[agents] max_depth = 3` in `.codex/config.toml`. If a model or agent is unavailable, the main session does the step itself.
+Implementers, fixers, and reviewers may start `orchi-scout` or `orchi-reviewer` for independent sub-questions, and scouts only other scouts; only the main session starts the writers `orchi-implementer` and `orchi-fixer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents)); for Codex the installer sets `[agents] max_depth = 3` in `.codex/config.toml`. If a model or agent is unavailable, the main session does the step itself.
 
 Two explicit entry skills fix the order of steps; they are conveniences, not a required facade:
 
-- `orchi-plan` (`/orchi-plan <request>` in Claude Code, `$orchi-plan <request>` in Codex) researches, proposes a scope, waits for agreement, creates ready Issues, and ends with `Deliver with: /orchi-deliver #<n>`.
+- `orchi-plan` (`/orchi-plan <request>` in Claude Code, `$orchi-plan <request>` in Codex) researches, proposes a scope, and waits for agreement. It then clarifies before tracking: each gap the readiness checklist would otherwise force it to guess becomes a question with answerable options and a recommendation, asked in rounds and recorded in a decision log; questions the user has delegated, the main session decides itself and records. Finally it creates ready Issues and ends with `Deliver with: /orchi-deliver #<n>`.
 - `orchi-deliver` (`/orchi-deliver #<n> [--merge-epics]` or `$orchi-deliver #<n> [--merge-epics]`) delivers a standalone Task, Epic, or Initiative through the subagents and resumes interrupted delivery. It never merges into main; `--merge-epics` allows merging reviewed Epic PRs into their Initiative branch.
 
-Both enforce the [readiness checklists](skills/orchi/references/readiness.md) for Tasks, Epics, and Initiatives. GitHub Copilot uses the same workflow without subagents.
+Both enforce the [readiness checklists](skills/orchi/references/readiness.md) for Tasks, Epics, and Initiatives: `orchi-plan` checks every Issue it creates, and `orchi-deliver` checks the Task, Epic, or Initiative again before delivering it. GitHub Copilot uses the same workflow without subagents.
 
 ## Project instructions
 
@@ -123,8 +124,9 @@ Both enforce the [readiness checklists](skills/orchi/references/readiness.md) fo
 | `.claude/skills/orchi*` | Relative links to the shared skills, when Claude is selected |
 | `.claude/agents/orchi-*.md` | Rendered subagents, when Claude is selected |
 | `.codex/agents/orchi-*.toml`, `.codex/config.toml` | Rendered subagents and a managed `[agents] max_depth = 3` block, when Codex is selected |
-| `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml` | Issue forms and documentation check, with `--github` |
+| `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml` | Issue forms and documentation check, with `--github`; reinstalling replaces unmodified files; edited ones are conflicts that need `--replace-orchi` |
 | PR template | Managed Summary, Verification, Documentation impact, and Handoff sections, with `--github` |
+| `.agents/.orchi-install.json` | Installation manifest: the installed version, selected assistants and options, and the managed files (with hashes), links, and sections that reinstalling and uninstalling rely on |
 
 The installer preserves your existing instruction text. It maintains only the section between `<!-- orchi:begin -->` and `<!-- orchi:end -->` and refuses to overwrite a locally edited managed section. Repository instructions take precedence over Orchi's defaults, so an existing issue template or check command keeps working.
 

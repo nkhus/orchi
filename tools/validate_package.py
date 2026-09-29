@@ -14,16 +14,58 @@ SKILLS = ('orchi', 'orchi-plan', 'orchi-deliver')
 # Only the workflow skill loads implicitly; the entry skills run when the user invokes them.
 IMPLICIT = {'orchi'}
 IGNORED = {'__pycache__', '.pytest_cache', '.venv', '.git', 'reports', 'build', 'dist', 'node_modules'}
-PACKAGE_FILES = ['bin/orchi.js', 'tools/install.py', 'skills/orchi/SKILL.md', 'skills/orchi/agents/openai.yaml',
-                 'skills/orchi/assets', 'skills/orchi/references', 'skills/orchi/roles', 'skills/orchi/scripts/**/*.py',
-                 'skills/orchi-plan', 'skills/orchi-deliver', 'README.md']
+# The npm package publishes the installed skills plus these wrapper files, and nothing else.
+WRAPPER_FILES = {'bin/orchi.js', 'tools/install.py'}
+PUBLISHED_EXTRAS = {'README.md'}
 SKILL_LINES = 100
+sys.path.insert(0, str(ROOT / 'skills/orchi/scripts'))
+import knowledge  # noqa: E402  (the installed link/anchor lint, reused rather than reimplemented)
 
 
-def files() -> list[Path]:
-    return [p for p in sorted(ROOT.rglob('*')) if p.is_file()
-            and not any(part in IGNORED or part.endswith('.egg-info') for part in p.relative_to(ROOT).parts)
+def files(root: Path = ROOT) -> list[Path]:
+    return [p for p in sorted(root.rglob('*')) if p.is_file()
+            and not any(part in IGNORED or part.endswith('.egg-info') for part in p.relative_to(root).parts)
             and p.suffix not in {'.pyc', '.pyo'}]
+
+
+class SourceDocuments(knowledge.Documents):
+    """The validated source files as a knowledge.py document set, so links and anchors use its lint."""
+
+    def __init__(self, root: Path, source_files: list[Path]):
+        self.root, self.revision = root, None
+        self.paths = {p.relative_to(root).as_posix() for p in source_files}
+        self.names = sorted(p for p in self.paths if p.endswith('.md'))
+
+
+def glob_pattern(pattern: str) -> re.Pattern:
+    """An npm `files` entry: `**` spans directories, `*` and `?` stay within one path segment."""
+    parts = re.split(r'(\*\*/|\*\*|\*|\?)', pattern.strip('/'))
+    tokens = {'**/': '(?:[^/]+/)*', '**': '.*', '*': '[^/]*', '?': '[^/]'}
+    return re.compile(''.join(tokens.get(part, re.escape(part)) for part in parts))
+
+
+def published(patterns: list[str], path: str) -> bool:
+    """Whether npm publishes a path: it matches an entry, or lies inside a directory an entry matches."""
+    prefixes = [path.split('/')[:n] for n in range(1, path.count('/') + 2)]
+    return any(glob_pattern(pattern).fullmatch('/'.join(prefix)) for pattern in patterns for prefix in prefixes)
+
+
+def package_file_errors(root: Path, patterns: list, source_files: list[Path]) -> list[str]:
+    """Every installed file is published, every entry matches something, and nothing else is published."""
+    from orchi_core import installation
+    if not isinstance(patterns, list) or not all(isinstance(p, str) and p for p in patterns):
+        return ['package.json "files" must be a list of path patterns']
+    required = set(WRAPPER_FILES)
+    for name in installation.NAMES:
+        required.update(f'skills/{name}/{relative}' for relative in installation.inventory(root / 'skills' / name))
+    sources = [p.relative_to(root).as_posix() for p in source_files]
+    errors = ['Installed file missing from the npm "files" allowlist: ' + path
+              for path in sorted(required) if not published(patterns, path)]
+    errors += ['npm "files" entry matches no source file: ' + pattern
+               for pattern in patterns if not any(published([pattern], path) for path in sources)]
+    errors += ['npm "files" publishes a file the installer does not use: ' + path for path in sources
+               if published(patterns, path) and path not in required | PUBLISHED_EXTRAS]
+    return errors
 
 
 def third_party_imports(text: str) -> set[str]:
@@ -38,7 +80,6 @@ def third_party_imports(text: str) -> set[str]:
 
 def validate_roles() -> tuple[list[str], int]:
     """Every role source renders to a Claude agent and a Codex agent that parse back to its instructions."""
-    sys.path.insert(0, str(ROOT / 'skills/orchi/scripts'))
     from orchi_core import roles
     errors: list[str] = []
     try:
@@ -65,15 +106,15 @@ def validate_roles() -> tuple[list[str], int]:
     return errors, len(loaded)
 
 
-def validate() -> dict:
+def validate(root: Path = ROOT) -> dict:
     errors: list[str] = []
     compiled = 0
-    source_files = files()
-    if sorted(p.name for p in (ROOT / 'skills').iterdir() if p.is_dir()) != sorted(SKILLS):
+    source_files = files(root)
+    if sorted(p.name for p in (root / 'skills').iterdir() if p.is_dir()) != sorted(SKILLS):
         errors.append('Unexpected skill set')
     for name in SKILLS:
         try:
-            folder = ROOT / 'skills' / name
+            folder = root / 'skills' / name
             text = (folder / 'SKILL.md').read_text()
             metadata = yaml.safe_load(text.split('---', 2)[1])
             ui = yaml.safe_load((folder / 'agents/openai.yaml').read_text())
@@ -88,7 +129,7 @@ def validate() -> dict:
                 errors.append('Entry skill must be explicit-only: ' + name)
         except (OSError, ValueError, KeyError, IndexError, TypeError) as exc: errors.append(name + ': ' + str(exc))
     for file in source_files:
-        rel = file.relative_to(ROOT).as_posix()
+        rel = file.relative_to(root).as_posix()
         try: text = file.read_text(encoding='utf-8')
         except (OSError, UnicodeError) as exc:
             errors.append(rel + ': ' + str(exc)); continue
@@ -113,24 +154,23 @@ def validate() -> dict:
             for link in re.findall(r'\]\(([^\s)]+)\)', prose):
                 if ':' in link or link.startswith('#'): continue
                 target = (file.parent / link.split('#')[0]).resolve()
-                if not target.exists(): errors.append(rel + ': missing ' + link)
-                if file.relative_to(ROOT).parts[0] == 'skills' and not target.is_relative_to(ROOT / 'skills'):
+                if file.relative_to(root).parts[0] == 'skills' and not target.is_relative_to(root / 'skills'):
                     errors.append(rel + ': installed reference escapes the skill bundle: ' + link)
+    # Skills route agents by heading anchors, so a renamed heading must fail like a missing file.
+    errors.extend(knowledge.lint(SourceDocuments(root, source_files)))
     role_errors, role_count = validate_roles()
     errors.extend(role_errors)
-    config = tomllib.loads((ROOT / 'pyproject.toml').read_text())
+    config = tomllib.loads((root / 'pyproject.toml').read_text())
     if 'project' in config or 'build-system' in config:
         errors.append('The installed skill must not require a Python application package')
     try:
-        package = json.loads((ROOT / 'package.json').read_text())
+        package = json.loads((root / 'package.json').read_text())
         if package.get('name') != '@nkhus/orchi' or package.get('bin') != {'orchi': 'bin/orchi.js'}:
             errors.append('Invalid npm installer identity or executable')
-        sys.path.insert(0, str(ROOT / 'skills/orchi/scripts'))
         from orchi_core.agents import VERSION
         if package.get('version') != VERSION:
             errors.append('package.json version differs from the bundled installer version')
-        if package.get('files') != PACKAGE_FILES:
-            errors.append('The npm publish allowlist must contain only installer resources')
+        errors.extend(package_file_errors(root, package.get('files'), source_files))
         if package.get('dependencies') or package.get('devDependencies'):
             errors.append('The npm installer must remain dependency-free')
         if {'preinstall', 'install', 'postinstall'} & package.get('scripts', {}).keys():
@@ -138,7 +178,7 @@ def validate() -> dict:
     except (OSError, ValueError, TypeError) as exc:
         errors.append('package.json: ' + str(exc))
     for unwanted in ('CHANGELOG.md', 'CHECKSUMS.json', 'schemas'):
-        if (ROOT / unwanted).exists(): errors.append('Unexpected source artifact: ' + unwanted)
+        if (root / unwanted).exists(): errors.append('Unexpected source artifact: ' + unwanted)
     return {'ok': not errors, 'errors': errors, 'python_files_compiled': compiled,
             'skills': len(SKILLS), 'roles': role_count, 'files': len(source_files)}
 

@@ -1,6 +1,6 @@
 # Contributing
 
-Use English for source documentation, instructions, examples, diagnostics, and tests. Describe the implemented system directly. Keep product release labels, changelogs, historical design comparisons, and generated logs out of the source package.
+Use English for source documentation, instructions, examples, diagnostics, and tests. Describe the implemented system directly. Keep product release labels, changelogs, historical design comparisons, and generated logs out of the source package. The one exception is version-specific upgrade notes in the [Upgrading](docs/installation.md#upgrading) section of the installation guide, which tell users what a reinstall changes and what they must do when coming from an earlier version.
 
 ## Development environment
 

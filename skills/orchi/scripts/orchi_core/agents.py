@@ -1,7 +1,7 @@
 """Assistant identities and skill names shared by installation."""
 from __future__ import annotations
 
-VERSION = "0.5.1"
+VERSION = "0.6.0"
 AGENTS = ("codex", "copilot", "claude")
 ALIASES = {"github-copilot": "copilot", "claude-code": "claude"}
 SKILLS = ("orchi", "orchi-plan", "orchi-deliver")
