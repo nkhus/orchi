@@ -4,8 +4,8 @@ Use after research and direction agreement. Read the actual integration branch,
 relevant code, owning documentation, and completed dependency results. A plan
 describes intended behavior; it is not evidence that behavior exists.
 
-Plan proportionately. A fix still needs context, requirements, a short solution
-vision, acceptance, and verification in its Task. An Epic needs the design below in its issue or a linked branch document,
+Plan proportionately. A fix still needs a Task that passes the Task readiness
+checklist; keep each answer short. An Epic needs the design below in its issue or a linked branch document,
 then its Tasks. Do not create a planning Task per field or empty design documents.
 
 ## Clarify with the user

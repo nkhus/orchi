@@ -46,7 +46,7 @@ state; installing packages; running tests or builds.
   PRs.
 - Their reports are claims: verify what you rely on before you report it.
 - If you cannot start an agent (depth limit or host), do the work yourself.
-- Start only `orchi-scout` or `orchi-reviewer`. The main session alone starts
+- Start only `orchi-scout`. The main session alone starts
   `orchi-implementer` and `orchi-fixer`.
 
 ## Method

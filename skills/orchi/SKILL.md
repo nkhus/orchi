@@ -53,8 +53,10 @@ create placeholder parents for small work.
 - Update documentation with the code, in the same branch. Never present planned
   behavior as current behavior.
 - Record checks, outcomes, and the candidate commit in the PR. Review each
-  assembled Epic once, then repair demonstrated blockers with a targeted follow-up.
-- Squash-merge. Close issues only after confirming the merge. Do not infer merge
+  standalone Task and each assembled Epic once, then repair demonstrated
+  blockers with a targeted follow-up.
+- Squash-merge. Close Epics, Initiatives, and standalone Tasks only after
+  confirming the merge; close Epic Tasks as the execution reference says. Do not infer merge
   or deployment permission from permission to implement.
 - If GitHub is unavailable, say so. Local drafts may continue, but never claim
   that tracking or ownership exists remotely when it does not.
@@ -80,7 +82,7 @@ are optional explicit entry points: `/orchi-plan` and `/orchi-deliver` in Claude
 Code, `$orchi-plan` and `$orchi-deliver` in Codex. The rules above apply without
 them. In Claude Code and Codex the main session may delegate to the installed
 subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
-`orchi-implementer` executes one ready Epic Task, `orchi-fixer` makes one small,
+`orchi-implementer` executes one ready Task, `orchi-fixer` makes one small,
 fully specified change (a simple Task or a confirmed defect repair), and
 `orchi-reviewer` reviews.
 Subagents never talk to the user, change Issues, push, or merge; their reports
