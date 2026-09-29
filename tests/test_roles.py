@@ -124,8 +124,10 @@ def test_shipped_roles_have_agreed_models_and_nesting():
             claude_model, effort, codex_model, codex_effort)
         assert claude["tools"] == tools
         assert "## Nested agents" in role.body
-        assert "The main session alone starts\n  `orchi-implementer` and `orchi-fixer`." in role.body
-        assert "Only `orchi-implementer` and `orchi-fixer` edit files or commit." in role.body
+        # Compare prose with whitespace collapsed so rewrapping the role text does not fail the check.
+        prose = " ".join(role.body.split())
+        assert "The main session alone starts `orchi-implementer` and `orchi-fixer`." in prose
+        assert "Only `orchi-implementer` and `orchi-fixer` edit files or commit." in prose
         assert "spawn" not in role.body.lower()
         # Project-neutral: installed roles reach Orchi files only through the placeholder.
         assert ".github/AGENTS.md" not in role.body and ".agents/skills/orchi" not in role.body

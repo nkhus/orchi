@@ -54,6 +54,11 @@ def load(name):
     return yaml.safe_load((TEMPLATES / f"orchi-{name}.yml").read_text())
 
 
+def flat(text):
+    """Collapse whitespace so rewrapped template prose still matches."""
+    return " ".join(text.split())
+
+
 def checklist(title):
     section = READINESS.read_text().split(f"## {title}\n", 1)[1].split("\n## ", 1)[0]
     return [int(number) for number in re.findall(r"^(\d+)\. ", section, flags=re.M)]
@@ -82,19 +87,20 @@ def test_every_readiness_item_has_a_template_field(name, title, mapping):
     fields = {item["id"]: item for item in load(name)["body"] if item["type"] != "markdown"}
     for number, (field, phrases) in mapping.items():
         attributes = fields[field]["attributes"]
-        text = (attributes["label"] + " " + attributes.get("description", "")).casefold()
+        text = flat(attributes["label"] + " " + attributes.get("description", "")).casefold()
         for phrase in phrases:
             assert phrase in text, f"{title} item {number} is not covered by field {field}: {phrase!r}"
 
 
 def test_templates_point_to_the_readiness_reference():
-    assert "Task readiness checklist in Orchi's readiness reference" in load("task")["body"][0]["attributes"]["value"]
-    intro = load("epic")["body"][0]["attributes"]["value"]
+    assert "Task readiness checklist in Orchi's readiness reference" in flat(load("task")["body"][0]["attributes"]["value"])
+    intro = flat(load("epic")["body"][0]["attributes"]["value"])
     assert "Epic readiness checklist in Orchi's readiness reference" in intro and "Deferred until #<n>" in intro
-    assert "Initiative readiness checklist in Orchi's readiness reference" in load("initiative")["body"][0]["attributes"]["value"]
+    assert "Initiative readiness checklist in Orchi's readiness reference" in flat(
+        load("initiative")["body"][0]["attributes"]["value"])
 
 
 @pytest.mark.parametrize("name", ["task", "epic", "initiative"])
 def test_templates_address_agent_owners(name):
-    intro = load(name)["body"][0]["attributes"]["value"]
+    intro = flat(load(name)["body"][0]["attributes"]["value"])
     assert "agent owner" in intro and "planning conversation" in intro

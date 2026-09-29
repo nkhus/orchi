@@ -135,9 +135,15 @@ python3 .agents/skills/orchi/scripts/orchi_install.py --project "$PWD" --agents 
 
 Rerun the installation command. The manifest records the installed version; `python3 .agents/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy can add assistants but cannot fetch a newer version, so upgrades come from `npx` or a source checkout.
 
+### From 0.3.x or 0.4.x to 0.5.x
+
+- **Issue forms.** With `--github`, reinstalling replaces unmodified `orchi-task.yml`, `orchi-epic.yml`, and `orchi-initiative.yml` forms with the current ones, which have a field for every readiness checklist item. A locally edited form is a conflict: review the differences, keep project-specific fields in your own template, then rerun with `--replace-orchi`, which backs the form up first.
+- **Readiness checklists.** The Task checklist now has 13 items and the Epic checklist 12, including numbered requirements, a solution vision, and a decision log, and Initiatives have their own checklist. `orchi-implementer` and `orchi-fixer` may report `NOT READY` for open Issues written against the earlier checklists. Re-check open Task, Epic, and Initiative Issues against the [readiness checklists](../skills/orchi/references/readiness.md) and fill the gaps before delivering them.
+- **`orchi-fixer` agent.** Added in 0.4.0; reinstalling from 0.3.x renders it for Claude Code and Codex when they are selected. An existing agent file with that name is a conflict that needs `--replace-orchi`.
+
 ### From the single-skill layout
 
-Versions 0.2.x installed only the `orchi` skill. Reinstalling adds the entry skills, the rendered subagents, and, for Codex, the `.codex/config.toml` block. A repository that added its own `.agents/skills/orchi-plan/` or `orchi-deliver/`, or its own `orchi-scout`, `orchi-implementer`, or `orchi-reviewer` agent files, gets a conflict: review the differences, move project-specific rules into the repository's own instructions (Orchi's readiness checklists apply together with any stricter project checklist), then rerun with `--replace-orchi`, which backs the files up first.
+Versions 0.2.x installed only the `orchi` skill. Reinstalling adds the entry skills, the rendered subagents, and, for Codex, the `.codex/config.toml` block. A repository that added its own `.agents/skills/orchi-plan/` or `orchi-deliver/`, or its own `orchi-scout`, `orchi-implementer`, `orchi-fixer`, or `orchi-reviewer` agent files, gets a conflict: review the differences, move project-specific rules into the repository's own instructions (Orchi's readiness checklists apply together with any stricter project checklist), then rerun with `--replace-orchi`, which backs the files up first.
 
 `--replace-orchi` does not resolve conflicting skill links or aliases. A real directory or a link to another target at `.claude/skills/orchi-plan` or `.claude/skills/orchi-deliver` (or `~/.claude/skills/...` user-wide), or a Copilot skill under `.github/skills/` or `~/.copilot/skills/` with one of those names, stops the installation; move or remove it by hand, then rerun. A relative symlink to `../../.agents/skills/<name>` is adopted as is.
 
