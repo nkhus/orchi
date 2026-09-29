@@ -61,18 +61,23 @@ or rewrite existing issues merely to tidy the hierarchy without user authorizati
 
 ## Issue content
 
-Keep bodies short and link authoritative documents and stable requirement IDs
-instead of copying them.
+Write bodies for agent owners, per
+[Write Issues for agents](planning.md#write-issues-for-agents). Put the context,
+requirements, solution vision, and decisions in the body; link authoritative
+documents and stable requirement IDs instead of copying them.
 
-- **Initiative:** original request, agreed outcome, and a link to the plan on the
+- **Initiative:** original request, agreed outcome, requirements, decisions,
+  Epic map, integration and completion, and a link to the plan on the
   Initiative branch.
-- **Epic:** outcome; sources; in and out of scope; design or a link to it; direct
-  dependencies; exit criteria; open questions.
-- **Task:** parent; one reviewable outcome; sources; acceptance and verification;
-  dependencies not implied by Task order.
+- **Epic:** outcome; sources; context and current state; in and out of scope;
+  requirements; design or a link to it; decisions; direct dependencies; exit
+  criteria; open questions.
+- **Task:** parent; one reviewable outcome; context; requirements; solution
+  vision; decisions; sources; acceptance and verification; dependencies not
+  implied by Task order.
 
-The [readiness checklists](readiness.md) define what a Task or Epic must contain
-before delivery. A repository's own stricter checklist applies in addition.
+The [readiness checklists](readiness.md) define what a Task, Epic, or Initiative
+must contain before delivery. A repository's own stricter checklist applies in addition.
 
 ## Pull requests
 
