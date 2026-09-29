@@ -1,7 +1,7 @@
 """Readiness classification and pagination of the read-only status overview."""
 import json
 
-from status import classify, main, render, report
+from status import QUERY, classify, fetch, main, render, report
 
 
 def blocker(number, state='CLOSED', reason='COMPLETED', merged=None):
@@ -86,3 +86,29 @@ def test_cli_paginates_and_resolves_repository(capsys):
 def test_cli_reports_errors(capsys):
     assert main(['--repo', 'not-a-repo'], lambda args: '') == 2
     assert 'OWNER/NAME' in capsys.readouterr().err
+
+
+def test_lowercase_epic_label_is_an_epic():
+    epic = classify(issue(1, label='epic', parent=8, title='[PAY][TOKEN] Tokenize', parent_title='[PAY] Card payments'))
+    assert epic is not None and epic['kind'] == 'Epic' and epic['tasks'] == {'closed': 0, 'total': 0}
+    assert classify(issue(2, label='EPIC'))['kind'] == 'Epic'
+
+
+def test_graphql_variables_stay_strings():
+    calls = []
+    pages = iter([{'hasNextPage': True, 'endCursor': '123'}, {'hasNextPage': False, 'endCursor': None}])
+
+    def run(args):
+        calls.append(args)
+        return json.dumps({'data': {'repository': {'issues': {'pageInfo': next(pages), 'nodes': []}}}})
+
+    assert fetch('true/2048', run) == []
+    assert '-F' not in calls[0] + calls[1]
+    for value in ('owner=true', 'name=2048'):
+        assert calls[0][calls[0].index(value) - 1] == '-f'
+    assert calls[1][calls[1].index('cursor=123') - 1] == '-f'
+
+
+def test_blocker_timeline_requests_the_most_recent_events():
+    # A merged PR is usually a late event on a long-lived blocker; the oldest events alone would miss it.
+    assert 'timelineItems(last: 50,' in QUERY and 'timelineItems(first:' not in QUERY

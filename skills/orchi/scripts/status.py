@@ -25,7 +25,7 @@ query($owner: String!, $name: String!, $cursor: String) {
           number title state stateReason body
           closedByPullRequestsReferences(first: 10, includeClosedPrs: true) {
             nodes { number merged baseRefName } }
-          timelineItems(first: 30, itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT]) { nodes {
+          timelineItems(last: 50, itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT]) { nodes {
             ... on CrossReferencedEvent { source { ... on PullRequest { number merged baseRefName headRefName } } }
             ... on ConnectedEvent { subject { ... on PullRequest { number merged baseRefName headRefName } } }
           } }
@@ -49,6 +49,11 @@ def gh(args: list[str]) -> str:
 
 def names(connection: dict | None, key: str) -> list[str]:
     return [node[key] for node in (connection or {}).get('nodes', [])]
+
+
+def labelled(labels: list[str], name: str) -> bool:
+    # GitHub label names are unique regardless of case, and the installer reuses an existing `epic` label.
+    return any(label.casefold() == name.casefold() for label in labels)
 
 
 def claimed(labels: list[str]) -> bool:
@@ -120,7 +125,7 @@ def blocker_state(node: dict) -> tuple[str, str]:
 def classify(issue: dict) -> dict | None:
     """Return an entry-point summary, or None for Tasks that belong to a parent."""
     labels = names(issue.get('labels'), 'name')
-    kind = 'Epic' if 'Epic' in labels else 'Task'
+    kind = 'Epic' if labelled(labels, 'Epic') else 'Task'
     if kind == 'Task' and issue.get('parent'):
         return None
     blockers = []
@@ -152,9 +157,10 @@ def fetch(repo: str, run: Runner = gh) -> list[dict]:
         raise ValueError('Repository must be OWNER/NAME: ' + repo)
     issues, cursor = [], None
     while True:
-        args = ['api', 'graphql', '-f', 'query=' + QUERY, '-F', 'owner=' + owner, '-F', 'name=' + name]
+        # -f keeps variables strings; -F would turn a repository named 2048 or true into a number or boolean.
+        args = ['api', 'graphql', '-f', 'query=' + QUERY, '-f', 'owner=' + owner, '-f', 'name=' + name]
         if cursor:
-            args += ['-F', 'cursor=' + cursor]
+            args += ['-f', 'cursor=' + cursor]
         page = json.loads(run(args))['data']['repository']['issues']
         issues += page['nodes']
         if not page['pageInfo']['hasNextPage']:

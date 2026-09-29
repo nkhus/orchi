@@ -166,6 +166,39 @@ def test_installed_installer_adds_agent_without_source_checkout(tmp_path):
     assert (tmp_path / ".claude/skills/orchi/scripts/knowledge.py").is_file()
 
 
+def run_installed_copy(root, *args):
+    script = root / ".agents/skills/orchi/scripts/orchi_install.py"
+    return subprocess.run([sys.executable, str(script), "--project", str(root), *args], capture_output=True, text=True,
+                          cwd=root, env={key: value for key, value in os.environ.items() if key != "PYTHONPATH"})
+
+
+def test_installed_copy_keeps_local_skill_edits_as_conflicts(tmp_path):
+    installation.install(tmp_path, agents=["claude"])
+    manifest_path = tmp_path / ".agents/.orchi-install.json"
+    recorded = manifest_path.read_bytes()
+    skill = tmp_path / ".agents/skills/orchi/SKILL.md"
+    skill.write_text(skill.read_text() + "\nLocal rule\n")
+    result = run_installed_copy(tmp_path, "--agents", "copilot")
+    assert result.returncode == 2 and "Existing Orchi content differs: orchi." in json.loads(result.stdout)["error"]
+    assert json.loads(run_installed_copy(tmp_path, "--dry-run").stdout)["conflicts"] == ["orchi"]
+    assert manifest_path.read_bytes() == recorded
+    # The next upstream upgrade still sees the edit instead of overwriting it.
+    with pytest.raises(ValueError, match="differs: orchi"):
+        installation.install(tmp_path)
+    assert skill.read_text().endswith("Local rule\n")
+
+
+def test_installed_copy_replace_accepts_the_edited_skill(tmp_path):
+    installation.install(tmp_path, agents=["claude"])
+    skill = tmp_path / ".agents/skills/orchi/SKILL.md"
+    skill.write_text(skill.read_text() + "\nLocal rule\n")
+    result = run_installed_copy(tmp_path, "--replace-orchi")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert skill.read_text().endswith("Local rule\n")
+    manifest = json.loads((tmp_path / ".agents/.orchi-install.json").read_text())
+    assert manifest["skills"]["orchi"] == installation.inventory(tmp_path / ".agents/skills/orchi")
+
+
 def test_cli_rejects_invalid_selection_and_scope_without_mutation(tmp_path, capsys):
     assert installation.main(["--project", str(tmp_path), "--agents", "unknown"]) == 2
     assert not list(tmp_path.iterdir())
@@ -190,6 +223,21 @@ def test_existing_override_instructions_receive_and_release_managed_block(tmp_pa
     assert override.read_text() == "Override rules"
 
 
+@pytest.mark.parametrize("uninstall", [False, True])
+def test_deleted_managed_override_is_dropped_from_the_manifest(tmp_path, uninstall):
+    override = tmp_path / "AGENTS.override.md"
+    override.write_text("Override rules")
+    installation.install(tmp_path, agents=["codex"])
+    override.unlink()
+    result = installation.install(tmp_path, uninstall=uninstall)
+    assert result["status"] == ("removed" if uninstall else "installed") and not override.exists()
+    if uninstall:
+        assert not (tmp_path / ".agents/.orchi-install.json").exists() and not (tmp_path / "AGENTS.md").exists()
+    else:
+        assert list(json.loads((tmp_path / ".agents/.orchi-install.json").read_text())["instructions"]) == ["AGENTS.md"]
+        assert installation.install(tmp_path)["status"] == "unchanged"
+
+
 def test_global_staging_and_backup_stay_inside_home(tmp_path, monkeypatch):
     home = tmp_path / "home"; home.mkdir()
     (home / ".claude").mkdir()
@@ -208,6 +256,26 @@ def test_interactive_selection_accepts_multiple_numbers(tmp_path, monkeypatch, c
     monkeypatch.setattr("builtins.input", lambda: "2, 3")
     assert installation.main(["--project", str(tmp_path)]) == 0
     assert json.loads(capsys.readouterr().out)["agents"] == ["copilot", "claude"]
+
+
+def test_interactive_empty_answer_selects_codex_on_first_installation(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(installation.sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr("builtins.input", lambda: "")
+    assert installation.main(["--project", str(tmp_path)]) == 0
+    assert json.loads(capsys.readouterr().out)["agents"] == ["codex"]
+
+
+def test_interactive_reinstall_keeps_recorded_selection_without_asking(tmp_path, monkeypatch, capsys):
+    installation.install(tmp_path, agents=["claude"])
+    assert installation.asks_selection(tmp_path, None, False, True) is False
+    assert installation.asks_selection(tmp_path / "new", None, False, True) is True
+    monkeypatch.setattr(installation.sys.stdin, "isatty", lambda: True)
+    def unexpected():
+        raise AssertionError("the picker must not appear on reinstallation")
+    monkeypatch.setattr("builtins.input", unexpected)
+    assert installation.main(["--project", str(tmp_path)]) == 0
+    assert json.loads(capsys.readouterr().out)["agents"] == ["claude"]
+    assert not (tmp_path / ".codex").exists()
 
 
 def test_global_cli_uses_home_without_editing_current_project(tmp_path, monkeypatch, capsys):

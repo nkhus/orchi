@@ -266,6 +266,13 @@ def install(project: Path, replace: bool = False, dry: bool = False,
                 if existing != previous.get("skills", {}).get(name):
                     raise ValueError("Modified skill must be preserved before uninstalling: " + name)
                 replacements[relative] = ("remove", None)
+        elif existing is not None and (SOURCE / name).resolve() == target.resolve():
+            # Run from this installed copy: its files are not a pristine bundle, so keep the recorded hashes and
+            # treat local edits as conflicts; --replace-orchi accepts the edited copy as the installed bundle.
+            recorded = previous.get("skills", {}).get(name)
+            if existing != recorded:
+                conflicts.append(name)
+            desired[name] = existing if replace else recorded
         elif existing != desired[name]:
             # An unmodified managed copy updates in place; local edits need explicit replacement.
             if existing is not None and existing != previous.get("skills", {}).get(name):
@@ -333,7 +340,9 @@ def install(project: Path, replace: bool = False, dry: bool = False,
     links = {relative: destination for relative, destination in links.items() if Path(relative).name not in LEGACY_SKILLS}
 
     managed = {}
-    old_blocks = previous.get("instructions", {})
+    # A managed instruction file the user deleted has nothing left to update or remove.
+    old_blocks = {relative: entry for relative, entry in previous.get("instructions", {}).items()
+                  if (root / relative).exists() or (root / relative).is_symlink()}
     bodies = instruction_blocks(root, selected, global_scope, pr_template_path(root, old_blocks) if github else None)
     for relative in old_blocks:
         if relative not in bodies:
@@ -475,6 +484,11 @@ def apply_changes(root: Path, changes: dict, desired: dict, global_scope: bool =
     return {"backup": str(backup) if moved else None}
 
 
+def asks_selection(root: Path, agents: list[str] | None, uninstall: bool, interactive: bool) -> bool:
+    """Offer the picker only on a first interactive installation; later runs keep the recorded selection."""
+    return agents is None and interactive and not uninstall and not (root / MANIFEST).exists()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Install one shared Orchi bundle for selected coding assistants.")
     scope = parser.add_mutually_exclusive_group()
@@ -502,13 +516,13 @@ def main(argv: list[str] | None = None) -> int:
                           "upgrade": "npx --yes github:nkhus/orchi" + (" --global" if args.global_scope else "")}, indent=2))
         return 0
     try:
+        root = Path.home() if args.global_scope else args.project or Path.cwd()
         agents = args.agents
-        if agents is None and sys.stdin.isatty() and not args.uninstall:
+        if asks_selection(root, agents, args.uninstall, sys.stdin.isatty()):
             print("Assistants: 1 Codex, 2 Copilot, 3 Claude Code. Enter names/numbers separated by spaces, or all [codex]:", file=sys.stderr)
             choices = input().replace(",", " ").split() or ["codex"]
             agents = [{"1": "codex", "2": "copilot", "3": "claude"}.get(item, item) for item in choices]
-        result = install(Path.home() if args.global_scope else args.project or Path.cwd(),
-                         args.replace_orchi, args.dry_run, agents, args.global_scope, args.uninstall, args.github,
+        result = install(root, args.replace_orchi, args.dry_run, agents, args.global_scope, args.uninstall, args.github,
                          args.docs_workflow)
         print(json.dumps(result, indent=2))
         return 0
