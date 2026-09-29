@@ -4,7 +4,7 @@
 
 **Research first. Agree the scope. Deliver through branches and GitHub Issues.**
 
-Orchi is a development convention packaged as one agent skill, with two optional entry skills and three model-tiered subagents. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. Install it for **Codex**, **GitHub Copilot**, **Claude Code**, or any combination of the three.
+Orchi is a development convention packaged as one agent skill, with two optional entry skills and four model-tiered subagents. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. Install it for **Codex**, **GitHub Copilot**, **Claude Code**, or any combination of the three.
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [Subagents and entry skills](#subagents-and-entry-skills) · [Project instructions](#project-instructions) · [Documentation](#documentation)
 
@@ -93,15 +93,16 @@ The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references co
 
 ## Subagents and entry skills
 
-For Claude Code and Codex, the installer renders three subagents from one shared definition each in [`skills/orchi/roles/`](skills/orchi/roles/README.md). The main session talks to the user, owns Issues, pushes, and merges; it may delegate retrieval, one Epic Task at a time, and review.
+For Claude Code and Codex, the installer renders four subagents from one shared definition each in [`skills/orchi/roles/`](skills/orchi/roles/README.md). The main session talks to the user, owns Issues, pushes, and merges; it may delegate retrieval, one Task or defect repair at a time, and review.
 
 | Agent | Claude Code model / effort | Codex model / effort | Writes | Role |
 | --- | --- | --- | --- | --- |
 | `orchi-scout` | haiku / medium | gpt-6-luna / medium | nothing | Returns paths, line ranges, and excerpts |
 | `orchi-implementer` | opus / low | gpt-6-sol / low | one commit per Task | Runs the Task readiness gate, then implements and verifies one Epic Task |
+| `orchi-fixer` | sonnet / medium | gpt-6-luna / high | one commit per Task or repair | Makes one small, fully specified change — a simple Task or a confirmed defect repair — and escalates anything larger |
 | `orchi-reviewer` | opus / high | gpt-6-sol / medium | nothing | Reviews an assembled Epic or a final Initiative candidate |
 
-Subagents may start `orchi-scout` or `orchi-reviewer` for independent sub-questions; only the main session starts `orchi-implementer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents.md)); for Codex the installer sets `[agents] max_depth = 3` in `.codex/config.toml`. If a model or agent is unavailable, the main session does the step itself.
+Subagents may start `orchi-scout` or `orchi-reviewer` for independent sub-questions; only the main session starts the writers `orchi-implementer` and `orchi-fixer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents.md)); for Codex the installer sets `[agents] max_depth = 3` in `.codex/config.toml`. If a model or agent is unavailable, the main session does the step itself.
 
 Two explicit entry skills fix the order of steps; they are conveniences, not a required facade:
 

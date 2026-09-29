@@ -42,8 +42,8 @@ Each role in `.agents/skills/orchi/roles/` is rendered for the selected assistan
 
 | Assistant | Files |
 | --- | --- |
-| Claude Code | `.claude/agents/orchi-scout.md`, `orchi-implementer.md`, `orchi-reviewer.md` |
-| Codex | `.codex/agents/orchi-scout.toml`, `orchi-implementer.toml`, `orchi-reviewer.toml`, and a managed block in `.codex/config.toml` |
+| Claude Code | `.claude/agents/orchi-scout.md`, `orchi-implementer.md`, `orchi-fixer.md`, `orchi-reviewer.md` |
+| Codex | `.codex/agents/orchi-scout.toml`, `orchi-implementer.toml`, `orchi-fixer.toml`, `orchi-reviewer.toml`, and a managed block in `.codex/config.toml` |
 | Copilot | None; Copilot follows the workflow without subagents |
 
 Rendered agents name the installed skill as `.agents/skills/orchi` in a project installation and by its absolute path in a user-wide one. They are recorded in the manifest with their hashes: unmodified files update in place on reinstall, a locally edited or pre-existing unmanaged file needs `--replace-orchi` (which keeps a backup), and uninstalling removes them and refuses edited ones. Adding Claude Code or Codex later adds its agents. Agent files do not depend on `--github`.
