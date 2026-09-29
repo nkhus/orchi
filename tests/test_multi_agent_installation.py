@@ -13,7 +13,7 @@ import tomllib
 from orchi_core import installation, roles
 from orchi_core.agents import AGENTS, LEGACY_SKILLS, SKILLS
 
-ROLES = ("orchi-implementer", "orchi-reviewer", "orchi-scout")
+ROLES = ("orchi-fixer", "orchi-implementer", "orchi-reviewer", "orchi-scout")
 
 COMBINATIONS = [list(items) for count in (1, 2, 3) for items in itertools.combinations(AGENTS, count)]
 
@@ -406,7 +406,7 @@ def test_adding_a_host_adds_its_agent_files(tmp_path):
     installation.install(tmp_path, agents=["codex"])
     assert sorted(p.name for p in (tmp_path / ".codex/agents").iterdir()) == [name + ".toml" for name in ROLES]
     manifest = json.loads((tmp_path / ".agents/.orchi-install.json").read_text())
-    assert len([path for path in manifest["files"] if "/agents/" in path]) == 6
+    assert len([path for path in manifest["files"] if "/agents/" in path]) == 2 * len(ROLES)
     assert list(manifest["config"]) == [".codex/config.toml"]
 
 

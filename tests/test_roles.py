@@ -112,6 +112,7 @@ def test_shipped_roles_have_agreed_models_and_nesting():
     expected = {
         "orchi-scout": ("haiku", "medium", "gpt-6-luna", "medium", ["Read", "Grep", "Glob", "Bash", "Agent"]),
         "orchi-implementer": ("opus", "low", "gpt-6-sol", "low", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]),
+        "orchi-fixer": ("sonnet", "medium", "gpt-6-luna", "high", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]),
         "orchi-reviewer": ("opus", "high", "gpt-6-sol", "medium", ["Read", "Grep", "Glob", "Bash", "Agent"]),
     }
     loaded = {role.name: role for role in roles.load_roles()}
@@ -123,7 +124,8 @@ def test_shipped_roles_have_agreed_models_and_nesting():
             claude_model, effort, codex_model, codex_effort)
         assert claude["tools"] == tools
         assert "## Nested agents" in role.body
-        assert "The main session alone starts\n  `orchi-implementer`." in role.body
+        assert "The main session alone starts\n  `orchi-implementer` and `orchi-fixer`." in role.body
+        assert "Only `orchi-implementer` and `orchi-fixer` edit files or commit." in role.body
         assert "spawn" not in role.body.lower()
         # Project-neutral: installed roles reach Orchi files only through the placeholder.
         assert ".github/AGENTS.md" not in role.body and ".agents/skills/orchi" not in role.body

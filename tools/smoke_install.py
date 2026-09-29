@@ -12,7 +12,7 @@ import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ('orchi', 'orchi-plan', 'orchi-deliver')
-ROLES = ('orchi-implementer', 'orchi-reviewer', 'orchi-scout')
+ROLES = ('orchi-fixer', 'orchi-implementer', 'orchi-reviewer', 'orchi-scout')
 
 
 def smoke(out: Path, installer: str, agents: list[str] | None = None, github: bool = False) -> dict:

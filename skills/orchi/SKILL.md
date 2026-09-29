@@ -80,7 +80,9 @@ are optional explicit entry points: `/orchi-plan` and `/orchi-deliver` in Claude
 Code, `$orchi-plan` and `$orchi-deliver` in Codex. The rules above apply without
 them. In Claude Code and Codex the main session may delegate to the installed
 subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
-`orchi-implementer` executes one ready Epic Task, and `orchi-reviewer` reviews.
+`orchi-implementer` executes one ready Epic Task, `orchi-fixer` makes one small,
+fully specified change (a simple Task or a confirmed defect repair), and
+`orchi-reviewer` reviews.
 Subagents never talk to the user, change Issues, push, or merge; their reports
 are claims to verify. Delegation is optional; the readiness checklists are not.
 
