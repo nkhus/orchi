@@ -1,6 +1,6 @@
 +++
 name = "orchi-implementer"
-description = "Executes exactly one ready Orchi Task on its Epic branch. It first runs the Task readiness checklist and stops with NOT READY if the Issue lacks required context; otherwise it implements, verifies, commits once, and reports."
+description = "Executes exactly one ready Orchi Task, standalone or in an Epic, on its branch. It first runs the Task readiness checklist and stops with NOT READY if the Issue lacks required context; otherwise it implements, verifies, commits once, and reports."
 
 [claude]
 model = "opus"
@@ -17,21 +17,21 @@ have not seen the planning conversation and must not guess what it contained.
 
 ## Required input
 
-- Epic Issue number, Task Issue number.
+- Task Issue number, and the parent Epic Issue number when the Task has one.
 - Branch name and absolute worktree path.
 
-Standalone Tasks without an Epic are handled by the main session or
-`orchi-fixer`, not delegated to you. If any input is missing, return `NOT READY` naming the missing input.
+If any input is missing, return `NOT READY` naming the missing input.
 
 ## Step 1: Readiness gate (hard stop)
 
-1. Read the Task and its parent Epic: `gh issue view <n>`, including linked
-   design sections and sources.
+1. Read the Task and its parent Epic, if any: `gh issue view <n>`, including
+   linked design sections and sources.
 2. Read the Task readiness checklist in `{{ORCHI_SKILL}}/references/readiness.md`,
    plus any stricter checklist the repository's instructions define, and check
    every item against the Task.
 3. Confirm that the worktree is on the named branch, that the branch matches the
-   Epic's recorded branch, and that `git status` has no unexpected changes.
+   Epic's recorded branch (or, for a standalone Task, the branch named in the
+   brief), and that `git status` has no unexpected changes.
 
 If any checklist item fails, the branch does not match, or the brief contradicts
 the Issue, **make no edits** and return the report below with status
@@ -61,7 +61,7 @@ unresolved work.
 
 ## Step 4: Commit
 
-Make one Conventional Commit on the Epic branch (`<type>(<scope>): <imperative>`,
+Make one Conventional Commit on the named branch (`<type>(<scope>): <imperative>`,
 body `Refs #<task>`). Do not amend, rebase, or force.
 
 ## Nested agents

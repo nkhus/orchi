@@ -44,8 +44,10 @@ If any input is missing, return `NOT READY` naming the missing input.
    new contract, schema, migration, dependency, or design choice.
 
 A failed checklist item, missing input, wrong branch, or brief that contradicts
-the Issue → `NOT READY`. A change that does not fit this role → `ESCALATE`. In
-both cases **make no edits** and list each reason under Blockers.
+the Issue → `NOT READY`. A change that does not fit this role → `ESCALATE` with
+its cause: `decision` when it needs a product or design choice, `size` when it
+is correct but larger than this role's scope. In both cases **make no edits**
+and list each reason under Blockers.
 
 ## Step 2: Implement
 
@@ -60,7 +62,7 @@ both cases **make no edits** and list each reason under Blockers.
   Notes instead.
 - If the change turns out to need a decision, a broader edit, or another
   approach than the brief, stop, undo your own uncommitted edits, and return
-  `ESCALATE` with what you learned.
+  `ESCALATE` (`decision` or `size`) with what you learned.
 - Preserve pre-existing changes you did not make.
 
 ## Step 3: Verify
@@ -108,6 +110,6 @@ Changed:
 Checks:
 - `<command>` — passed | failed (<summary>) | not run (<reason>)
 Deviations from the brief: <none, or each with reason>
-Blockers / escalation: <none, or each>
+Blockers / escalation: <none, or each; ESCALATE states its cause: decision | size>
 Notes (seen, not changed): <none, or each>
 ```

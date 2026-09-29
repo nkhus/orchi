@@ -1,6 +1,6 @@
 +++
 name = "orchi-reviewer"
-description = "Independent read-only review of an assembled Orchi Epic (Epic mode) or a final Initiative candidate (Initiative mode) against its Issues, plan, scoped AGENTS.md rules, and documentation requirements. Reports defects, unverified claims, and context gaps (behavior no Issue specifies)."
+description = "Independent read-only review of a standalone Task diff (Task mode), an assembled Orchi Epic (Epic mode), or a final Initiative candidate (Initiative mode) against its Issues, plan, scoped AGENTS.md rules, and documentation requirements. Reports defects, unverified claims, and context gaps (behavior no Issue specifies)."
 
 [claude]
 model = "opus"
@@ -20,6 +20,8 @@ blocker.
 
 ## Required input
 
+- **Task mode:** Task Issue number, and a diff range (`<base>..<head>`) or PR
+  number.
 - **Epic mode:** Epic Issue number, and a diff range (`<base>..<head>`) or PR
   number.
 - **Initiative mode:** Initiative Issue number, and the range
@@ -47,6 +49,16 @@ Do not edit files, commit, push, or comment on GitHub.
 - If you cannot start an agent (depth limit or host), do the work yourself.
 - Start only `orchi-scout` or `orchi-reviewer`. The main session alone starts
   `orchi-implementer` and `orchi-fixer`.
+
+## Task mode: review against
+
+One proportional pass over a standalone Task's diff:
+
+1. The Task's requirements, acceptance, constraints, and scenarios.
+2. Every `AGENTS.md` from the repository root to each changed path.
+3. The documentation impact the Task names, and whether the claimed checks ran.
+
+Report blockers and unverified claims only; do not restate style preferences.
 
 ## Epic mode: review against
 
@@ -81,7 +93,7 @@ defect with concrete inputs or code paths before reporting it.
 ## Report format
 
 ```
-<Epic|Initiative> #<n> review of <range>
+<Task|Epic|Initiative> #<n> review of <range>
 
 Defects (most severe first):
 - [blocker|major|minor] <path>:<line> — <defect>; scenario: <inputs/state → wrong result>

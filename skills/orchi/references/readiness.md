@@ -64,10 +64,11 @@ until the deferral is resolved.
 8. Describes success and failure scenarios, inputs and outputs, risks, and
    expected recovery.
 9. Names its branch and PR target, and has native blocked-by relationships for
-   every direct dependency. Each blocker is merged into the target branch.
+   every direct dependency.
 10. Gives exit criteria mapped to requirements, each with its verification.
-11. Contains no `Deferred until` answer and no open question marked as affecting
-    the approach.
+11. Has every blocker merged into the target branch, and contains no
+    `Deferred until` answer and no open question marked as affecting the
+    approach.
 12. Has native sub-issue Tasks in execution order, each passing the Task
     readiness checklist.
 

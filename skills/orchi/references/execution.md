@@ -22,7 +22,8 @@ each open Epic and standalone Task as:
   PR, so confirm its result reached the integration branch before starting;
 - `blocked`: a blocker is open or was cancelled (a cancelled predecessor does not
   satisfy a dependency);
-- `claimed`: another owner holds it.
+- `claimed`: labelled `in-progress`; compare its work reference to tell your
+  own claim from another owner's.
 
 The report is a snapshot of GitHub, not a lock. Confirm that required predecessor
 results are merged into this Epic's intended integration branch.
@@ -66,7 +67,7 @@ When interrupted or handing over, update the `Handoff` section of the PR body
 
 ```md
 ## Handoff
-- Branch / commit: epic/<tag>-<epic-tag>-<slug> @ <sha>
+- Branch / commit: <branch> @ <sha>
 - Done: <Tasks and results completed>
 - Remaining: <next Tasks or open work>
 - Uncommitted or local-only changes: <none, or where they are>

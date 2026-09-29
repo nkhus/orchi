@@ -16,7 +16,7 @@ You are the main session: orchestrator and the only agent that talks to the user
 ## Authority granted by this command
 
 - Claim the named work and its Tasks, push their branches, and open PRs.
-- With `--merge-epics`: squash-merge reviewed, verified Epic PRs into their **Initiative branch**. Without it, ask the user before each merge.
+- With `--merge-epics`: squash-merge reviewed, verified Epic and repair PRs into their **Initiative branch**. Without it, ask the user before each merge.
 - Never merge into `main`. A PR to `main` always waits for the user.
 - Agents you start may start nested `orchi-scout` or `orchi-reviewer` agents under the rules in their [role definitions](../orchi/roles/README.md). Nesting grants no new authority.
 
@@ -28,37 +28,37 @@ You are the main session: orchestrator and the only agent that talks to the user
 
 ## Readiness rule (all routes)
 
-Before starting any Task or Epic, check it against the Task or Epic readiness checklist, plus the repository's own stricter checklist if it defines one. If the missing context can be found in linked sources or code, add it to the Issue and continue. If it needs a product or design decision, stop and ask the user. Handle an implementer `NOT READY` report the same way, then restart the implementer.
+Before starting any Task, Epic, or Initiative, check it against its readiness checklist, plus the repository's own stricter checklist if it defines one. If the missing context can be found in linked sources or code, add it to the Issue and continue. If it needs a product or design decision, decide it yourself when the user delegated it ([decide what the user delegated](../orchi/references/planning.md#clarify-with-the-user)) and record it in the Issue; otherwise stop and ask. Handle a writer's `NOT READY` report the same way, then restart that writer; a second `NOT READY` for the same Issue means stop and ask. Handle a fixer `ESCALATE` per [choosing a writer](../orchi/roles/README.md#choosing-a-writer).
 
 ## 2. Standalone Task
 
-Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or, when it fits `orchi-fixer` per [choosing a writer](../orchi/roles/README.md#choosing-a-writer), start `orchi-fixer` in Task mode with the Task number, branch, and absolute worktree path, then inspect its diff and check output yourself; on `ESCALATE`, implement it yourself. Run its verification, open a PR to `main`, and stop for the user's merge decision.
+Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer) with the Task number, branch, and absolute worktree path, then inspect its diff and check output yourself. Run its verification, then start `orchi-reviewer` once in Task mode on the diff. Repair confirmed blockers directly or through `orchi-fixer` in Repair mode, rerun the affected checks, and have the reviewer recheck only the repaired findings. Open a PR to `main` with the review result in its Verification section, and stop for the user's merge decision.
 
 ## 3. Epic
 
 1. Claim the Epic. Create or check out its recorded branch from its target.
-2. For each open Task in native order: mark it `in-progress`, then start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer): `orchi-implementer` with the Epic number, Task number, branch, and absolute worktree path, or `orchi-fixer` in Task mode with the Task number, branch, and worktree path. On a fixer `ESCALATE`, restart the Task with `orchi-implementer`. On `DONE`, inspect the actual diff and check output yourself, push, record the evidence in the PR (create a draft PR on the first Task), and close the Task with its commit. On `BLOCKED`, resolve it or stop and ask.
-3. Start `orchi-reviewer` once on the assembled range (Epic mode). Fix confirmed defects directly, through `orchi-fixer` in Repair mode (one defect per run, with its path, scenario, and expected result), or through a targeted implementer run, and turn context gaps into Issue updates. Do one targeted follow-up review, per the review reference.
+2. For each open Task in native order: mark it `in-progress`, then start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer): `orchi-implementer` or `orchi-fixer` (Task mode) with the Epic number, Task number, branch, and absolute worktree path. On `DONE`, inspect the actual diff and check output yourself, push, record the evidence in the PR (create a draft PR on the first Task), and close the Task with its commit. On `BLOCKED`, resolve it or stop and ask.
+3. Start `orchi-reviewer` once on the assembled range (Epic mode). Fix confirmed defects directly, through `orchi-fixer` in Repair mode (one defect per run, with its path, scenario, and expected result), or by reopening the owning Task, adding the defect to its requirements and decisions, and restarting its writer. Turn context gaps into Issue updates. Do one targeted follow-up review, per the review reference.
 4. Complete the PR body (Summary, Verification, Documentation impact) and mark it ready.
 5. Before merging, reconcile the docs per the knowledge reference § Reconcile: the changed Core pages match the implementation and acceptance, and `knowledge.py lint` passes.
 6. If the target is the Initiative branch and either `--merge-epics` is set or the user approves this merge: squash-merge, confirm the merge, then close the Epic and clear `in-progress`. If the target is `main`, report the PR and stop; the user merges.
 
 ## 4. Initiative
 
-1. Claim the Initiative as the integrator (`in-progress` on the Initiative). Check out the Initiative branch and read its plan.
+1. Claim the Initiative as the integrator (`in-progress` on the Initiative). Check out the Initiative branch, read its plan, and check the Initiative readiness checklist.
 2. Loop until every Epic is merged or blocked on the user. Only consider **sub-issues of this Initiative** (`gh api repos/{owner}/{repo}/issues/<n>/sub_issues`). `status.py` covers the whole repository and reports your own claims as `claimed`, so it is not a work list here. Classify each open Epic:
    - **Mine, in flight:** its work reference matches this delivery. Resume it: reuse its branch (`git worktree add <path> <existing-branch>` if no worktree exists), read its PR `Handoff`, and continue the §3 flow.
    - **Claimed by another owner:** leave it alone, and report it if it blocks progress.
    - **Ready:** unclaimed, and every native blocker (`gh issue view <epic> --json blockedBy`) is closed as completed with its result merged into the Initiative branch. Resolve its `Deferred until` fields from those results, record the resolved decisions in the Initiative plan (`docs/initiatives/<tag>-<slug>/README.md`) on the Initiative branch, split it into Tasks, pass the Epic readiness checklist, claim it, and create its worktree: `git worktree add <path> -b epic/<tag>-<epic-tag>-<slug> origin/initiative/<tag>-<slug>`.
    - **Blocked:** wait for its blockers.
 
-   Run the §3 flow for all mine-in-flight and ready Epics **in parallel**: start their implementer agents in the background, one Task at a time per Epic, and continue each Epic's chain as its reports arrive. Merge into the Initiative branch one Epic at a time. Before each merge, if another Epic has landed since this one was verified, update the Epic branch from the Initiative branch, resolve conflicts, and rerun the affected checks. After each merge, reclassify.
-3. When all Epics are merged: reconcile the Initiative branch with current `main` (code and Core documentation), run the full applicable suite, and start `orchi-reviewer` in Initiative mode on `origin/main..initiative/<tag>-<slug>`. Repair confirmed blockers.
+   Run the §3 flow for all mine-in-flight and ready Epics **in parallel**: start their writers in the background, one Task at a time per Epic, and continue each Epic's chain as its reports arrive. Merge into the Initiative branch one Epic at a time. Before each merge, if another Epic has landed since this one was verified, update the Epic branch from the Initiative branch, resolve conflicts, and rerun the affected checks. After each merge, reclassify.
+3. When all Epics are merged: reconcile the Initiative branch with current `main` (code and Core documentation), run the full applicable suite, and start `orchi-reviewer` in Initiative mode on `origin/main..initiative/<tag>-<slug>`. Turn each confirmed blocker into a repair Task under the Initiative, delivered by §2 on `fix/<tag>-<slug>` from the Initiative branch with its PR targeting the Initiative branch (merged within `--merge-epics` or with approval), then have the reviewer recheck the repaired findings in Initiative mode.
 4. Open the final PR to `main` and stop for the user's decision.
 
 ## Stop and ask the user when
 
-- A readiness failure or `BLOCKED` report needs a product or design decision.
+- A readiness failure, `BLOCKED`, or decision `ESCALATE` needs a product or design decision the user has not delegated.
 - A merge needs approval (no `--merge-epics`, or the target is `main`).
 - New evidence materially changes the agreed outcome, approach, or scope.
 - A check keeps failing after a targeted repair.
