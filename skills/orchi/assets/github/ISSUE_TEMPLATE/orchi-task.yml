@@ -45,7 +45,7 @@ body:
     id: decisions
     attributes:
       label: Decisions
-      description: Each decision that shapes this Task - the question, the answer, who decided (user or planner), the date, and the reason. Quote the user's answers faithfully. Write "None needed" if nothing had to be decided.
+      description: Each decision that shapes this Task - the question, the answer, who decided (the user, or the main session under a cited user delegation), the date, and the reason. Quote the user's answers faithfully. Write "None needed" if nothing had to be decided.
     validations:
       required: true
   - type: textarea

@@ -21,6 +21,14 @@ continues that agent with the answers.
 - **Ask only what changes the result.** Ask when the answer changes
   requirements, approach, scope, acceptance, or risk. Decide ordinary
   implementation choices yourself and record them as decisions with a reason.
+- **Decide what the user delegated.** When the user agrees that the main session
+  may decide a class of questions itself — in this conversation or in the
+  repository's instructions — decide those questions instead of asking. Record
+  each such decision as made by the main session under that delegation, citing
+  it (who delegated, when, their words, and its limits), with the options
+  considered and the reason. Ask about anything outside the delegation; a
+  delegation never covers merge or deployment authority the user has not
+  granted separately.
 - **Make each question easy to answer.** Give one or two sentences of context,
   two to four concrete options with their consequences, and your recommendation
   first; always allow a free answer. Use the assistant's structured question
@@ -29,7 +37,8 @@ continues that agent with the answers.
   per round. Follow up when an answer opens a new gap or contradicts earlier
   evidence.
 - **Record answers at once.** Keep a decision log: question, answer, who decided
-  (the user or the planner), date, and reason. Quote the user's answers
+  (the user, or the main session with or without a delegation), date, and
+  reason. Quote the user's answers
   faithfully; do not drop their qualifiers. Carry the log into the Issues.
 - **Never present a guess as a fact.** An unanswered question stays an open
   question; if it affects the approach, the work is not ready.

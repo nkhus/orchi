@@ -43,11 +43,11 @@ not agreement.
 
 ## 3. Clarify (after agreement, before tracking)
 
-Ask the user the questions that the gaps from research and the agreed scope
-raise, following [Clarify with the user](../orchi/references/planning.md#clarify-with-the-user):
+Ask the questions that research gaps raise, following [Clarify with the user](../orchi/references/planning.md#clarify-with-the-user):
 answerable options with a recommendation, in rounds, most consequential first.
-Keep the decision log as you go. A question the user leaves open is recorded as
-an open question; work whose approach it affects is not ready until it is answered.
+Decide yourself what the user has delegated, citing the delegation. Keep the
+decision log as you go. A question left open stays an open question; work whose
+approach it affects is not ready until it is answered.
 
 ## 4. Create tracking
 
