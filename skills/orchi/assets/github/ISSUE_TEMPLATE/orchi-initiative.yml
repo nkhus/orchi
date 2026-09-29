@@ -31,7 +31,7 @@ body:
     id: decisions
     attributes:
       label: Decisions
-      description: Each decision that shapes this Initiative - the question, the answer, who decided (user or planner), the date, and the reason. Quote the user's answers faithfully.
+      description: Each decision that shapes this Initiative - the question, the answer, who decided (the user, or the main session under a cited user delegation), the date, and the reason. Quote the user's answers faithfully.
     validations:
       required: true
   - type: textarea
