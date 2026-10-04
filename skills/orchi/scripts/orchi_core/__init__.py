@@ -1,1 +1,1 @@
-"""Orchi installer support: shared skill registration for coding assistants."""
+"""Orchi installer support: skills, subagents, and instructions for Claude Code."""

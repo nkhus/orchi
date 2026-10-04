@@ -4,7 +4,7 @@
 
 **Research first. Agree the scope. Deliver through branches and GitHub Issues.**
 
-Orchi is a development convention packaged as one agent skill, with two optional entry skills and four model-tiered subagents. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. It installs into **Claude Code**.
+Orchi is a development convention packaged as one agent skill, with two optional entry skills and five model-tiered subagents. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. It installs into **Claude Code**.
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [Subagents and entry skills](#subagents-and-entry-skills) · [Project instructions](#project-instructions) · [Documentation](#documentation)
 
@@ -40,7 +40,7 @@ npx --yes github:nkhus/orchi --global
 | `--version` | Show the installed and bundled versions and the upgrade command |
 | `--uninstall` | Remove the complete managed Orchi installation at the selected scope |
 
-To upgrade, rerun the same `npx` command; unmodified managed files update in place. See the [installation guide](docs/installation.md) for paths, conflict handling, upgrading from the earlier multi-assistant layout, offline installation, and removal.
+To upgrade, rerun the same `npx` command; unmodified managed files update in place. See the [installation guide](docs/installation.md) for paths, conflict handling, upgrading from earlier versions, offline installation, and removal.
 
 </details>
 
@@ -77,7 +77,7 @@ flowchart TD
 - **Every title shows its lineage.** Initiatives and Epics have short tags, and titles start with them: Initiative `[PAY] Card payments`, Epic `[PAY][TOKEN] Tokenize stored cards`, Task `[PAY][TOKEN] Add token column`. Labels carry the type, and branches reuse the tags (`epic/pay-token-tokenize-cards`).
 - **GitHub is the shared state.** `Initiative`, `Epic`, and `Task` labels, native sub-issues and `blocked by` dependencies, assignees, and `in-progress` describe hierarchy and ownership. Several Claude Code sessions can work on independent Epics in parallel, each in its own branch and worktree. `scripts/status.py` shows which Epics are ready, blocked, or claimed.
 - **Documentation follows the code.** Core documentation changes land with the implementation in the Epic branch, and every PR states its documentation impact. With `--github`, CI fails on broken local links the PR introduces or an empty impact section. Initiative plans live in `docs/initiatives/<tag>-<slug>/README.md` and are never presented as current behavior.
-- **Verify once, repair precisely.** Each Epic gets one full review; demonstrated blockers are repaired and rechecked with a targeted follow-up. Interrupted work leaves a fixed Handoff section in the PR. Merging and deployment stay within the user's authority.
+- **Verify once, repair precisely.** Each Epic gets one full review, with a design audit by `orchi-designer` when it changes user interface; demonstrated blockers are repaired and rechecked with a targeted follow-up. Interrupted work leaves a fixed Handoff section in the PR. Merging and deployment stay within the user's authority.
 
 The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references cover [planning](skills/orchi/references/planning.md), [readiness](skills/orchi/references/readiness.md), [execution](skills/orchi/references/execution.md), [knowledge](skills/orchi/references/knowledge.md), [review and delivery](skills/orchi/references/review-delivery.md), [GitHub conventions](skills/orchi/references/github.md), and [documentation retrieval](skills/orchi/references/retrieval.md).
 
@@ -123,6 +123,7 @@ Commit the installed skills, rendered agents, instruction changes, and installat
 | Guide | Read it to… |
 | --- | --- |
 | [Installation](docs/installation.md) | Install, upgrade, or remove the skill |
+| [Subagent roles](skills/orchi/roles/README.md) | Choose a writer, see each role's model and tools, and find the design skills `orchi-designer` uses |
 | [Testing](docs/testing.md) | Validate the package and run the installed-skill smoke test |
 | [External references](docs/references.md) | Find the skill standards and Claude Code documentation |
 

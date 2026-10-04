@@ -98,9 +98,9 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
 
-### From the shared multi-assistant layout
+### From 0.6.x to 0.7.x
 
-Earlier versions installed for Codex, GitHub Copilot, and Claude Code together: one copy of each skill in `.agents/skills/`, Claude links to it in `.claude/skills/`, the workflow section in root `AGENTS.md` with an `@AGENTS.md` import in `CLAUDE.md`, and, depending on the selection, a pointer in `.github/copilot-instructions.md`, Codex agents in `.codex/agents/`, and a block in `.codex/config.toml`. The manifest was `.agents/.orchi-install.json`.
+Versions before 0.7.0 installed for Codex, GitHub Copilot, and Claude Code together: one copy of each skill in `.agents/skills/`, Claude links to it in `.claude/skills/`, the workflow section in root `AGENTS.md` with an `@AGENTS.md` import in `CLAUDE.md`, and, depending on the selection, a pointer in `.github/copilot-instructions.md`, Codex agents in `.codex/agents/`, and a block in `.codex/config.toml`. The manifest was `.agents/.orchi-install.json`.
 
 Rerunning the installer migrates such an installation (project or user-wide, including the single-skill and five-skill layouts) to Claude Code only, in one staged change:
 
@@ -111,7 +111,7 @@ Rerunning the installer migrates such an installation (project or user-wide, inc
 
 Edited skills, agents, or instruction sections stop the migration as they would an upgrade: review them, then pass `--replace-orchi` for files (which backs them up first) or restore edited sections by hand. A link at `.claude/skills/<name>` to anything other than the recorded shared copy stops the installation. `--uninstall` also removes a shared-layout installation directly. Empty `.agents/skills/` and `.codex/agents/` directories may remain; remove them if nothing else uses them.
 
-The same upgrade adds the `orchi-designer` agent. An existing `.claude/agents/orchi-designer.md` that Orchi did not install is a conflict that needs `--replace-orchi`.
+The same upgrade adds the `orchi-designer` agent, which takes UI Tasks and audits UI diffs; see [choosing a writer](../skills/orchi/roles/README.md#choosing-a-writer). An existing `.claude/agents/orchi-designer.md` that Orchi did not install is a conflict that needs `--replace-orchi`.
 
 ### From 0.5.x to 0.6.x
 
