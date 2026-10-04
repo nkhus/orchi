@@ -26,7 +26,9 @@ Instruction discovery improves routing but does not prove model compliance. More
 
 ## Subagents
 
-Each role in `.claude/skills/orchi/roles/` is rendered to `.claude/agents/`: `orchi-scout.md`, `orchi-implementer.md`, `orchi-fixer.md`, and `orchi-reviewer.md`.
+Each role in `.claude/skills/orchi/roles/` is rendered to `.claude/agents/`: `orchi-scout.md`, `orchi-implementer.md`, `orchi-fixer.md`, `orchi-reviewer.md`, and `orchi-designer.md`.
+
+`orchi-designer` uses the design skills installed in the project or for the user (Impeccable, Taste Skill, SmoothUI) and the repository's own design system otherwise. Orchi does not install them; see [design skills](../skills/orchi/roles/README.md#design-skills) for their install commands.
 
 Rendered agents name the installed skill as `.claude/skills/orchi` in a project installation and by its absolute path in a user-wide one. They are recorded in the manifest with their hashes: unmodified files update in place on reinstall, a locally edited or pre-existing unmanaged file needs `--replace-orchi` (which keeps a backup), and uninstalling removes them and refuses edited ones. Agent files do not depend on `--github`.
 
@@ -108,6 +110,8 @@ Rerunning the installer migrates such an installation (project or user-wide, inc
 - The GitHub setup and the documentation check workflow choice carry over. The old manifest is replaced by `.claude/.orchi-install.json`.
 
 Edited skills, agents, or instruction sections stop the migration as they would an upgrade: review them, then pass `--replace-orchi` for files (which backs them up first) or restore edited sections by hand. A link at `.claude/skills/<name>` to anything other than the recorded shared copy stops the installation. `--uninstall` also removes a shared-layout installation directly. Empty `.agents/skills/` and `.codex/agents/` directories may remain; remove them if nothing else uses them.
+
+The same upgrade adds the `orchi-designer` agent. An existing `.claude/agents/orchi-designer.md` that Orchi did not install is a conflict that needs `--replace-orchi`.
 
 ### From 0.5.x to 0.6.x
 

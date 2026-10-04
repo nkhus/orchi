@@ -10,7 +10,7 @@ import pytest
 from orchi_core import installation, roles
 from orchi_core.agents import SKILLS
 
-ROLES = ("orchi-fixer", "orchi-implementer", "orchi-reviewer", "orchi-scout")
+ROLES = ("orchi-designer", "orchi-fixer", "orchi-implementer", "orchi-reviewer", "orchi-scout")
 MANIFEST = ".claude/.orchi-install.json"
 
 
