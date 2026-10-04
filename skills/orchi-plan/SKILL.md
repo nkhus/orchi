@@ -9,9 +9,7 @@ disable-model-invocation: true
 
 Arguments: $ARGUMENTS
 
-In Codex, take the arguments from the user's message after `$orchi-plan`.
-
-You are the main session: planner and orchestrator. Follow `AGENTS.md`, the
+You are the main session: planner and orchestrator. Follow `CLAUDE.md`, the
 [Orchi skill](../orchi/SKILL.md), its [readiness checklists](../orchi/references/readiness.md)
 and [GitHub conventions](../orchi/references/github.md), and the repository's own
 issue rules, which take precedence. This skill only fixes the order of steps. It
@@ -21,7 +19,7 @@ does not replace those rules.
 
 - Inspect the branch and worktree. Search open and closed Issues and PRs for
   existing or overlapping work. If this continues tracked work, stop and propose
-  `/orchi-deliver #<n>` (Claude Code) or `$orchi-deliver #<n>` (Codex) instead.
+  `/orchi-deliver #<n>` instead.
 - Send `orchi-scout` agents for independent retrieval questions (in parallel
   when independent). Read the key files they point to yourself. A scout "not
   found" is not proof of absence.
@@ -93,8 +91,6 @@ end with exactly one line:
 ```
 Deliver with: /orchi-deliver #<n>
 ```
-
-(In Codex the same line reads `Deliver with: $orchi-deliver #<n>`.)
 
 For an Initiative, suggest `--merge-epics` if the user wants reviewed Epic PRs
 merged into the Initiative branch without asking each time.

@@ -1,6 +1,0 @@
-interface:
-  display_name: "Orchi deliver"
-  short_description: "Deliver an Orchi Task, Epic, or Initiative from its Issue"
-  default_prompt: "Use $orchi-deliver #<issue>"
-policy:
-  allow_implicit_invocation: false

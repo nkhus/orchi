@@ -35,17 +35,15 @@ def test_runtime_has_no_application_package_metadata():
 
 
 def test_fresh_install_preserves_user_files(tmp_path):
-    (tmp_path / 'AGENTS.md').write_text('User rules')
-    (tmp_path / '.codex').mkdir(); (tmp_path / '.codex/config.toml').write_text('model="operator-model"')
+    (tmp_path / 'CLAUDE.md').write_text('User rules')
+    (tmp_path / 'AGENTS.md').write_text('Other assistant rules')
     assert installer.install(tmp_path)['status'] == 'installed'
-    assert (tmp_path / 'AGENTS.md').read_text().startswith('User rules\n\n<!-- orchi:begin -->')
-    config = (tmp_path / '.codex/config.toml').read_text()
-    assert config.startswith('model="operator-model"\n\n# orchi:begin\n')
-    assert tomllib.loads(config) == {'model': 'operator-model', 'agents': {'max_depth': 3}}
-    assert sorted(p.name for p in (tmp_path / '.agents/skills').iterdir()) == sorted(installer.NAMES)
+    assert (tmp_path / 'CLAUDE.md').read_text().startswith('User rules\n\n<!-- orchi:begin -->')
+    assert (tmp_path / 'AGENTS.md').read_text() == 'Other assistant rules'
+    assert sorted(p.name for p in (tmp_path / '.claude/skills').iterdir()) == sorted(installer.NAMES)
     assert installer.install(tmp_path)['status'] == 'unchanged'
     installer.install(tmp_path, uninstall=True)
-    assert (tmp_path / '.codex/config.toml').read_text() == 'model="operator-model"'
+    assert (tmp_path / 'CLAUDE.md').read_text() == 'User rules'
 
 
 def test_dry_run_no_mutation(tmp_path):
@@ -55,15 +53,15 @@ def test_dry_run_no_mutation(tmp_path):
 
 def test_modified_skill_refuses_silent_overwrite(tmp_path):
     installer.install(tmp_path)
-    skill = tmp_path / '.agents/skills/orchi/SKILL.md'; skill.write_text('User customizations')
+    skill = tmp_path / '.claude/skills/orchi/SKILL.md'; skill.write_text('User customizations')
     with pytest.raises(ValueError):
         installer.install(tmp_path)
     result = installer.install(tmp_path, replace=True)
-    assert (Path(result['backup']) / '.agents/skills/orchi/SKILL.md').read_text() == 'User customizations'
+    assert (Path(result['backup']) / '.claude/skills/orchi/SKILL.md').read_text() == 'User customizations'
 
 
 def test_unrelated_skills_are_preserved(tmp_path):
-    other = tmp_path / '.agents/skills/custom-skill'; other.mkdir(parents=True)
+    other = tmp_path / '.claude/skills/custom-skill'; other.mkdir(parents=True)
     (other / 'SKILL.md').write_text('User skill')
     installer.install(tmp_path)
     assert (other / 'SKILL.md').read_text() == 'User skill'
@@ -72,7 +70,7 @@ def test_unrelated_skills_are_preserved(tmp_path):
 def test_install_symlink_rejected(tmp_path):
     outside = tmp_path / 'outside'; outside.mkdir()
     project = tmp_path / 'project'; project.mkdir()
-    (project / '.agents').symlink_to(outside, target_is_directory=True)
+    (project / '.claude').symlink_to(outside, target_is_directory=True)
     with pytest.raises(ValueError):
         installer.install(project)
     assert list(outside.iterdir()) == []
@@ -84,19 +82,19 @@ def test_installed_knowledge_tool_runs_without_source_checkout(tmp_path):
     installer.install(tmp_path)
     (tmp_path / 'pyproject.toml').write_text('[project]\nname="unrelated-app"\nrequires-python=">=3.99"\n')
     env = {k: v for k, v in os.environ.items() if k != 'PYTHONPATH'}
-    script = tmp_path / '.agents/skills/orchi/scripts/knowledge.py'
+    script = tmp_path / '.claude/skills/orchi/scripts/knowledge.py'
     result = subprocess.run([sys.executable, str(script), 'search', 'session'], cwd=tmp_path,
                             env=env, capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
     assert [hit['path'] for hit in json.loads(result.stdout)['results']] == ['docs/guide.md']
     lint = subprocess.run([sys.executable, str(script), 'lint'], cwd=tmp_path, env=env, capture_output=True, text=True)
     assert lint.returncode == 0, lint.stdout
-    assert not list((tmp_path / '.agents').rglob('__pycache__'))
+    assert not list((tmp_path / '.claude').rglob('__pycache__'))
 
 
 def test_copy_install_rollback_preserves_modified_skill(tmp_path, monkeypatch):
     installer.install(tmp_path)
-    target = tmp_path / '.agents/skills/orchi/SKILL.md'; target.write_text('User customization')
+    target = tmp_path / '.claude/skills/orchi/SKILL.md'; target.write_text('User customization')
     original_move = installer.shutil.move
     def fail_staged_move(source, destination):
         if '.orchi-stage-' in str(source): raise OSError('Injected staging failure')

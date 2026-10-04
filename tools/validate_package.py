@@ -79,29 +79,26 @@ def third_party_imports(text: str) -> set[str]:
 
 
 def validate_roles() -> tuple[list[str], int]:
-    """Every role source renders to a Claude agent and a Codex agent that parse back to its instructions."""
+    """Every role source renders to a Claude Code agent that carries its instructions."""
     from orchi_core import roles
     errors: list[str] = []
     try:
         loaded = roles.load_roles()
     except (OSError, ValueError) as exc:
         return ['Role sources: ' + str(exc)], 0
-    skill = '/home/user/.agents/skills/orchi'
+    skill = '/home/user/.claude/skills/orchi'
     for role in loaded:
         body = roles.instructions(role, skill)
         if roles.PLACEHOLDER in body or skill not in body:
             errors.append('Role instructions must name the Orchi skill through ' + roles.PLACEHOLDER + ': ' + role.name)
         try:
-            codex = tomllib.loads(roles.render_codex(role, skill))
-            if codex.get('developer_instructions') != body or codex.get('name') != role.name:
-                errors.append('Codex agent does not round-trip its role: ' + role.name)
             claude = roles.render_claude(role, skill)
             meta = yaml.safe_load(claude.split('---', 2)[1])
             if meta.get('name') != role.name or meta.get('description') != role.meta['description']:
                 errors.append('Claude agent front matter does not match its role: ' + role.name)
             if not claude.endswith(body):
                 errors.append('Claude agent does not carry its role instructions: ' + role.name)
-        except (tomllib.TOMLDecodeError, yaml.YAMLError, IndexError, AttributeError) as exc:
+        except (yaml.YAMLError, IndexError, AttributeError) as exc:
             errors.append(role.name + ': ' + str(exc))
     return errors, len(loaded)
 
@@ -117,16 +114,14 @@ def validate(root: Path = ROOT) -> dict:
             folder = root / 'skills' / name
             text = (folder / 'SKILL.md').read_text()
             metadata = yaml.safe_load(text.split('---', 2)[1])
-            ui = yaml.safe_load((folder / 'agents/openai.yaml').read_text())
             if metadata.get('name') != name or not metadata.get('description') or len(text.splitlines()) > SKILL_LINES:
                 errors.append('Invalid skill metadata or oversized instructions: ' + name)
             if len(metadata['description']) > 1024: errors.append('Skill description exceeds 1024 characters: ' + name)
-            if not 25 <= len(ui['interface']['short_description']) <= 64: errors.append('Invalid interface description: ' + name)
-            if '$' + name not in ui['interface']['default_prompt']: errors.append('Missing invocation example: ' + name)
-            if name in IMPLICIT and ui['policy']['allow_implicit_invocation'] is not True:
+            if name in IMPLICIT and metadata.get('disable-model-invocation'):
                 errors.append('Entrypoint must allow implicit use: ' + name)
-            if name not in IMPLICIT and ui['policy']['allow_implicit_invocation'] is not False:
+            if name not in IMPLICIT and metadata.get('disable-model-invocation') is not True:
                 errors.append('Entry skill must be explicit-only: ' + name)
+            if (folder / 'agents').exists(): errors.append('Unexpected assistant interface metadata: ' + name)
         except (OSError, ValueError, KeyError, IndexError, TypeError) as exc: errors.append(name + ': ' + str(exc))
     for file in source_files:
         rel = file.relative_to(root).as_posix()

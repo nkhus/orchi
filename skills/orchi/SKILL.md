@@ -12,7 +12,7 @@ controller, state database, approval receipt, or mandatory command facade.
 Start by identifying your role (researcher, Epic owner, Initiative integrator, or
 reader). Inspect branch and worktree changes, and read the relevant issue and PR.
 Resume existing work instead of duplicating it. Read repository instructions
-(AGENTS.md, CLAUDE.md, `.github/copilot-instructions.md`, scoped files); they take
+(CLAUDE.md, AGENTS.md, scoped files); they take
 precedence over these defaults. Preserve the user's request, decisions, and edits.
 
 ## Research, propose, agree
@@ -78,9 +78,8 @@ Read only the reference needed for the current stage.
 ## Entry skills and subagents
 
 `orchi-plan` (research → agreed, ready Issues) and `orchi-deliver` (Issue → PR)
-are optional explicit entry points: `/orchi-plan` and `/orchi-deliver` in Claude
-Code, `$orchi-plan` and `$orchi-deliver` in Codex. The rules above apply without
-them. In Claude Code and Codex the main session may delegate to the installed
+are optional explicit entry points: `/orchi-plan` and `/orchi-deliver`. The
+rules above apply without them. The main session may delegate to the installed
 subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
 `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small,
 fully specified change (a simple Task or a confirmed defect repair), and
@@ -93,7 +92,7 @@ are claims to verify. Delegation is optional; the readiness checklists are not.
 Both scripts are read-only and use only Git, `gh`, and the Python standard
 library. Run them from the repository root with the installed skill path.
 
-- `python3 .agents/skills/orchi/scripts/status.py` lists open Epics and standalone
+- `python3 .claude/skills/orchi/scripts/status.py` lists open Epics and standalone
   Tasks with their owners, blockers, and readiness.
-- `python3 .agents/skills/orchi/scripts/knowledge.py` searches documentation,
+- `python3 .claude/skills/orchi/scripts/knowledge.py` searches documentation,
   reads exact snapshots, and checks local links.

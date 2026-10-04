@@ -6,10 +6,10 @@ creates no index, state database, or controller. Run it from the repository root
 with the installed skill path, for example:
 
 ```sh
-python3 .agents/skills/orchi/scripts/knowledge.py search 'account session'
-python3 .agents/skills/orchi/scripts/knowledge.py --ref main search 'account session'
-python3 .agents/skills/orchi/scripts/knowledge.py --ref main get docs/accounts/README.md
-python3 .agents/skills/orchi/scripts/knowledge.py --path docs lint --since main
+python3 .claude/skills/orchi/scripts/knowledge.py search 'account session'
+python3 .claude/skills/orchi/scripts/knowledge.py --ref main search 'account session'
+python3 .claude/skills/orchi/scripts/knowledge.py --ref main get docs/accounts/README.md
+python3 .claude/skills/orchi/scripts/knowledge.py --path docs lint --since main
 ```
 
 Select `--ref` explicitly for main, an initiative, or an Epic snapshot. It resolves

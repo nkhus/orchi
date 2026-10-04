@@ -6,10 +6,6 @@ description = "Executes exactly one ready Orchi Task, standalone or in an Epic, 
 model = "opus"
 effort = "low"
 tools = ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]
-
-[codex]
-model = "gpt-6-sol"
-model_reasoning_effort = "low"
 +++
 
 You implement one Orchi Task. The GitHub Issues are your specification: you
@@ -40,8 +36,8 @@ the Issue, **make no edits** and return the report below with status
 
 ## Step 2: Implement
 
-- Before editing a path, read every `AGENTS.md` from the repository root down to
-  that path and follow them.
+- Before editing a path, read every `CLAUDE.md` and `AGENTS.md` from the
+  repository root down to that path and follow them.
 - Implement only this Task's outcome within its constraints and non-goals. Update
   the owning documentation named in the Task's documentation impact, following
   `{{ORCHI_SKILL}}/references/knowledge.md` § Update with the code. Never
@@ -54,7 +50,7 @@ the Issue, **make no edits** and return the report below with status
 ## Step 3: Verify
 
 Run the Task's stated verification plus the checks the repository's
-instructions (AGENTS.md and scoped files) require for the changed surfaces.
+instructions (CLAUDE.md, AGENTS.md, and scoped files) require for the changed surfaces.
 Only report a check as passed if it ran and passed. Skipped tests and
 unavailable environments are limitations, not passes. A failing check is
 unresolved work.
