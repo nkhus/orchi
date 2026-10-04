@@ -90,6 +90,7 @@ def test_shipped_roles_have_agreed_models_and_nesting():
         "orchi-implementer": ("opus", "low", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]),
         "orchi-fixer": ("sonnet", "medium", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]),
         "orchi-reviewer": ("opus", "high", ["Read", "Grep", "Glob", "Bash", "Agent"]),
+        "orchi-designer": ("opus", "medium", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Skill", "Agent"]),
     }
     loaded = {role.name: role for role in roles.load_roles()}
     assert sorted(loaded) == sorted(expected)
@@ -102,8 +103,17 @@ def test_shipped_roles_have_agreed_models_and_nesting():
         assert "## Nested agents" in role.body
         # Compare prose with whitespace collapsed so rewrapping the role text does not fail the check.
         prose = " ".join(role.body.split())
-        assert "The main session alone starts `orchi-implementer` and `orchi-fixer`." in prose
-        assert "Only `orchi-implementer` and `orchi-fixer` edit files or commit." in prose
+        assert "The main session alone starts `orchi-implementer`, `orchi-fixer`, and `orchi-designer`." in prose
+        assert "Only `orchi-implementer`, `orchi-fixer`, and `orchi-designer` edit files or commit." in prose
         assert "spawn" not in role.body.lower()
         # Project-neutral: installed roles reach Orchi files only through the placeholder.
         assert ".github/AGENTS.md" not in role.body and "skills/orchi/" not in role.body.replace("{{ORCHI_SKILL}}", "")
+
+
+def test_designer_uses_installed_design_skills_without_installing_them():
+    designer = {role.name: role for role in roles.load_roles()}["orchi-designer"]
+    prose = " ".join(designer.body.split())
+    for skill in ("Impeccable", "design-taste-frontend", "SmoothUI"):
+        assert skill in prose
+    assert "Never install or configure a design skill yourself." in prose
+    assert "## Task mode" in designer.body and "## Audit mode" in designer.body

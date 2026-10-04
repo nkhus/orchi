@@ -83,7 +83,7 @@ The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references co
 
 ## Subagents and entry skills
 
-The installer renders four Claude Code subagents from one definition each in [`skills/orchi/roles/`](skills/orchi/roles/README.md). The main session talks to the user, owns Issues, pushes, and merges; it may delegate retrieval, one Task or defect repair at a time, and review.
+The installer renders five Claude Code subagents from one definition each in [`skills/orchi/roles/`](skills/orchi/roles/README.md). The main session talks to the user, owns Issues, pushes, and merges; it may delegate retrieval, one Task or defect repair at a time, UI design, and review.
 
 | Agent | Model / effort | Writes | Role |
 | --- | --- | --- | --- |
@@ -91,8 +91,9 @@ The installer renders four Claude Code subagents from one definition each in [`s
 | `orchi-implementer` | opus / low | one commit per Task | Runs the Task readiness gate, then implements and verifies one Task, standalone or in an Epic |
 | `orchi-fixer` | sonnet / medium | one commit per Task or repair | Makes one small, fully specified change — a simple Task or a confirmed defect repair — and escalates anything larger |
 | `orchi-reviewer` | opus / high | nothing | Reviews a standalone Task, an assembled Epic, or a final Initiative candidate |
+| `orchi-designer` | opus / medium | one commit per UI Task; nothing in Audit mode | Implements one ready UI Task or audits a UI diff with the installed design skills (Impeccable, Taste Skill, SmoothUI) |
 
-Implementers, fixers, and reviewers may start `orchi-scout` or `orchi-reviewer` for independent sub-questions, and scouts only other scouts; only the main session starts the writers `orchi-implementer` and `orchi-fixer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents)). If a model or agent is unavailable, the main session does the step itself.
+Implementers, fixers, designers, and reviewers may start `orchi-scout` or `orchi-reviewer` for independent sub-questions, and scouts only other scouts; only the main session starts the writers `orchi-implementer`, `orchi-fixer`, and `orchi-designer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents)). If a model or agent is unavailable, the main session does the step itself.
 
 Two explicit entry skills fix the order of steps; they are conveniences, not a required facade:
 

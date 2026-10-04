@@ -1,6 +1,6 @@
 ---
 name: orchi-deliver
-description: Orchestrate delivery of a tracked Orchi standalone Task, Epic, or whole Initiative from its GitHub Issue number, delegating to the orchi-implementer, orchi-fixer, and orchi-reviewer subagents. Resumes interrupted delivery.
+description: Orchestrate delivery of a tracked Orchi standalone Task, Epic, or whole Initiative from its GitHub Issue number, delegating to the orchi-implementer, orchi-fixer, orchi-designer, and orchi-reviewer subagents. Resumes interrupted delivery.
 argument-hint: "#<issue> [--merge-epics]"
 disable-model-invocation: true
 ---
@@ -26,17 +26,17 @@ You are the main session: orchestrator and the only agent that talks to the user
 
 ## Readiness rule (all routes)
 
-Before starting any Task, Epic, or Initiative, check it against its readiness checklist, plus the repository's own stricter checklist if it defines one. If the missing context can be found in linked sources or code, add it to the Issue and continue. If it needs a product or design decision, decide it yourself when the user delegated it ([decide what the user delegated](../orchi/references/planning.md#clarify-with-the-user)) and record it in the Issue; otherwise stop and ask. Handle a writer's `NOT READY` report the same way, then restart that writer; a second `NOT READY` for the same Issue means stop and ask. Handle a fixer `ESCALATE` per [choosing a writer](../orchi/roles/README.md#choosing-a-writer).
+Before starting any Task, Epic, or Initiative, check it against its readiness checklist, plus the repository's own stricter checklist if it defines one. If the missing context can be found in linked sources or code, add it to the Issue and continue. If it needs a product or design decision, decide it yourself when the user delegated it ([decide what the user delegated](../orchi/references/planning.md#clarify-with-the-user)) and record it in the Issue; otherwise stop and ask. Handle a writer's `NOT READY` report the same way, then restart that writer; a second `NOT READY` for the same Issue means stop and ask. Handle a fixer or designer `ESCALATE` per [choosing a writer](../orchi/roles/README.md#choosing-a-writer).
 
 ## 2. Standalone Task
 
-Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer) with the Task number, branch, and absolute worktree path, then inspect its diff and check output yourself. Run its verification, then start `orchi-reviewer` once in Task mode on the diff. Repair confirmed blockers directly or through `orchi-fixer` in Repair mode, rerun the affected checks, and have the reviewer recheck only the repaired findings. Open a PR to `main` with the review result in its Verification section, and stop for the user's merge decision.
+Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer) with the Task number, branch, and absolute worktree path, then inspect its diff and check output yourself. Run its verification, then start `orchi-reviewer` once in Task mode on the diff; when the diff changes user interface, also start `orchi-designer` in Audit mode on it and treat its confirmed blockers like review blockers. Repair confirmed blockers directly or through `orchi-fixer` in Repair mode, rerun the affected checks, and have the reviewer recheck only the repaired findings. Open a PR to `main` with the review result in its Verification section, and stop for the user's merge decision.
 
 ## 3. Epic
 
 1. Claim the Epic. Create or check out its recorded branch from its target.
-2. For each open Task in native order: mark it `in-progress`, then start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer): `orchi-implementer` or `orchi-fixer` (Task mode) with the Epic number, Task number, branch, and absolute worktree path. On `DONE`, inspect the actual diff and check output yourself, push, record the evidence in the PR (create a draft PR on the first Task), and close the Task with its commit. On `BLOCKED`, resolve it or stop and ask.
-3. Start `orchi-reviewer` once on the assembled range (Epic mode). Fix confirmed defects directly, through `orchi-fixer` in Repair mode (one defect per run, with its path, scenario, and expected result), or by reopening the owning Task, adding the defect to its requirements and decisions, and restarting its writer. Turn context gaps into Issue updates. Do one targeted follow-up review, per the review reference.
+2. For each open Task in native order: mark it `in-progress`, then start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer): `orchi-implementer`, `orchi-fixer`, or `orchi-designer` (Task mode) with the Epic number, Task number, branch, and absolute worktree path. On `DONE`, inspect the actual diff and check output yourself, push, record the evidence in the PR (create a draft PR on the first Task), and close the Task with its commit. On `BLOCKED`, resolve it or stop and ask.
+3. Start `orchi-reviewer` once on the assembled range (Epic mode), and, when the range changes user interface, `orchi-designer` in Audit mode on it. Fix confirmed defects directly, through `orchi-fixer` in Repair mode (one defect per run, with its path, scenario, and expected result), or by reopening the owning Task, adding the defect to its requirements and decisions, and restarting its writer. Turn context gaps into Issue updates. Do one targeted follow-up review, per the review reference.
 4. Complete the PR body (Summary, Verification, Documentation impact) and mark it ready.
 5. Before merging, reconcile the docs per the knowledge reference § Reconcile: the changed Core pages match the implementation and acceptance, and `knowledge.py lint` passes.
 6. If the target is the Initiative branch and either `--merge-epics` is set or the user approves this merge: squash-merge, confirm the merge, then close the Epic and clear `in-progress`. If the target is `main`, report the PR and stop; the user merges.
@@ -56,7 +56,7 @@ Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or star
 
 ## Stop and ask the user when
 
-- A readiness failure, `BLOCKED`, or decision `ESCALATE` needs a product or design decision the user has not delegated.
+- A readiness failure, `BLOCKED`, or decision `ESCALATE` (including every designer `ESCALATE`) needs a product or design decision the user has not delegated.
 - A merge needs approval (no `--merge-epics`, or the target is `main`).
 - New evidence materially changes the agreed outcome, approach, or scope.
 - A check keeps failing after a targeted repair.

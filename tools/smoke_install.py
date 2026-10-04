@@ -11,7 +11,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ('orchi', 'orchi-plan', 'orchi-deliver')
-ROLES = ('orchi-fixer', 'orchi-implementer', 'orchi-reviewer', 'orchi-scout')
+ROLES = ('orchi-designer', 'orchi-fixer', 'orchi-implementer', 'orchi-reviewer', 'orchi-scout')
 
 
 def smoke(out: Path, installer: str, github: bool = False) -> dict:

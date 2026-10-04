@@ -82,8 +82,9 @@ are optional explicit entry points: `/orchi-plan` and `/orchi-deliver`. The
 rules above apply without them. The main session may delegate to the installed
 subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
 `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small,
-fully specified change (a simple Task or a confirmed defect repair), and
-`orchi-reviewer` reviews.
+fully specified change (a simple Task or a confirmed defect repair),
+`orchi-designer` executes one ready UI Task or audits a UI diff with the
+installed design skills, and `orchi-reviewer` reviews.
 Subagents never talk to the user, change Issues, push, or merge; their reports
 are claims to verify. Delegation is optional; the readiness checklists are not.
 

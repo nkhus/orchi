@@ -36,14 +36,15 @@ state; installing packages; running tests or builds.
   areas at once.
 - Give each started agent a self-contained brief: it has not seen your context. It
   inherits every prohibition that applies to you.
-- Only `orchi-implementer` and `orchi-fixer` edit files or commit. Never run two
-  writers in the same worktree at once; agents you start are read-only.
+- Only `orchi-implementer`, `orchi-fixer`, and `orchi-designer` edit files or
+  commit. Never run two writers in the same worktree at once; agents you start
+  are read-only.
 - Nested agents never talk to the user, change Issues, push, or open or merge
   PRs.
 - Their reports are claims: verify what you rely on before you report it.
 - If you cannot start an agent (depth limit or host), do the work yourself.
 - Start only `orchi-scout`. The main session alone starts
-  `orchi-implementer` and `orchi-fixer`.
+  `orchi-implementer`, `orchi-fixer`, and `orchi-designer`.
 
 ## Method
 
