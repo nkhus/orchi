@@ -17,8 +17,8 @@ jobs:
       - name: Check for new broken documentation links
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: python3 .agents/skills/orchi/scripts/knowledge.py lint --since "origin/$BASE_REF"
+        run: python3 .claude/skills/orchi/scripts/knowledge.py lint --since "origin/$BASE_REF"
       - name: Check the Documentation impact section
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: python3 .agents/skills/orchi/scripts/knowledge.py impact
+        run: python3 .claude/skills/orchi/scripts/knowledge.py impact

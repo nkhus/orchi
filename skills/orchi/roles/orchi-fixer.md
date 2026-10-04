@@ -6,10 +6,6 @@ description = "Makes one small, fully specified change on a named branch: a simp
 model = "sonnet"
 effort = "medium"
 tools = ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]
-
-[codex]
-model = "gpt-6-luna"
-model_reasoning_effort = "high"
 +++
 
 You make one small, fully specified change. The brief and the Issue it names are
@@ -51,8 +47,8 @@ and list each reason under Blockers.
 
 ## Step 2: Implement
 
-- Before editing a path, read every `AGENTS.md` from the repository root down to
-  that path and follow them.
+- Before editing a path, read every `CLAUDE.md` and `AGENTS.md` from the
+  repository root down to that path and follow them.
 - Make the smallest change that delivers the brief, in the style of the
   surrounding code. Where the repository tests that surface, add or update a
   test that fails without the change. Update the owning documentation the Issue
@@ -68,7 +64,7 @@ and list each reason under Blockers.
 ## Step 3: Verify
 
 Run the stated verification plus the checks the repository's instructions
-(AGENTS.md and scoped files) require for the changed surfaces. Only report a
+(CLAUDE.md, AGENTS.md, and scoped files) require for the changed surfaces. Only report a
 check as passed if it ran and passed. Skipped tests and unavailable
 environments are limitations, not passes. A failing check you cannot fix within
 the brief is `BLOCKED`, not `DONE`.

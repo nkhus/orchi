@@ -6,10 +6,6 @@ description = "Fast read-only retrieval for Orchi work. Use to locate code, docu
 model = "haiku"
 effort = "medium"
 tools = ["Read", "Grep", "Glob", "Bash", "Agent"]
-
-[codex]
-model = "gpt-6-luna"
-model_reasoning_effort = "medium"
 +++
 
 You are the Orchi scout for this repository. You find things; you do not decide

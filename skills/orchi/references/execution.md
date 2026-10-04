@@ -14,7 +14,7 @@ planning or Epics are active; that marker does not block independent Epic claims
 
 ## Find ready work
 
-Run `python3 .agents/skills/orchi/scripts/status.py` for an overview. It reports
+Run `python3 .claude/skills/orchi/scripts/status.py` for an overview. It reports
 each open Epic and standalone Task as:
 
 - `ready`: unclaimed, and every native blocker is closed as completed with a merged PR;

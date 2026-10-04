@@ -1,4 +1,4 @@
-"""Render Orchi subagents for Claude Code and Codex from shared role sources.
+"""Render Orchi subagents for Claude Code from role sources.
 
 Each role is defined once in `roles/<name>.md` inside the Orchi skill: TOML front
 matter between `+++` lines, then the Markdown instructions. Role bodies write the
@@ -15,16 +15,14 @@ import re
 import tomllib
 
 ROLES_DIR = Path(__file__).resolve().parents[2] / "roles"
-ROLES_PATH = ".agents/skills/orchi/roles"
+ROLES_PATH = ".claude/skills/orchi/roles"
 PLACEHOLDER = "{{ORCHI_SKILL}}"
 PLACEHOLDER_PATTERN = re.compile(r"\{\{[A-Za-z0-9_]+\}\}")
 CLAUDE_DIR = ".claude/agents"
-CODEX_DIR = ".codex/agents"
 
 REQUIRED = {
     "": ("name", "description"),
     "claude": ("model", "effort", "tools"),
-    "codex": ("model", "model_reasoning_effort"),
 }
 # Claude front matter values are written as plain YAML scalars, so restrict them.
 PLAIN = {
@@ -110,28 +108,9 @@ def load_roles(directory: Path = ROLES_DIR) -> list[Role]:
 
 
 def quoted(value: str) -> str:
-    """Double-quoted string valid in both YAML and TOML."""
-    # JSON leaves DEL unescaped, which TOML basic strings forbid.
+    """A double-quoted YAML string."""
+    # JSON leaves DEL unescaped, which YAML does not print.
     return json.dumps(value, ensure_ascii=False).replace("\x7f", "\\u007f")
-
-
-def toml_multiline(body: str) -> str:
-    """A TOML multi-line string that parses back to exactly `body`."""
-    if "'''" not in body and all(c in "\n\t" or ord(c) >= 0x20 and c != "\x7f" for c in body):
-        return "'''\n" + body + "'''"
-    out = []
-    for c in body:
-        if c == "\\":
-            out.append("\\\\")
-        elif c == '"':
-            out.append('\\"')
-        elif c in "\n\t":
-            out.append(c)
-        elif ord(c) < 0x20 or c == "\x7f":
-            out.append(f"\\u{ord(c):04x}")
-        else:
-            out.append(c)
-    return '"""\n' + "".join(out) + '"""'
 
 
 def instructions(role: Role, skill: str) -> str:
@@ -159,24 +138,6 @@ def render_claude(role: Role, skill: str) -> str:
     )
 
 
-def render_codex(role: Role, skill: str) -> str:
-    codex = role.meta["codex"]
-    return (
-        f"# {notice(role)}\n"
-        f"name = {quoted(role.name)}\n"
-        f"description = {quoted(role.meta['description'])}\n"
-        f"model = {quoted(codex['model'])}\n"
-        f"model_reasoning_effort = {quoted(codex['model_reasoning_effort'])}\n"
-        f"developer_instructions = {toml_multiline(instructions(role, skill))}\n"
-    )
-
-
-def agent_files(agents: list[str], skill: str, directory: Path = ROLES_DIR) -> dict[str, bytes]:
-    """Rendered agent files, keyed by path relative to the installation root, for the selected hosts."""
-    files = {}
-    for role in load_roles(directory):
-        if "claude" in agents:
-            files[f"{CLAUDE_DIR}/{role.name}.md"] = render_claude(role, skill).encode("utf-8")
-        if "codex" in agents:
-            files[f"{CODEX_DIR}/{role.name}.toml"] = render_codex(role, skill).encode("utf-8")
-    return files
+def agent_files(skill: str, directory: Path = ROLES_DIR) -> dict[str, bytes]:
+    """Rendered agent files, keyed by path relative to the installation root."""
+    return {f"{CLAUDE_DIR}/{role.name}.md": render_claude(role, skill).encode("utf-8") for role in load_roles(directory)}

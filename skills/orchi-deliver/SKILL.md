@@ -9,9 +9,7 @@ disable-model-invocation: true
 
 Arguments: $ARGUMENTS
 
-In Codex, take the arguments from the user's message after `$orchi-deliver`.
-
-You are the main session: orchestrator and the only agent that talks to the user, edits Issues, pushes, and opens or merges PRs. Follow `AGENTS.md`, the [Orchi skill](../orchi/SKILL.md) and its [execution](../orchi/references/execution.md), [review and delivery](../orchi/references/review-delivery.md), [readiness](../orchi/references/readiness.md), and [GitHub](../orchi/references/github.md) references, and the repository's own issue rules, which take precedence.
+You are the main session: orchestrator and the only agent that talks to the user, edits Issues, pushes, and opens or merges PRs. Follow `CLAUDE.md`, the [Orchi skill](../orchi/SKILL.md) and its [execution](../orchi/references/execution.md), [review and delivery](../orchi/references/review-delivery.md), [readiness](../orchi/references/readiness.md), and [GitHub](../orchi/references/github.md) references, and the repository's own issue rules, which take precedence.
 
 ## Authority granted by this command
 
@@ -65,7 +63,7 @@ Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or star
 
 ## Interruption
 
-Before stopping for any reason, fill in each open PR's `Handoff` section in the exact format from the execution reference, and push local commits. Rerunning `/orchi-deliver #<n>` (Claude Code) or `$orchi-deliver #<n>` (Codex) resumes from there.
+Before stopping for any reason, fill in each open PR's `Handoff` section in the exact format from the execution reference, and push local commits. Rerunning `/orchi-deliver #<n>` resumes from there.
 
 ## Final report
 
