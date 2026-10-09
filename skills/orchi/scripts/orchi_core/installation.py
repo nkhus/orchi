@@ -36,6 +36,7 @@ LABELS = {
     "Task": ("1d76db", "Orchi: one reviewable result"),
     "in-progress": ("fbca04", "Orchi: owned work in progress"),
     "Exploration": ("c5def5", "Orchi: an idea being researched and shaped before planning"),
+    "needs-planning": ("d4c5f9", "Orchi: a follow-up request waiting for the planner"),
 }
 # GitHub reads the first PR template it finds; extend an existing one instead of adding a rival.
 PR_TEMPLATE_PATHS = (".github/pull_request_template.md", ".github/PULL_REQUEST_TEMPLATE.md", "pull_request_template.md",

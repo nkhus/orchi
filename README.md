@@ -4,7 +4,7 @@
 
 **Research first. Agree the scope. Deliver through branches and GitHub Issues.**
 
-Orchi is a development convention packaged as one agent skill, with three optional entry skills and six model-tiered subagents. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. It installs into **Claude Code**.
+Orchi is a development convention packaged as one agent skill, with five optional entry skills (two of them team roles) and six model-tiered subagents. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. It installs into **Claude Code**.
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [Subagents and entry skills](#subagents-and-entry-skills) · [Project instructions](#project-instructions) · [Documentation](#documentation)
 
@@ -78,6 +78,7 @@ flowchart TD
 - **Agree before tracking.** Research, a proposed scope, and then the proposed breakdown into Epics or Tasks come first. Branches, Issues, and changes follow the user's agreement, not an agent's guess.
 - **Scale the ceremony to the work.** A small fix is one Task and one PR. An Epic is one branch and one PR with sequential Tasks. An Initiative integrates several Epic PRs on its own branch before one final PR to main.
 - **Every title shows its lineage.** Initiatives and Epics have short tags, and titles start with them: Initiative `[PAY] Card payments`, Epic `[PAY][TOKEN] Tokenize stored cards`, Task `[PAY][TOKEN] Add token column`. Labels carry the type, and branches reuse the tags (`epic/pay-token-tokenize-cards`).
+- **Run as a team when you want to.** One planner session talks with you about new work, one orchestrator session dispatches ready Issues to worker sessions, at most five at once, and each worker delivers one Issue with `/orchi-deliver`. Sessions only signal each other; claims, Issues, and PRs stay the state, so any session can restart and catch up. See [team](skills/orchi/references/team.md) and [team setup](docs/installation.md#team-setup).
 - **GitHub is the shared state.** `Initiative`, `Epic`, and `Task` labels, native sub-issues and `blocked by` dependencies, assignees, and `in-progress` describe hierarchy and ownership. Several Claude Code sessions can work on independent Epics in parallel, each in its own branch and worktree. `scripts/status.py` shows which Epics are ready, blocked, or claimed.
 - **Documentation follows the code.** Core documentation changes land with the implementation in the Epic branch, and every PR states its documentation impact. With `--github`, CI fails on broken local links the PR introduces or an empty impact section. Initiative plans live in `docs/initiatives/<tag>-<slug>/README.md` and are never presented as current behavior.
 - **Verify once, repair precisely.** Every new test is shown failing before the change. Each Epic gets one full review along three separate axes (Spec, including scope creep; Standards; Tests), with a design audit by `orchi-designer` when it changes user interface; demonstrated blockers are repaired and rechecked with a targeted follow-up. Each PR states its merge risk: a one-way or two-way door, and the blast radius. Interrupted work leaves a fixed Handoff section in the PR. Merging and deployment stay within the user's authority.
@@ -99,12 +100,14 @@ The installer renders six Claude Code subagents from one definition each in [`sk
 
 Implementers, fixers, designers, and reviewers may start `orchi-scout` or `orchi-reviewer` for independent sub-questions, researchers start scouts or other researchers, and scouts only other scouts; only the main session starts the writers `orchi-implementer`, `orchi-fixer`, and `orchi-designer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents)). If a model or agent is unavailable, the main session does the step itself.
 
-Three explicit entry skills fix the order of steps; they are conveniences, not a required facade:
+Five explicit entry skills fix the order of steps; they are conveniences, not a required facade:
 
 - `orchi-explore` (`/orchi-explore <idea>` or `#<exploration>`) researches and shapes an idea with the user before any scope exists: frame, research, diverge into at least three options, converge on decisions, shape requirements and candidate Epics. It keeps everything in an `Exploration` Issue, resumes from it, creates no delivery branch or product code, and ends with `Plan with: /orchi-plan #<n>`.
 
 - `orchi-plan` (`/orchi-plan <request>` or `#<exploration>`) researches, proposes a scope, and waits for agreement. It then clarifies before tracking: each gap the readiness checklist would otherwise force it to guess becomes a question with answerable options and a recommendation, asked in rounds and recorded in a decision log; questions the user has delegated, the main session decides itself and records. It shows the proposed Epics or Tasks and waits for agreement, then creates ready Issues and ends with `Deliver with: /orchi-deliver #<n>`.
-- `orchi-deliver` (`/orchi-deliver #<n> [--merge-epics]`) delivers a standalone Task, Epic, or Initiative through the subagents and resumes interrupted delivery. It never merges into main; `--merge-epics` allows merging reviewed Epic PRs into their Initiative branch.
+- `orchi-deliver` (`/orchi-deliver #<n> [--merge-epics]`) delivers a standalone Task, Epic, or Initiative through the subagents and resumes interrupted delivery. It never merges into main; `--merge-epics` allows merging reviewed Epic PRs into their Initiative branch. With `--report-to <orchestrator>` it runs as a team worker: it adopts the orchestrator's dispatch claim and reports its events to it.
+- `orchi-planner` (`/orchi-planner`) makes a long-lived session the repository's planner: it explores and plans with you, takes `needs-planning` follow-ups, tells the orchestrator what is ready, and starts the orchestrator when none is running.
+- `orchi-orchestrator` (`/orchi-orchestrator [--merge-epics]`) makes a long-lived session the orchestrator: it claims ready Issues, starts a worker for each, at most five at once (in Claude Desktop, a one-click session; otherwise `claude --bg` or a command for you), and tells you only about decisions, merges into main, and workers to start. It never edits code or merges into main without you.
 
 `orchi-plan` and `orchi-deliver` enforce the [readiness checklists](skills/orchi/references/readiness.md) for Tasks, Epics, and Initiatives: `orchi-plan` checks every Issue it creates, and `orchi-deliver` checks the Task, Epic, or Initiative again before delivering it.
 
@@ -113,7 +116,7 @@ Three explicit entry skills fix the order of steps; they are conveniences, not a
 | File or directory | Purpose |
 | --- | --- |
 | `.claude/skills/orchi/` | The Orchi skill |
-| `.claude/skills/orchi-explore/`, `.claude/skills/orchi-plan/`, `.claude/skills/orchi-deliver/` | Optional explicit entry skills |
+| `.claude/skills/orchi-explore/`, `orchi-plan/`, `orchi-deliver/`, `orchi-planner/`, `orchi-orchestrator/` | Optional explicit entry skills |
 | Root `CLAUDE.md` | Managed Orchi workflow instructions |
 | `.claude/agents/orchi-*.md` | Rendered subagents |
 | `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml` | Issue forms and documentation check, with `--github`; reinstalling replaces unmodified files; edited ones are conflicts that need `--replace-orchi` |

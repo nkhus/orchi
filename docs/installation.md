@@ -10,13 +10,13 @@ npx --yes github:nkhus/orchi
 
 The current directory is the installation target; `--project /path/to/project` chooses another one.
 
-The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the explicit entry skills `orchi-explore`, `orchi-plan`, and `orchi-deliver` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, and reports whether `git` and `gh` are available. It does not install or authenticate Claude Code or the GitHub CLI.
+The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the explicit entry skills `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-planner`, and `orchi-orchestrator` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, and reports whether `git` and `gh` are available. It does not install or authenticate Claude Code or the GitHub CLI.
 
 Requirements: Git, the GitHub CLI (`gh`) for Issue and PR work, and Python 3.11 or newer for the bundled scripts, which use only the standard library. The npm wrapper also needs Node.js/npm and `uv`. Linux, macOS, and WSL are supported.
 
 ## Skills and instructions
 
-Each skill is installed as a directory in `.claude/skills/` (`orchi`, `orchi-explore`, `orchi-plan`, `orchi-deliver`), where Claude Code discovers it. The skills move and clone with the repository.
+Each skill is installed as a directory in `.claude/skills/` (`orchi`, `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-planner`, `orchi-orchestrator`), where Claude Code discovers it. The skills move and clone with the repository.
 
 The installer appends an Orchi workflow section to the target root `CLAUDE.md`. Its rules route implementation through the Orchi skill, require research and agreement before tracking or changes, and keep merge and deployment within the user's authority. It never copies this repository's contributor `AGENTS.md` into another project, and it does not change an existing root `AGENTS.md`. When `CLAUDE.md` is a symlink to root `AGENTS.md`, the section goes into `AGENTS.md`, which Claude Code reads through the link.
 
@@ -44,16 +44,28 @@ npx --yes github:nkhus/orchi --github
 
 | File or resource | Purpose |
 | --- | --- |
-| `.github/ISSUE_TEMPLATE/orchi-initiative.yml`, `orchi-epic.yml`, `orchi-task.yml` | Issue forms that apply the matching type label; the Task, Epic, and Initiative forms have a field for every item of the [readiness checklists](../skills/orchi/references/readiness.md) |
-| PR template section | Summary, Verification, Documentation impact, and Handoff, as a managed section in an existing template (`.github/pull_request_template.md` or another location GitHub reads) or a new one |
+| `.github/ISSUE_TEMPLATE/orchi-initiative.yml`, `orchi-epic.yml`, `orchi-task.yml`, `orchi-exploration.yml` | Issue forms that apply the matching type label; the Task, Epic, and Initiative forms have a field for every item of the [readiness checklists](../skills/orchi/references/readiness.md), and the Exploration form prepares an Initiative's first five |
+| PR template section | Summary, Verification, Merge risk, Documentation impact, and Handoff, as a managed section in an existing template (`.github/pull_request_template.md` or another location GitHub reads) or a new one |
 | `.github/workflows/orchi-docs.yml` | On every PR, fails on broken local links the PR introduces (`knowledge.py lint --since` the base branch) or a missing or empty Documentation impact section; omitted with `--no-docs-workflow` |
-| Labels `Initiative`, `Epic`, `Task`, `in-progress` | Created with `gh` when missing; existing labels are not changed |
+| Labels `Initiative`, `Epic`, `Task`, `in-progress`, `Exploration`, `needs-planning` | Created with `gh` when missing; existing labels are not changed |
 
 The template and workflow files are recorded in the manifest with their hashes, so they follow the same rules as the skill: unmodified files update in place, edited or pre-existing files need `--replace-orchi`, and uninstalling refuses edited files. Label creation needs a GitHub remote and an authenticated `gh`. If either is missing, the installation still completes and reports the error in `labels`; rerun it later to create them. Uninstalling leaves labels in place.
 
 To skip the documentation check workflow, add `--no-docs-workflow`. The manifest records the choice (`docs_workflow`) and later installations keep it until `--docs-workflow` turns the workflow back on. Opting out removes an installed, unmodified workflow; an edited one is a conflict that needs `--replace-orchi`, which keeps a backup. Without either flag, the workflow is installed, including for manifests written before the option existed.
 
 Broken links that already exist on the base branch are reported as pre-existing and do not fail a PR, so the workflow can be enabled in a repository with documentation debt. Run `python3 .claude/skills/orchi/scripts/knowledge.py lint` to see that debt. Make the check required in branch protection if it should block merges.
+
+## Team setup
+
+A team is optional: one planner session, one orchestrator session, and worker sessions, as the [team reference](../skills/orchi/references/team.md) describes. To set it up in a project:
+
+1. Install with `--github`, so the `needs-planning` and `Exploration` labels exist.
+2. Decide how far workers may run alone. A worker stops at every permission prompt until someone answers it, so give the project a permission mode and an allowlist that fit your risk, in `.claude/settings.json`, for example `{"permissions": {"defaultMode": "auto"}}` with `allow` rules for the repository's `git`, `gh`, and check commands. Orchi does not change these settings.
+3. Start one session in the repository and run `/orchi-planner`. It names itself and, when no orchestrator is running, offers to start one with `/orchi-orchestrator`.
+4. Talk to the planner. When it reports work as ready, the orchestrator claims it and starts a worker per Issue: in Claude Desktop it offers a one-click session for you to accept; in a terminal signed in to the Claude Code CLI it starts `claude --bg` sessions (`claude agents` lists them, `claude attach <id>` opens one).
+5. Open a worker when the orchestrator says it needs you, and merge PRs into main yourself or tell the orchestrator to.
+
+Background sessions need the folder to be trusted and the CLI to be signed in; Claude Desktop and the CLI sign in separately. The orchestrator runs at most five workers at once; the repository's instructions can set another limit. A role skill's text is re-attached after compaction, and each role rebuilds its state from GitHub, so rerunning `/orchi-planner` or `/orchi-orchestrator` is safe.
 
 ## User-wide installation
 
@@ -97,6 +109,11 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 ## Upgrading
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
+
+### From 0.9.x to 0.10.x
+
+- **Team roles.** The `orchi-planner` and `orchi-orchestrator` entry skills and the [team reference](../skills/orchi/references/team.md) are new; `orchi-deliver` accepts `--report-to <orchestrator>`. See [team setup](#team-setup). Reinstalling adds them; nothing changes for work outside a team.
+- **GitHub setup.** With `--github`, reinstalling creates the `needs-planning` label.
 
 ### From 0.8.x to 0.9.x
 
