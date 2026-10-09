@@ -61,11 +61,11 @@ A team is optional: one planner session, one orchestrator session, and worker se
 
 1. Install with `--github`, so the `needs-planning` and `Exploration` labels exist.
 2. Decide how far workers may run alone. A worker stops at every permission prompt until someone answers it, so give the project a permission mode and an allowlist that fit your risk, in `.claude/settings.json`, for example `{"permissions": {"defaultMode": "auto"}}` with `allow` rules for the repository's `git`, `gh`, and check commands. Orchi does not change these settings.
-3. Start one session in the repository and run `/orchi-planner`. It names itself and, when no orchestrator is running, offers to start one with `/orchi-orchestrator`.
+3. Start one session in the repository in that same permission mode and run `/orchi-planner`; keep the planner and orchestrator sessions in the mode workers get from the settings. It names itself and, when no orchestrator is running, offers to start one with `/orchi-orchestrator`.
 4. Talk to the planner. When it reports work as ready, the orchestrator claims it and starts a worker per Issue: in Claude Desktop it offers a one-click session for you to accept; in a terminal signed in to the Claude Code CLI it starts `claude --bg` sessions (`claude agents` lists them, `claude attach <id>` opens one).
 5. Open a worker when the orchestrator says it needs you, and merge PRs into main yourself or tell the orchestrator to.
 
-Background sessions need the folder to be trusted and the CLI to be signed in; Claude Desktop and the CLI sign in separately. The orchestrator runs at most five workers at once; the repository's instructions can set another limit. A role skill's text is re-attached after compaction, and each role rebuilds its state from GitHub, so rerunning `/orchi-planner` or `/orchi-orchestrator` is safe.
+Background sessions need the folder to be trusted and the CLI to be signed in (`claude auth login`); Claude Desktop and the CLI sign in separately. Workers start in fresh worktrees from main, so commit the permission settings to main. Sessions in different permission modes cannot exchange messages: the message is held and, in a session that cannot ask its user, expires. The orchestrator runs at most five workers at once; the repository's instructions can set another limit. A role skill's text is re-attached after compaction, and each role rebuilds its state from GitHub, so rerunning `/orchi-planner` or `/orchi-orchestrator` is safe.
 
 ## User-wide installation
 

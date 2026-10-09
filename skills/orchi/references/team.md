@@ -73,7 +73,11 @@ Start a worker in the first way the host supports:
 
 Workers inherit the repository's permission settings. A background worker that
 waits for a permission prompt stops until someone attaches to it, so the
-project's settings decide how far workers run alone.
+project's settings decide how far workers run alone. Run every session of the
+team in the same permission mode: a message between sessions in different modes
+is held for approval, and a session that cannot ask its user lets it expire
+undelivered. When a message is held, tell the user which session's mode to
+change instead of resending it.
 
 ## Worker limit
 
