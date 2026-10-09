@@ -110,6 +110,10 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
 
+### From 0.10.x to 0.11.x
+
+- **Finishing workers.** A team worker stays until its PR is merged and takes rework in its own session (`#<n> rework`, `#<n> incomplete`). The orchestrator checks that a PR is complete before calling the user to merge, tells the worker `#<n> merged` after a merge, and after `done` archives the worker with its worktree when the PR is merged, the Issue closed, and the worktree clean. See [finish a worker](../skills/orchi/references/team.md#finish-a-worker).
+
 ### From 0.9.x to 0.10.x
 
 - **Team roles.** The `orchi-planner` and `orchi-orchestrator` entry skills and the [team reference](../skills/orchi/references/team.md) are new; `orchi-deliver` accepts `--report-to <orchestrator>`. See [team setup](#team-setup). Reinstalling adds them; nothing changes for work outside a team.
