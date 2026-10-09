@@ -11,16 +11,17 @@ controller, state database, approval receipt, or mandatory command facade.
 
 Start by identifying your role (researcher, Epic owner, Initiative integrator, or
 reader). Inspect branch and worktree changes, and read the relevant issue and PR.
-Resume existing work instead of duplicating it. Read repository instructions
-(CLAUDE.md, AGENTS.md, scoped files); they take
-precedence over these defaults. Preserve the user's request, decisions, and edits.
+Resume existing work instead of duplicating it. Repository instructions (CLAUDE.md,
+AGENTS.md, scoped files) take precedence over these defaults. Preserve the user's
+request, decisions, and edits.
 
 ## Research, propose, agree
 
 Before choosing a delivery scope, read the relevant code, documentation, and
 issues. Scale research to uncertainty and ask focused questions when missing
-context would change the result ([clarify](references/planning.md#clarify-with-the-user)). Present findings, sensible approaches with
-tradeoffs, and a recommended outcome and scope.
+context would change the result ([clarify](references/planning.md#clarify-with-the-user)).
+Present findings, approaches with tradeoffs, and a recommended outcome and scope.
+An idea that needs strategic decisions before any scope is [explored](references/exploration.md) first.
 
 Agree the direction with the user before creating branches, Issues, or changes.
 Exploring a problem is not agreement to an agent-chosen scope; silence is not
@@ -31,17 +32,17 @@ evidence changes the outcome, approach, or scale, explain it and agree again.
 
 | Request | Tracking | Branch and PR |
 | --- | --- | --- |
-| Question or exploration | None | None |
+| Question | None | None |
+| Idea that needs research and strategic decisions | Exploration Issue | None; throwaway `prototype/<slug>` branches only |
 | Small fix | Standalone Task | `fix/<slug>` from main, PR to main |
 | Outcome decomposed into Tasks | Epic → Tasks | One `epic/<tag>-<slug>` branch and PR to main |
 | Outcome decomposed into Epics | Initiative → Epics → Tasks | `initiative/<tag>-<slug>` from main; one `epic/<tag>-<epic-tag>-<slug>` PR per Epic into it; final PR to main |
 
 Start titles with the Initiative and Epic tags they belong to, for example
 `[PAY][TOKEN] Add token column`; labels carry the type. See
-[titles and tags](references/github.md#titles-and-tags). Reuse a branch already recorded in the issue. Create an Initiative branch after
-agreement, before its plan or code. Branch from the fetched remote target after
-inspecting local changes; never reset another checkout to get a baseline. Do not
-create placeholder parents for small work.
+[titles and tags](references/github.md#titles-and-tags). Reuse a branch recorded in the issue. Create an Initiative branch
+after agreement, before its plan or code. Branch from the fetched remote target;
+never reset another checkout to get a baseline. Do not create placeholder parents.
 
 ## Core rules
 
@@ -58,8 +59,7 @@ create placeholder parents for small work.
 - Squash-merge. Close Epics, Initiatives, and standalone Tasks only after
   confirming the merge; close Epic Tasks as the execution reference says. Do not infer merge
   or deployment permission from permission to implement.
-- If GitHub is unavailable, say so. Local drafts may continue, but never claim
-  that tracking or ownership exists remotely when it does not.
+- If GitHub is unavailable, say so; never claim remote tracking or ownership that does not exist.
 
 ## Stage guidance
 
@@ -67,6 +67,7 @@ Read only the reference needed for the current stage.
 
 | Stage | Reference |
 | --- | --- |
+| Explore and shape an idea before any scope | [Exploration](references/exploration.md) |
 | Clarify with the user, design, and write Issues for agents | [Planning](references/planning.md) |
 | Check that a Task or Epic is ready to start or delegate | [Readiness](references/readiness.md) |
 | Find ready work, claim, execute, hand off, resume | [Execution](references/execution.md) |
@@ -78,10 +79,11 @@ Read only the reference needed for the current stage.
 
 ## Entry skills and subagents
 
-`orchi-plan` (research → agreed, ready Issues) and `orchi-deliver` (Issue → PR)
-are optional explicit entry points: `/orchi-plan` and `/orchi-deliver`. The
-rules above apply without them. The main session may delegate to the installed
+`orchi-explore` (idea → shaped Exploration), `orchi-plan` (request → ready
+Issues), and `orchi-deliver` (Issue → PR) are optional explicit entry points.
+The rules above apply without them. The main session may delegate to the
 subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
+`orchi-researcher` researches and designs options for an exploration,
 `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small,
 fully specified change (a simple Task or a confirmed defect repair),
 `orchi-designer` executes one ready UI Task or audits a UI diff with the
@@ -91,10 +93,8 @@ are claims to verify. Delegation is optional; the readiness checklists are not.
 
 ## Tools
 
-Both scripts are read-only and use only Git, `gh`, and the Python standard
-library. Run them from the repository root with the installed skill path.
-
-- `python3 .claude/skills/orchi/scripts/status.py` lists open Epics and standalone
-  Tasks with their owners, blockers, and readiness.
-- `python3 .claude/skills/orchi/scripts/knowledge.py` searches documentation,
-  reads exact snapshots, and checks local links.
+Both scripts are read-only (Git, `gh`, Python standard library); run them from
+the repository root. `python3 .claude/skills/orchi/scripts/status.py` lists open
+Epics and standalone Tasks with owners, blockers, and readiness;
+`python3 .claude/skills/orchi/scripts/knowledge.py` searches documentation, reads
+exact snapshots, and checks local links.

@@ -64,7 +64,8 @@ def checklist(title):
     return [int(number) for number in re.findall(r"^(\d+)\. ", section, flags=re.M)]
 
 
-@pytest.mark.parametrize("name, label", [("task", "Task"), ("epic", "Epic"), ("initiative", "Initiative")])
+@pytest.mark.parametrize("name, label", [("task", "Task"), ("epic", "Epic"), ("initiative", "Initiative"),
+                                         ("exploration", "Exploration")])
 def test_templates_are_valid_issue_forms(name, label):
     form = load(name)
     assert form["name"] == f"Orchi {label}" and form["description"] and form["labels"] == [label]
@@ -90,6 +91,27 @@ def test_every_readiness_item_has_a_template_field(name, title, mapping):
         text = flat(attributes["label"] + " " + attributes.get("description", "")).casefold()
         for phrase in phrases:
             assert phrase in text, f"{title} item {number} is not covered by field {field}: {phrase!r}"
+
+
+# Initiative readiness items an exploration answers before planning -> (field, phrases).
+EXPLORATION_FIELDS = {
+    1: ("request", ("distinct from later decisions",)),
+    2: ("constraints", ("exclusions",)),
+    3: ("requirements", ("numbered requirements", "observable at completion")),
+    4: ("decisions", ("who decided", "quote the user's answers")),
+    5: ("shape", ("candidate epics", "dependency between epics")),
+}
+
+
+def test_exploration_form_answers_initiative_readiness_before_planning():
+    assert set(EXPLORATION_FIELDS) <= set(checklist("Initiative readiness checklist"))
+    fields = {item["id"]: item for item in load("exploration")["body"] if item["type"] != "markdown"}
+    for number, (field, phrases) in EXPLORATION_FIELDS.items():
+        attributes = fields[field]["attributes"]
+        text = flat(attributes["label"] + " " + attributes.get("description", "")).casefold()
+        for phrase in phrases:
+            assert phrase in text, f"Initiative item {number} is not prepared by exploration field {field}: {phrase!r}"
+    assert "/orchi-plan #" in flat(load("exploration")["body"][0]["attributes"]["value"])
 
 
 def test_templates_point_to_the_readiness_reference():

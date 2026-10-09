@@ -10,13 +10,13 @@ npx --yes github:nkhus/orchi
 
 The current directory is the installation target; `--project /path/to/project` chooses another one.
 
-The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the explicit entry skills `orchi-plan` and `orchi-deliver` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, and reports whether `git` and `gh` are available. It does not install or authenticate Claude Code or the GitHub CLI.
+The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the explicit entry skills `orchi-explore`, `orchi-plan`, and `orchi-deliver` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, and reports whether `git` and `gh` are available. It does not install or authenticate Claude Code or the GitHub CLI.
 
 Requirements: Git, the GitHub CLI (`gh`) for Issue and PR work, and Python 3.11 or newer for the bundled scripts, which use only the standard library. The npm wrapper also needs Node.js/npm and `uv`. Linux, macOS, and WSL are supported.
 
 ## Skills and instructions
 
-Each skill is installed as a directory in `.claude/skills/` (`orchi`, `orchi-plan`, `orchi-deliver`), where Claude Code discovers it. The skills move and clone with the repository.
+Each skill is installed as a directory in `.claude/skills/` (`orchi`, `orchi-explore`, `orchi-plan`, `orchi-deliver`), where Claude Code discovers it. The skills move and clone with the repository.
 
 The installer appends an Orchi workflow section to the target root `CLAUDE.md`. Its rules route implementation through the Orchi skill, require research and agreement before tracking or changes, and keep merge and deployment within the user's authority. It never copies this repository's contributor `AGENTS.md` into another project, and it does not change an existing root `AGENTS.md`. When `CLAUDE.md` is a symlink to root `AGENTS.md`, the section goes into `AGENTS.md`, which Claude Code reads through the link.
 
@@ -97,6 +97,12 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 ## Upgrading
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
+
+### From 0.8.x to 0.9.x
+
+- **Exploration.** The new `orchi-explore` entry skill and [exploration reference](../skills/orchi/references/exploration.md) research and shape an idea in an `Exploration` Issue before planning, and `orchi-plan #<exploration>` turns a shaped one into tracked work. Reinstalling adds the skill.
+- **`orchi-researcher` agent.** A read-only subagent for cited research and option design. An existing `.claude/agents/orchi-researcher.md` that Orchi did not install is a conflict that needs `--replace-orchi`.
+- **GitHub setup.** With `--github`, reinstalling adds the `orchi-exploration.yml` form and the `Exploration` label.
 
 ### From 0.7.x to 0.8.x
 

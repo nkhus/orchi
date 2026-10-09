@@ -14,6 +14,7 @@ allowed.
 | Agent | Model / effort | Writes |
 | --- | --- | --- |
 | [`orchi-scout`](orchi-scout.md) | haiku / medium | nothing |
+| [`orchi-researcher`](orchi-researcher.md) | opus / medium | nothing |
 | [`orchi-implementer`](orchi-implementer.md) | opus / low | one commit per Task |
 | [`orchi-fixer`](orchi-fixer.md) | sonnet / medium | one commit per Task or repair |
 | [`orchi-reviewer`](orchi-reviewer.md) | opus / high | nothing |

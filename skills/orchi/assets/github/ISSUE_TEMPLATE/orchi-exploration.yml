@@ -1,0 +1,67 @@
+name: Orchi Exploration
+description: An idea being researched and shaped with the user before any scope is planned.
+title: "Explore: "
+labels: [Exploration]
+body:
+  - type: markdown
+    attributes:
+      value: "An exploration produces decisions, not code; Orchi's exploration reference defines its phases. Keep this body as the current map: put research detail in comments with their sources, and link prototype branches, which are never merged. When the user confirms the shape, plan it with /orchi-plan #<this issue>; planning takes these decisions as agreed, so write them for a planner who has not seen the exploration conversation."
+  - type: textarea
+    id: destination
+    attributes:
+      label: Destination
+      description: What is being decided, and what the end of this exploration looks like.
+    validations:
+      required: true
+  - type: textarea
+    id: request
+    attributes:
+      label: Original request
+      description: The idea in the user's words, kept distinct from later decisions.
+    validations:
+      required: true
+  - type: textarea
+    id: appetite
+    attributes:
+      label: Appetite
+      description: How much the outcome is worth - Task, Epic, or Initiative size - and any time limit.
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and no-gos
+      description: Fixed limits, and what is explicitly out of scope (the exclusions).
+  - type: textarea
+    id: findings
+    attributes:
+      label: Findings
+      description: One line per research comment - the question, the answer, and a link to the comment with its sources.
+  - type: textarea
+    id: options
+    attributes:
+      label: Options
+      description: Each direction considered - its shape, what it makes easy and hard - and the verdict with its reason.
+  - type: textarea
+    id: decisions
+    attributes:
+      label: Decisions
+      description: Each decision - the question, the answer, who decided, the date, and the reason. Quote the user's answers faithfully. Mark a decision that is hard to reverse, surprising, and a real tradeoff as a decision record candidate.
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: Numbered requirements (R1, R2, ...) of the chosen direction, each observable at completion.
+  - type: textarea
+    id: shape
+    attributes:
+      label: Shape
+      description: The chosen direction, and candidate Epics as outcomes, each with the result or contract it supplies to the next (the dependency between Epics).
+  - type: textarea
+    id: unspecified
+    attributes:
+      label: Not yet specified
+      description: Questions that are coming but cannot be phrased precisely yet.
+  - type: textarea
+    id: questions
+    attributes:
+      label: Open questions
+      description: Questions that can be phrased now, each with what it blocks. The next one to ask comes first.
