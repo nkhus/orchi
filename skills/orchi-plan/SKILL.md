@@ -1,7 +1,7 @@
 ---
 name: orchi-plan
 description: Turn a user request into agreed, tracked, delivery-ready Orchi work (standalone Task, Epic, or Initiative). Ends with the Issue number to pass to orchi-deliver.
-argument-hint: <request in plain words>
+argument-hint: "<request in plain words> | #<exploration>"
 disable-model-invocation: true
 ---
 
@@ -20,6 +20,10 @@ does not replace those rules.
 - Inspect the branch and worktree. Search open and closed Issues and PRs for
   existing or overlapping work. If this continues tracked work, stop and propose
   `/orchi-deliver #<n>` instead.
+- With a shaped Exploration (`#<n>`), take its destination, requirements,
+  decisions, and Epic candidates as agreed, link it as the source request, and
+  ask only what it leaves open ([hand off](../orchi/references/exploration.md#hand-off)).
+  If an idea needs strategic decisions before any scope, propose `/orchi-explore`.
 - Send `orchi-scout` agents for independent retrieval questions (in parallel
   when independent). Read the key files they point to yourself. A scout "not
   found" is not proof of absence.
@@ -59,12 +63,11 @@ titles, tags, labels, branches, and native relationships.
 - **Epic:** the Epic (`orchi-epic.yml` when present), then its Tasks in execution
   order as native sub-issues.
 - **Initiative:** create the Initiative Issue (`orchi-initiative.yml` when
-  present: outcome, requirements, decisions, Epic map, integration branch and
-  completion). Create the Initiative branch
-  and write the plan at `docs/initiatives/<tag>-<slug>/README.md` on it. Create
-  every Epic as a native sub-issue with its context, requirements, decisions,
-  scenarios, boundaries, likely surfaces, acceptance, risks, and open questions. A field
-  that depends on a predecessor's result may say `Deferred until #<n>: <reason>`.
+  present), then the Initiative branch with the plan at
+  `docs/initiatives/<tag>-<slug>/README.md`. Create every Epic as a native
+  sub-issue with its context, requirements, decisions, scenarios, boundaries,
+  likely surfaces, acceptance, risks, and open questions. A field that depends
+  on a predecessor's result may say `Deferred until #<n>: <reason>`.
   Add native blocked-by relationships. Split into Tasks only the Epics that are
   ready to deliver now. The rest are split during delivery.
 
@@ -86,8 +89,8 @@ Issues. Read back labels, parents, and blockers from GitHub.
 
 ## 6. Hand off
 
-Report the created Issue URLs, which Epics are ready and which are deferred, and
-end with exactly one line:
+Close a source Exploration as completed with a link to the new work. Report the
+created Issue URLs and which Epics are ready or deferred, and end with one line:
 
 ```
 Deliver with: /orchi-deliver #<n>

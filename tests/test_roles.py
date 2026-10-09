@@ -90,6 +90,7 @@ def test_shipped_roles_have_agreed_models_and_nesting():
         "orchi-implementer": ("opus", "low", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]),
         "orchi-fixer": ("sonnet", "medium", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]),
         "orchi-reviewer": ("opus", "high", ["Read", "Grep", "Glob", "Bash", "Agent"]),
+        "orchi-researcher": ("opus", "medium", ["Read", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "Agent"]),
         "orchi-designer": ("opus", "medium", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Skill", "Agent"]),
     }
     loaded = {role.name: role for role in roles.load_roles()}
