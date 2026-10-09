@@ -94,7 +94,7 @@ are claims to verify. Delegation is optional; the readiness checklists are not.
 ## Tools
 
 Both scripts are read-only (Git, `gh`, Python standard library); run them from
-the repository root. `python3 .claude/skills/orchi/scripts/status.py` lists open
+the repository root, using this skill's base directory in a user-wide install. `python3 .claude/skills/orchi/scripts/status.py` lists open
 Epics and standalone Tasks with owners, blockers, and readiness;
 `python3 .claude/skills/orchi/scripts/knowledge.py` searches documentation, reads
 exact snapshots, and checks local links.

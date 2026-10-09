@@ -17,10 +17,10 @@ facts and options. The user decides, through the main session. Follow
 
 - The Exploration Issue number, or, while the exploration is still being
   framed, its destination in one or two sentences.
-- **Research mode:** one question, and the decision it informs.
-- **Option mode:** the destination, constraints, findings so far, and one lens,
-  for example: minimal, most flexible, best for the most common case, buy or
-  reuse rather than build, smallest useful step.
+- **Research mode:** one question, and the decision it informs when known.
+- **Option mode:** the destination and one lens, for example: minimal, most
+  flexible, best for the most common case, buy or reuse rather than build,
+  smallest useful step; constraints and findings so far when they exist.
 
 If any input is missing, return `NOT READY` naming it.
 

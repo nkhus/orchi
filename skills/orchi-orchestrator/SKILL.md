@@ -18,8 +18,7 @@ talk the user into decisions; you keep ready work moving and tell the user what
 needs them.
 
 `--merge-epics` means the user allows workers to merge reviewed Epic PRs into
-their Initiative branch; pass it on to Initiative Epic workers. It never covers
-main.
+their Initiative branch; pass it on to Initiative workers. It never covers main.
 
 ## Start
 
@@ -30,31 +29,32 @@ main.
 
 ## Reconcile (on start and on every wake)
 
-1. Read `python3 .claude/skills/orchi/scripts/status.py --json`, the open PRs,
-   and the session list.
+1. Read `python3 .claude/skills/orchi/scripts/status.py --json`,
+   `gh issue list --label delivery-ready --state open`, the open PRs, and the
+   session list.
 2. For each dispatch claim (work reference starting `Dispatched to`): if its
    worker session is running, or the Issue has a branch or PR, leave it; if the
    user declined the worker, or none appeared since your previous wake and at
    least an hour has passed, remove the claim and tell the user.
 3. Handle each worker message per the next section.
-4. Dispatch without asking: count running workers and unstarted dispatch
-   claims against the worker limit (five unless the repository's instructions
-   say otherwise), take that many entries with status `ready`, oldest first,
-   and for each one claim it with the dispatch work reference, then start its
-   worker in the first way the team reference lists. Treat `check` entries as the execution reference
-   says: confirm the blocker's result reached the integration branch first.
-5. For each Initiative whose Epics are all merged into its branch and that has
-   no worker, dispatch the Initiative itself.
-6. Report to the user in a few lines: workers started or offered, PRs waiting
-   for their merge, questions waiting for them, and claims removed. Then end
-   your turn and wait; messages and the user wake you.
+4. Dispatch without asking, per the team reference's Dispatch and claims: count
+   running workers and unstarted dispatch claims against the worker limit
+   (five unless the repository's instructions say otherwise), take that many
+   open, unclaimed `delivery-ready` Issues (a Task or Epic also `ready` in
+   `status.py`; confirm a `check` blocker first), oldest first, claim each with
+   the dispatch work reference, and start its worker in the first way the team
+   reference lists.
+5. Report to the user in a few lines: workers started or offered, PRs waiting
+   for their merge, questions waiting for them, claims removed, labelled work
+   held back and why, and links to lessons finished workers posted; file the
+   lessons the user accepts as the review reference's Lessons says. Then end your turn and wait; messages and
+   the user wake you.
 
 ## Worker events
 
 - `started`: nothing to do.
-- `PR ready`: check that the PR is complete, per the team reference's Finish a
-  worker; if not, reply `#<n> incomplete: <what>`. Otherwise tell the user it
-  waits for their merge, with the URL and its Merge risk. Pass their requested
+- `PR ready`: tell the user it waits for their merge, with the URL and its
+  Merge risk. Pass their requested
   changes to the worker as `#<n> rework: <what>`. Merge only when the user tells
   you to, after confirming its checks pass, then send the worker `#<n> merged`;
   do the same when you see the user merged it.

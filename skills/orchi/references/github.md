@@ -7,8 +7,10 @@ claiming are in [execution](execution.md).
 
 ## Setup
 
-Orchi uses the labels `Initiative`, `Epic`, `Task`, and `in-progress`. A project
-installed with `--github` already has them, plus issue templates, a PR template,
+Orchi uses the type labels `Initiative`, `Epic`, and `Task`; `in-progress` for
+claims; `Exploration` for explorations; and, in a team, `needs-planning`,
+`delivery-ready`, and `retro` for hand-offs. A project installed with `--github`
+already has them, plus issue templates, a PR template,
 and a documentation check workflow. Otherwise, create missing labels deliberately
 with a stable description; do not invent variants.
 
@@ -64,19 +66,8 @@ or rewrite existing issues merely to tidy the hierarchy without user authorizati
 Write bodies for agent owners, per
 [Write Issues for agents](planning.md#write-issues-for-agents). Put the context,
 requirements, solution vision, and decisions in the body; link authoritative
-documents and stable requirement IDs instead of copying them.
-
-- **Initiative:** original request, agreed outcome, requirements, decisions,
-  Epic map, integration and completion, and a link to the plan on the
-  Initiative branch.
-- **Epic:** outcome; sources; context and current state; in and out of scope;
-  requirements; design or a link to it; decisions; direct dependencies; exit
-  criteria; open questions.
-- **Task:** parent; one reviewable outcome; context; requirements; solution
-  vision; decisions; sources; acceptance and verification; dependencies not
-  implied by Task order.
-
-The [readiness checklists](readiness.md) define what a Task, Epic, or Initiative
+documents and stable requirement IDs instead of copying them. The
+[readiness checklists](readiness.md) define what a Task, Epic, or Initiative
 must contain before delivery. A repository's own stricter checklist applies in addition.
 
 ## Pull requests

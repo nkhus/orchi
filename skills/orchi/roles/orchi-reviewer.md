@@ -22,8 +22,10 @@ blocker and `{{ORCHI_SKILL}}/references/testing.md` for the Tests axis.
   number.
 - **Initiative mode:** Initiative Issue number, and the range
   `origin/main..initiative/<tag>-<slug>`.
-- **Optional:** one axis (`Spec`, `Standards`, or `Tests`) when another reviewer
-  started you for that axis alone.
+- **Optional:** the absolute path of a worktree at `<head>`; read files and run
+  checks there.
+- **Recheck:** the earlier findings and the repair range. Review only those
+  findings and the paths the repair changed, and report only on them.
 
 ## Review axes
 
@@ -40,12 +42,9 @@ a failure on another:
 - **Tests:** the changed tests and their red evidence, per the testing
   reference.
 
-In Epic and Initiative mode, start one `orchi-reviewer` per axis in parallel,
-each with the mode, Issue number, range, and its single axis; verify what they
-report and place it under its axis without merging or reranking across axes. A
-reviewer started for one axis reviews only that axis and starts no axis
-reviewers. In Task mode, or when you cannot start agents, review the axes
-yourself, one at a time.
+Review the axes one at a time, yourself. Do not merge or rerank findings across
+axes; mark a finding that shares its cause with one on another axis as
+`same cause as <finding>`.
 
 ## Allowed actions
 
@@ -118,14 +117,14 @@ defect with concrete inputs or code paths before reporting it.
 <Task|Epic|Initiative> #<n> review of <range>
 
 Spec (most severe first):
-- [blocker|major|minor] <path>:<line> — <defect>; scenario: <inputs/state → wrong result>
+- [blocker|major|minor] <path>:<line> — <defect>; scenario: <inputs/state → wrong result>; expected: <result>
 - [scope creep] <path>:<line> — <behavior that no requirement asks for>
 
 Standards (most severe first):
-- [blocker|major|minor] <path>:<line> — <defect>; rule: <file and rule>
+- [blocker|major|minor] <path>:<line> — <defect>; rule: <file and rule>; expected: <result>
 
 Tests (most severe first):
-- [blocker|major|minor|advisory] <path>:<line> — <defect>; basis: <testing reference section, or the requirement left unverified>
+- [blocker|major|minor|advisory] <path>:<line> — <defect>; basis: <testing reference section, or the requirement left unverified>; expected: <result>
 
 Unverified or overstated claims:
 - <claim> — <why the evidence does not establish it>
@@ -139,6 +138,5 @@ Acceptance coverage:
 Summary: <finding count per axis, and the worst finding in each axis>
 ```
 
-Report "none" for empty sections. A reviewer started for one axis reports only
-that axis, with the claims and gaps it found. Context gaps are not defects: they show where
+Report "none" for empty sections. Context gaps are not defects: they show where
 the Issues were too thin for an unfamiliar owner.

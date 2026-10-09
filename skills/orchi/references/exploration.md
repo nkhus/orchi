@@ -16,31 +16,29 @@ to it.
 
 | Section | Content |
 | --- | --- |
-| Destination | What is being decided and what the end of the exploration looks like |
+| Destination | What is being decided, what the end looks like, and how much it is worth: Task, Epic, or Initiative size, and any time limit |
 | Request | The original idea in the user's words, kept apart from later decisions |
-| Appetite | How much the outcome is worth: Task, Epic, or Initiative size, and any time limit |
 | Constraints and no-gos | Fixed limits, and what is explicitly out of scope |
-| Findings | One line per research comment: the question, the answer, a link |
-| Options | Each direction considered: its shape, what it makes easy and hard, and the verdict with its reason |
+| Options | Each direction considered: its shape, what it makes easy and hard, the findings it rests on (links to research comments), and the verdict with its reason |
 | Decisions | The decision log ([clarify](planning.md#clarify-with-the-user)); mark a decision that is hard to reverse, surprising, and a real tradeoff as a decision record candidate |
 | Requirements | Numbered requirements (R1, R2, ...) of the chosen direction, each observable at completion |
 | Shape | The chosen direction, and candidate Epics as outcomes with the result or contract each supplies to the next |
-| Not yet specified | Questions you can see coming but cannot phrase precisely yet |
-| Open questions | Questions you can phrase now, with what each one blocks |
+| Open questions | What is still open, with what each question blocks; questions you can only sense so far are listed as such |
 
 ## Phases
 
 Each phase ends on its completion criterion. Return to an earlier phase when an
 answer changes the destination or invalidates options.
 
-1. **Frame.** Ask about the destination, the original request, the appetite, and
+1. **Frame.** Ask about the destination and its size, the original request, and
    the constraints. Done when the user agrees on the destination; then create
    the Issue.
 2. **Research.** Facts are the agent's job. Start `orchi-researcher` in Research
    mode for each external question and `orchi-scout` for code and Issues, in
    parallel, and keep asking the user what does not depend on their answers.
-   Post each verified finding as a comment with its sources, and list it under
-   Findings. Done when every option-shaping question is answered or recorded as
+   Post each verified finding as a comment with its sources. Until options
+   exist, list it under Open questions as answered, with its link; then link it
+   from the options it shapes. Done when every option-shaping question is answered or recorded as
    not established.
 3. **Diverge.** Start `orchi-researcher` in Option mode, at least three times in
    parallel, each with a different lens: minimal; most flexible; best for the

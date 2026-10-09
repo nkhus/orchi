@@ -41,8 +41,37 @@ def test_needs_planning_label_is_installed():
 
 def test_orchestrator_events_to_workers_and_retirement_agree():
     team, orchestrator, deliver = prose("orchi/references/team.md"), prose("orchi-orchestrator/SKILL.md"), prose("orchi-deliver/SKILL.md")
-    for event in ("incomplete", "rework", "merged"):
+    for event in ("rework", "merged"):
         assert f"#<n> {event}" in team and f"#<n> {event}" in orchestrator and f"#<n> {event}" in deliver
     assert "A worker lives until its PR is merged" in team
-    assert "no uncommitted or unpushed changes" in team and "It never deletes a session." in team
+    assert "no uncommitted changes and no commits that the merged PR does not contain" in team
+    assert "It never deletes a session." in team
+    assert all("incomplete" not in text for text in (orchestrator, team, deliver))
     assert "archive a worker whose PR is still open" in orchestrator and "delete a session" in orchestrator
+
+
+def test_lessons_are_proposals_with_one_home():
+    review = prose("orchi/references/review-delivery.md")
+    assert "## Lessons" in (SKILLS / "orchi/references/review-delivery.md").read_text()
+    assert "Only propose: never change instructions, checklists, or checks on your own." in review
+    assert "without an observed event it is not a lesson" in review
+    assert "review-delivery.md#lessons" in prose("orchi-deliver/SKILL.md")
+    assert "review-delivery.md#lessons" in prose("orchi/references/team.md")
+    assert "retro" in installation.LABELS
+
+
+def test_only_planner_handed_work_is_dispatched():
+    team, orchestrator, planner = prose("orchi/references/team.md"), prose("orchi-orchestrator/SKILL.md"), prose("orchi-planner/SKILL.md")
+    assert "delivery-ready" in installation.LABELS
+    assert "dispatches only open, unclaimed Issues with that label" in team
+    assert "`delivery-ready` Issues" in orchestrator and "add the `delivery-ready` label" in planner
+    assert "An Initiative goes to one worker" in team
+    assert "for `check`, confirm the blocker's result reached the target first" in team
+    assert "confirm a `check` blocker first" in orchestrator and "held back" in orchestrator
+
+
+def test_accepted_lessons_have_an_owner_in_a_team():
+    team, review = prose("orchi/references/team.md"), prose("orchi/references/review-delivery.md")
+    assert "(in a team, the orchestrator) files each lesson the user accepts" in review
+    assert "files the ones the user accepts" in team
+    assert "search closed `retro` Issues for the same failure" in review

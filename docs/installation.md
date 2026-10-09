@@ -26,7 +26,7 @@ Instruction discovery improves routing but does not prove model compliance. More
 
 ## Subagents
 
-Each role in `.claude/skills/orchi/roles/` is rendered to `.claude/agents/`: `orchi-scout.md`, `orchi-implementer.md`, `orchi-fixer.md`, `orchi-reviewer.md`, and `orchi-designer.md`.
+Each role in `.claude/skills/orchi/roles/` is rendered to `.claude/agents/`: `orchi-scout.md`, `orchi-researcher.md`, `orchi-implementer.md`, `orchi-fixer.md`, `orchi-reviewer.md`, and `orchi-designer.md`.
 
 `orchi-designer` uses the design skills installed in the project or for the user (Impeccable, Taste Skill, SmoothUI) and the repository's own design system otherwise. Orchi does not install them; see [design skills](../skills/orchi/roles/README.md#design-skills) for their install commands.
 
@@ -47,7 +47,7 @@ npx --yes github:nkhus/orchi --github
 | `.github/ISSUE_TEMPLATE/orchi-initiative.yml`, `orchi-epic.yml`, `orchi-task.yml`, `orchi-exploration.yml` | Issue forms that apply the matching type label; the Task, Epic, and Initiative forms have a field for every item of the [readiness checklists](../skills/orchi/references/readiness.md), and the Exploration form prepares an Initiative's first five |
 | PR template section | Summary, Verification, Merge risk, Documentation impact, and Handoff, as a managed section in an existing template (`.github/pull_request_template.md` or another location GitHub reads) or a new one |
 | `.github/workflows/orchi-docs.yml` | On every PR, fails on broken local links the PR introduces (`knowledge.py lint --since` the base branch) or a missing or empty Documentation impact section; omitted with `--no-docs-workflow` |
-| Labels `Initiative`, `Epic`, `Task`, `in-progress`, `Exploration`, `needs-planning` | Created with `gh` when missing; existing labels are not changed |
+| Labels `Initiative`, `Epic`, `Task`, `in-progress`, `Exploration`, `needs-planning`, `delivery-ready`, `retro` | Created with `gh` when missing; existing labels are not changed |
 
 The template and workflow files are recorded in the manifest with their hashes, so they follow the same rules as the skill: unmodified files update in place, edited or pre-existing files need `--replace-orchi`, and uninstalling refuses edited files. Label creation needs a GitHub remote and an authenticated `gh`. If either is missing, the installation still completes and reports the error in `labels`; rerun it later to create them. Uninstalling leaves labels in place.
 
@@ -59,7 +59,7 @@ Broken links that already exist on the base branch are reported as pre-existing 
 
 A team is optional: one planner session, one orchestrator session, and worker sessions, as the [team reference](../skills/orchi/references/team.md) describes. To set it up in a project:
 
-1. Install with `--github`, so the `needs-planning` and `Exploration` labels exist.
+1. Install with `--github`, so the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels exist. The orchestrator dispatches only Issues the planner labelled `delivery-ready`.
 2. Decide how far workers may run alone. A worker stops at every permission prompt until someone answers it, so give the project a permission mode and an allowlist that fit your risk, in `.claude/settings.json`, for example `{"permissions": {"defaultMode": "auto"}}` with `allow` rules for the repository's `git`, `gh`, and check commands. Orchi does not change these settings.
 3. Start one session in the repository in that same permission mode and run `/orchi-planner`; keep the planner and orchestrator sessions in the mode workers get from the settings. It names itself and, when no orchestrator is running, offers to start one with `/orchi-orchestrator`.
 4. Talk to the planner. When it reports work as ready, the orchestrator claims it and starts a worker per Issue: in Claude Desktop it offers a one-click session for you to accept; in a terminal signed in to the Claude Code CLI it starts `claude --bg` sessions (`claude agents` lists them, `claude attach <id>` opens one).
@@ -110,27 +110,15 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
 
-### From 0.10.x to 0.11.x
+### From 0.7.x to 0.13.x
 
-- **Finishing workers.** A team worker stays until its PR is merged and takes rework in its own session (`#<n> rework`, `#<n> incomplete`). The orchestrator checks that a PR is complete before calling the user to merge, tells the worker `#<n> merged` after a merge, and after `done` archives the worker with its worktree when the PR is merged, the Issue closed, and the worktree clean. See [finish a worker](../skills/orchi/references/team.md#finish-a-worker).
+Reinstalling adds and updates everything below; rendered agents and unmodified managed files update in place.
 
-### From 0.9.x to 0.10.x
-
-- **Team roles.** The `orchi-planner` and `orchi-orchestrator` entry skills and the [team reference](../skills/orchi/references/team.md) are new; `orchi-deliver` accepts `--report-to <orchestrator>`. See [team setup](#team-setup). Reinstalling adds them; nothing changes for work outside a team.
-- **GitHub setup.** With `--github`, reinstalling creates the `needs-planning` label.
-
-### From 0.8.x to 0.9.x
-
-- **Exploration.** The new `orchi-explore` entry skill and [exploration reference](../skills/orchi/references/exploration.md) research and shape an idea in an `Exploration` Issue before planning, and `orchi-plan #<exploration>` turns a shaped one into tracked work. Reinstalling adds the skill.
-- **`orchi-researcher` agent.** A read-only subagent for cited research and option design. An existing `.claude/agents/orchi-researcher.md` that Orchi did not install is a conflict that needs `--replace-orchi`.
-- **GitHub setup.** With `--github`, reinstalling adds the `orchi-exploration.yml` form and the `Exploration` label.
-
-### From 0.7.x to 0.8.x
-
-- **Testing and review.** The new [testing reference](../skills/orchi/references/testing.md) defines seams, test quality, red evidence, and the defect diagnosis steps. Writers report red evidence (each new or changed test failing before the change), and `orchi-reviewer` reports Spec (with scope creep), Standards, and Tests as separate axes, starting one reviewer per axis in Epic and Initiative mode. Reinstalling updates the rendered agents in place.
-- **Defect readiness.** Task readiness item 10 now asks a defect's failure scenario for a reproduction command that has already failed, or the reason none exists. Open defect Tasks written earlier may get `NOT READY` until that is added. With `--github`, reinstalling replaces an unmodified `orchi-task.yml` form.
-- **Planning.** `orchi-plan` shows the proposed Epics or Tasks and waits for agreement before creating Issues. Clarifying asks along dependencies and looks facts up instead of asking for them. Tasks are sliced vertically, and Epic designs name test seams: Epic readiness item 5 and Task readiness item 11 now ask for them, so earlier open Issues may need a line added. Decisions that are hard to reverse, surprising, and a real tradeoff go into the project's decision records with the code.
-- **PR template.** With `--github`, the managed PR template gains a `Merge risk` section, and Verification asks for red evidence. An unmodified managed section updates in place; an edited one is a conflict, as before.
+- **New entry skills and agent.** `orchi-explore`, `orchi-planner`, and `orchi-orchestrator`, the [exploration](../skills/orchi/references/exploration.md), [testing](../skills/orchi/references/testing.md), and [team](../skills/orchi/references/team.md) references, and the read-only `orchi-researcher` agent. An existing skill or agent with one of these names that Orchi did not install is a conflict that needs `--replace-orchi`.
+- **Changed behavior.** Writers report red evidence; `orchi-reviewer` reports Spec (with scope creep), Standards, and Tests as separate sections and accepts a Recheck input; `orchi-plan` shows the breakdown before creating Issues and takes a shaped Exploration; `orchi-deliver` accepts `--report-to` for team workers and ends with up to three [lessons](../skills/orchi/references/review-delivery.md#lessons).
+- **Readiness.** Task item 10 asks a defect for a reproduction command; Task item 11 and Epic item 5 ask for test seams. Open Issues written earlier may get `NOT READY` until a line is added.
+- **Team hand-off.** The orchestrator dispatches only Issues labelled `delivery-ready`: add the label to already planned standalone Tasks, standalone Epics, and Initiatives you want a team to deliver. An Initiative goes to one worker with its Epics. Workers stay for rework until their PR is merged and are archived afterwards.
+- **GitHub setup.** With `--github`: the `orchi-exploration.yml` form, a `Merge risk` section in the managed PR template, and the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels.
 
 ### From 0.6.x to 0.7.x
 
@@ -147,16 +135,7 @@ Edited skills, agents, or instruction sections stop the migration as they would 
 
 The same upgrade adds the `orchi-designer` agent, which takes UI Tasks and audits UI diffs; see [choosing a writer](../skills/orchi/roles/README.md#choosing-a-writer). An existing `.claude/agents/orchi-designer.md` that Orchi did not install is a conflict that needs `--replace-orchi`.
 
-### From 0.5.x to 0.6.x
-
-- **Writers and review.** `orchi-implementer` also accepts standalone Tasks, `orchi-reviewer` has a Task mode, and `orchi-deliver` reviews every standalone Task once before its PR. A fixer `ESCALATE` names its cause (`decision` or `size`), routed per [choosing a writer](../skills/orchi/roles/README.md#choosing-a-writer). Reinstalling updates the rendered agents in place.
-- **Epic readiness.** "Each blocker is merged into the target branch" moved from item 9 to item 11, so future Initiative Epics with open blockers pass intake and are held back only at delivery.
-
-### From 0.3.x or 0.4.x to 0.5.x
-
-- **Issue forms.** With `--github`, reinstalling replaces unmodified `orchi-task.yml`, `orchi-epic.yml`, and `orchi-initiative.yml` forms with the current ones, which have a field for every readiness checklist item. A locally edited form is a conflict: review the differences, keep project-specific fields in your own template, then rerun with `--replace-orchi`, which backs the form up first.
-- **Readiness checklists.** The Task checklist now has 13 items and the Epic checklist 12, including numbered requirements, a solution vision, and a decision log, and Initiatives have their own checklist. `orchi-implementer` and `orchi-fixer` may report `NOT READY` for open Issues written against the earlier checklists. Re-check open Task, Epic, and Initiative Issues against the [readiness checklists](../skills/orchi/references/readiness.md) and fill the gaps before delivering them.
-- **`orchi-fixer` agent.** Added in 0.4.0; reinstalling from 0.3.x renders it. An existing agent file with that name is a conflict that needs `--replace-orchi`.
+Notes for versions before 0.6 are in the Git history of this file.
 
 ## Upstream contracts
 
