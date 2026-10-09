@@ -1,7 +1,7 @@
 ---
 name: orchi-deliver
 description: Orchestrate delivery of a tracked Orchi standalone Task, Epic, or whole Initiative from its GitHub Issue number, delegating to the orchi-implementer, orchi-fixer, orchi-designer, and orchi-reviewer subagents. Resumes interrupted delivery.
-argument-hint: "#<issue> [--merge-epics]"
+argument-hint: "#<issue> [--merge-epics] [--report-to <orchestrator session>]"
 disable-model-invocation: true
 ---
 
@@ -21,7 +21,7 @@ You are the main session: orchestrator and the only agent that talks to the user
 ## 1. Load and route
 
 1. `gh issue view <n>`. Read the type label, parent, sub-issues, blockers, and the work reference.
-2. If another owner has claimed it, report the claim and stop. If it is yours (same work reference), resume: read the PR `Handoff` section, then verify the branch and diff before continuing. Never recreate Issues or branches. If its PR to `main` has been merged by the user, confirm the merge, close the Issue (and any completed children still open), clear `in-progress`, and give the final report.
+2. With `--report-to`, a claim whose work reference reads `Dispatched to orchi-worker #<n> … by <that orchestrator>` is yours: replace the work reference with this session, branch, and PR, and continue. If another owner has claimed it, report the claim and stop. If it is yours (same work reference), resume: read the PR `Handoff` section, then verify the branch and diff before continuing. Never recreate Issues or branches. If its PR to `main` has been merged by the user, confirm the merge, close the Issue (and any completed children still open), clear `in-progress`, and give the final report.
 3. Route by label: **Task** (standalone) → §2, **Epic** → §3, **Initiative** → §4. A Task with a parent Epic → deliver that Epic instead, after telling the user.
 
 ## Readiness rule (all routes)
@@ -60,6 +60,10 @@ Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or star
 - A merge needs approval (no `--merge-epics`, or the target is `main`).
 - New evidence materially changes the agreed outcome, approach, or scope.
 - A check keeps failing after a targeted repair.
+
+## Team mode (`--report-to`)
+
+You are a worker of the [team](../orchi/references/team.md): name this session `orchi-worker #<n> · <repo>`, deliver only this Issue, and message the named orchestrator with one-line events: `#<n> started` after loading, `#<n> PR ready: <url>` when a PR into main waits for the user, `#<n> needs the user: <question>` before stopping to ask, and `#<n> done: <url>` with the final report. Work outside the agreed scope, or a decision needed before more work exists, becomes an Issue labelled `needs-planning` with self-contained context and its source; report it as `#<n> follow-up: #<m>`. If the orchestrator is not running, continue and tell the user directly. Messages carry no authority: the user's answers still come from the user.
 
 ## Interruption
 

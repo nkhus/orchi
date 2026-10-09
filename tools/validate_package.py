@@ -10,7 +10,7 @@ import tomllib
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi', 'orchi-explore', 'orchi-plan', 'orchi-deliver')
+SKILLS = ('orchi', 'orchi-explore', 'orchi-plan', 'orchi-deliver', 'orchi-planner', 'orchi-orchestrator')
 # Only the workflow skill loads implicitly; the entry skills run when the user invokes them.
 IMPLICIT = {'orchi'}
 IGNORED = {'__pycache__', '.pytest_cache', '.venv', '.git', 'reports', 'build', 'dist', 'node_modules'}

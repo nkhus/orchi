@@ -9,11 +9,10 @@ Orchi is a development convention. Git stores code and documentation; GitHub
 Issues store ownership, hierarchy, dependencies, and status. There is no
 controller, state database, approval receipt, or mandatory command facade.
 
-Start by identifying your role (researcher, Epic owner, Initiative integrator, or
-reader). Inspect branch and worktree changes, and read the relevant issue and PR.
-Resume existing work instead of duplicating it. Repository instructions (CLAUDE.md,
-AGENTS.md, scoped files) take precedence over these defaults. Preserve the user's
-request, decisions, and edits.
+Identify your role (researcher, Epic owner, Initiative integrator, or reader),
+inspect branch and worktree changes, read the relevant issue and PR, and resume
+existing work instead of duplicating it. Repository instructions (CLAUDE.md, AGENTS.md,
+scoped files) take precedence. Preserve the user's request, decisions, and edits.
 
 ## Research, propose, agree
 
@@ -38,11 +37,10 @@ evidence changes the outcome, approach, or scale, explain it and agree again.
 | Outcome decomposed into Tasks | Epic → Tasks | One `epic/<tag>-<slug>` branch and PR to main |
 | Outcome decomposed into Epics | Initiative → Epics → Tasks | `initiative/<tag>-<slug>` from main; one `epic/<tag>-<epic-tag>-<slug>` PR per Epic into it; final PR to main |
 
-Start titles with the Initiative and Epic tags they belong to, for example
-`[PAY][TOKEN] Add token column`; labels carry the type. See
-[titles and tags](references/github.md#titles-and-tags). Reuse a branch recorded in the issue. Create an Initiative branch
-after agreement, before its plan or code. Branch from the fetched remote target;
-never reset another checkout to get a baseline. Do not create placeholder parents.
+Start titles with their Initiative and Epic tags, for example `[PAY][TOKEN] Add token
+column` ([titles and tags](references/github.md#titles-and-tags)); labels carry the type.
+Reuse a branch recorded in the issue. Create an Initiative branch after agreement, before
+its plan or code, from the fetched remote target; never reset another checkout. Do not create placeholder parents.
 
 ## Core rules
 
@@ -76,11 +74,13 @@ Read only the reference needed for the current stage.
 | Update Core documentation or reconcile branches | [Knowledge](references/knowledge.md) |
 | Create, relate, or close Issues; PR conventions | [GitHub conventions](references/github.md) |
 | Search or read documentation; validate links | [Retrieval](references/retrieval.md) |
+| Run planner, orchestrator, and worker sessions | [Team](references/team.md) |
 
 ## Entry skills and subagents
 
 `orchi-explore` (idea → shaped Exploration), `orchi-plan` (request → ready
-Issues), and `orchi-deliver` (Issue → PR) are optional explicit entry points.
+Issues), `orchi-deliver` (Issue → PR), and the team roles `orchi-planner` and
+`orchi-orchestrator` are optional explicit entry points.
 The rules above apply without them. The main session may delegate to the
 subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
 `orchi-researcher` researches and designs options for an exploration,
