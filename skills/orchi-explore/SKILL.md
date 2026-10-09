@@ -41,6 +41,6 @@ supply what it names and start it again.
 
 ## Interruption
 
-Before stopping, make sure the Issue body holds every decision and finding so
-far, with the next question first under Open questions. Rerunning
+Before stopping, make sure the Issue body holds every decision, option, and
+research result so far, with the next question first under Open questions. Rerunning
 `/orchi-explore #<n>` resumes from there.

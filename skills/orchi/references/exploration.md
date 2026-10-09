@@ -16,7 +16,7 @@ to it.
 
 | Section | Content |
 | --- | --- |
-| Destination | What is being decided, what the end looks like, and how much it is worth: Task, Epic, or Initiative size |
+| Destination | What is being decided, what the end looks like, and how much it is worth: Task, Epic, or Initiative size, and any time limit |
 | Request | The original idea in the user's words, kept apart from later decisions |
 | Constraints and no-gos | Fixed limits, and what is explicitly out of scope |
 | Options | Each direction considered: its shape, what it makes easy and hard, the findings it rests on (links to research comments), and the verdict with its reason |
@@ -36,8 +36,9 @@ answer changes the destination or invalidates options.
 2. **Research.** Facts are the agent's job. Start `orchi-researcher` in Research
    mode for each external question and `orchi-scout` for code and Issues, in
    parallel, and keep asking the user what does not depend on their answers.
-   Post each verified finding as a comment with its sources, and link it from the
-   options it shapes. Done when every option-shaping question is answered or recorded as
+   Post each verified finding as a comment with its sources. Until options
+   exist, list it under Open questions as answered, with its link; then link it
+   from the options it shapes. Done when every option-shaping question is answered or recorded as
    not established.
 3. **Diverge.** Start `orchi-researcher` in Option mode, at least three times in
    parallel, each with a different lens: minimal; most flexible; best for the

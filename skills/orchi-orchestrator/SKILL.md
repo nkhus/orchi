@@ -29,8 +29,9 @@ their Initiative branch; pass it on to Initiative workers. It never covers main.
 
 ## Reconcile (on start and on every wake)
 
-1. Read `python3 .claude/skills/orchi/scripts/status.py --json`, the open PRs,
-   and the session list.
+1. Read `python3 .claude/skills/orchi/scripts/status.py --json`,
+   `gh issue list --label delivery-ready --state open`, the open PRs, and the
+   session list.
 2. For each dispatch claim (work reference starting `Dispatched to`): if its
    worker session is running, or the Issue has a branch or PR, leave it; if the
    user declined the worker, or none appeared since your previous wake and at
@@ -40,11 +41,13 @@ their Initiative branch; pass it on to Initiative workers. It never covers main.
    running workers and unstarted dispatch claims against the worker limit
    (five unless the repository's instructions say otherwise), take that many
    open, unclaimed `delivery-ready` Issues (a Task or Epic also `ready` in
-   `status.py`), oldest first, claim each with the dispatch work reference, and
-   start its worker in the first way the team reference lists.
+   `status.py`; confirm a `check` blocker first), oldest first, claim each with
+   the dispatch work reference, and start its worker in the first way the team
+   reference lists.
 5. Report to the user in a few lines: workers started or offered, PRs waiting
-   for their merge, questions waiting for them, claims removed, and links to
-   lessons finished workers posted. Then end your turn and wait; messages and
+   for their merge, questions waiting for them, claims removed, labelled work
+   held back and why, and links to lessons finished workers posted; file the
+   lessons the user accepts as the review reference's Lessons says. Then end your turn and wait; messages and
    the user wake you.
 
 ## Worker events

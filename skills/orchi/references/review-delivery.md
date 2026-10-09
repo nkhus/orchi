@@ -78,12 +78,15 @@ For an event that could recur, propose one change on the first rung that fits:
    find.
 5. An Issue in the Orchi repository, for a defect in Orchi itself.
 
-Propose removing an instruction that changed nothing, too. Each lesson names
+Propose removing an instruction that changed nothing, too. Before proposing,
+search closed `retro` Issues for the same failure. Each lesson names
 its event (an Issue, PR, or finding link) and its rung; without an observed
 event it is not a lesson. Report at most three, most costly first, and post
 them as a `Lessons` comment on the delivered Issue. Only propose: never change
 instructions, checklists, or checks on your own. The session that ran the
-delivery files each lesson the user accepts as an Issue labelled `retro` and
-`needs-planning`, which planning takes like any request. When a failure recurs after its `retro`
+delivery (in a team, the orchestrator) files each lesson the user accepts as an
+Issue labelled `retro` and `needs-planning`, which planning takes like any
+request; a rung 5 lesson goes to the Orchi repository instead, without those
+labels, and only with the user's agreement. When a failure recurs after its `retro`
 Issue closed, say so: that change did not work, and the next one belongs on a
 more deterministic rung.

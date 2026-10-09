@@ -14,7 +14,7 @@ team keeps using `/orchi-plan` and `/orchi-deliver` as before.
 | --- | --- | --- | --- |
 | Planner | `/orchi-planner` | Conversation with the user about new work; explorations, planning, and `needs-planning` intake | Delivers code or dispatches workers |
 | Orchestrator | `/orchi-orchestrator` | Dispatching ready work within the worker limit, routing worker events to the user and the planner | Edits code, plans scope, or merges into main without the user |
-| Worker | `/orchi-deliver #<n> --report-to "<orchestrator>"` | Delivering one standalone Task, Epic, or Initiative integration | Takes other work |
+| Worker | `/orchi-deliver #<n> --report-to "<orchestrator>"` | Delivering one standalone Task, standalone Epic, or Initiative with its Epics | Takes other work |
 
 One planner and one orchestrator per repository. Each role's skill holds its
 loop; this reference holds the shared rules.
@@ -56,8 +56,10 @@ The planner hands work over by adding the `delivery-ready` label once it passes
 its readiness gate: to a standalone Task, a standalone Epic, or an Initiative,
 never to an Epic or Task inside one. The orchestrator dispatches only open,
 unclaimed Issues with that label, oldest first, and never more than the
-[worker limit](#worker-limit); a Task or Epic must also be `ready` in
-`status.py` (its blockers merged). Before starting a worker it claims
+[worker limit](#worker-limit). A Task or Epic must also be `ready` in
+`status.py`; for `check`, confirm the blocker's result reached the target
+first. List labelled Issues held back as `blocked` or `check` in the report,
+with the reason. Before starting a worker it claims
 the Issue: `in-progress`, the assignee, and the work reference
 `Dispatched to orchi-worker #<n> · <repo> by orchi-orchestrator · <repo> on <date>`.
 A worker started with `--report-to` that orchestrator adopts this claim as its
@@ -78,14 +80,16 @@ session, with its context and worktree.
 2. **When someone else merges the PR**, the orchestrator sends `#<n> merged`.
    The worker confirms the merge, closes its Issues, and reports `done`.
 3. **After `done`**, the orchestrator retires the worker only when its PR is
-   merged, its Issue is closed, and its worktree has no uncommitted changes. It archives the session with the host's tool (in Claude Desktop,
+   merged, its Issue is closed, and its worktree has no uncommitted changes and no
+commits that the merged PR does not contain. It archives the session with the host's tool (in Claude Desktop,
    archiving stops the session and removes its worktree), or stops and removes
    a background session (`claude stop <id>`, then `claude rm <id>`); otherwise
    it asks the user to archive it. It never deletes a session. If any condition
    fails, it leaves the worker and tells the user why.
 
 A worker posts its [lessons](review-delivery.md#lessons) on its Issue before
-`done`, and the orchestrator links them when it reports the finished work.
+`done`. The orchestrator links them when it reports the finished work and, as
+the session left after the worker retires, files the ones the user accepts.
 
 Work found after the merge is new work: a `needs-planning` Issue and a new
 worker from the current main. Decisions and evidence live in the Issue and PR,

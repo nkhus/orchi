@@ -59,7 +59,7 @@ Broken links that already exist on the base branch are reported as pre-existing 
 
 A team is optional: one planner session, one orchestrator session, and worker sessions, as the [team reference](../skills/orchi/references/team.md) describes. To set it up in a project:
 
-1. Install with `--github`, so the `needs-planning` and `Exploration` labels exist.
+1. Install with `--github`, so the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels exist. The orchestrator dispatches only Issues the planner labelled `delivery-ready`.
 2. Decide how far workers may run alone. A worker stops at every permission prompt until someone answers it, so give the project a permission mode and an allowlist that fit your risk, in `.claude/settings.json`, for example `{"permissions": {"defaultMode": "auto"}}` with `allow` rules for the repository's `git`, `gh`, and check commands. Orchi does not change these settings.
 3. Start one session in the repository in that same permission mode and run `/orchi-planner`; keep the planner and orchestrator sessions in the mode workers get from the settings. It names itself and, when no orchestrator is running, offers to start one with `/orchi-orchestrator`.
 4. Talk to the planner. When it reports work as ready, the orchestrator claims it and starts a worker per Issue: in Claude Desktop it offers a one-click session for you to accept; in a terminal signed in to the Claude Code CLI it starts `claude --bg` sessions (`claude agents` lists them, `claude attach <id>` opens one).
@@ -117,6 +117,7 @@ Reinstalling adds and updates everything below; rendered agents and unmodified m
 - **New entry skills and agent.** `orchi-explore`, `orchi-planner`, and `orchi-orchestrator`, the [exploration](../skills/orchi/references/exploration.md), [testing](../skills/orchi/references/testing.md), and [team](../skills/orchi/references/team.md) references, and the read-only `orchi-researcher` agent. An existing skill or agent with one of these names that Orchi did not install is a conflict that needs `--replace-orchi`.
 - **Changed behavior.** Writers report red evidence; `orchi-reviewer` reports Spec (with scope creep), Standards, and Tests as separate sections and accepts a Recheck input; `orchi-plan` shows the breakdown before creating Issues and takes a shaped Exploration; `orchi-deliver` accepts `--report-to` for team workers and ends with up to three [lessons](../skills/orchi/references/review-delivery.md#lessons).
 - **Readiness.** Task item 10 asks a defect for a reproduction command; Task item 11 and Epic item 5 ask for test seams. Open Issues written earlier may get `NOT READY` until a line is added.
+- **Team hand-off.** The orchestrator dispatches only Issues labelled `delivery-ready`: add the label to already planned standalone Tasks, standalone Epics, and Initiatives you want a team to deliver. An Initiative goes to one worker with its Epics. Workers stay for rework until their PR is merged and are archived afterwards.
 - **GitHub setup.** With `--github`: the `orchi-exploration.yml` form, a `Merge risk` section in the managed PR template, and the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels.
 
 ### From 0.6.x to 0.7.x

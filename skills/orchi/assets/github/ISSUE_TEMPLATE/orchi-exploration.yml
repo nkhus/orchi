@@ -10,7 +10,7 @@ body:
     id: destination
     attributes:
       label: Destination
-      description: What is being decided, what the end of this exploration looks like, and how much the outcome is worth (Task, Epic, or Initiative size).
+      description: What is being decided, what the end of this exploration looks like, and how much the outcome is worth (Task, Epic, or Initiative size) and any time limit.
     validations:
       required: true
   - type: textarea
