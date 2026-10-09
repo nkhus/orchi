@@ -52,9 +52,9 @@ create placeholder parents for small work.
   Epics and standalone Tasks are independent entry points.
 - Update documentation with the code, in the same branch. Never present planned
   behavior as current behavior.
-- Record checks, outcomes, and the candidate commit in the PR. Review each
-  standalone Task and each assembled Epic once, then repair demonstrated
-  blockers with a targeted follow-up.
+- Show each new test failing before the change, and record checks, outcomes,
+  and the candidate commit in the PR. Review each standalone Task and each
+  assembled Epic once, then repair demonstrated blockers with a targeted follow-up.
 - Squash-merge. Close Epics, Initiatives, and standalone Tasks only after
   confirming the merge; close Epic Tasks as the execution reference says. Do not infer merge
   or deployment permission from permission to implement.
@@ -70,6 +70,7 @@ Read only the reference needed for the current stage.
 | Clarify with the user, design, and write Issues for agents | [Planning](references/planning.md) |
 | Check that a Task or Epic is ready to start or delegate | [Readiness](references/readiness.md) |
 | Find ready work, claim, execute, hand off, resume | [Execution](references/execution.md) |
+| Plan, write, or review tests; diagnose a defect | [Testing](references/testing.md) |
 | Review, integrate, and close | [Review and delivery](references/review-delivery.md) |
 | Update Core documentation or reconcile branches | [Knowledge](references/knowledge.md) |
 | Create, relate, or close Issues; PR conventions | [GitHub conventions](references/github.md) |

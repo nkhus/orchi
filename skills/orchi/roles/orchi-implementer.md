@@ -38,7 +38,10 @@ the Issue, **make no edits** and return the report below with status
 
 - Before editing a path, read every `CLAUDE.md` and `AGENTS.md` from the
   repository root down to that path and follow them.
-- Implement only this Task's outcome within its constraints and non-goals. Update
+- Implement only this Task's outcome within its constraints and non-goals.
+  Test at the seams the Task names and show each new or changed test failing
+  before the change, following `{{ORCHI_SKILL}}/references/testing.md`; for a
+  defect, start from the Task's reproduction and follow its Defects steps. Update
   the owning documentation named in the Task's documentation impact, following
   `{{ORCHI_SKILL}}/references/knowledge.md` § Update with the code. Never
   describe planned behavior as current.
@@ -92,6 +95,8 @@ Changed:
 - <path> — <what and why>
 Checks:
 - `<command>` — passed | failed (<summary>) | not run (<reason>)
+Red evidence:
+- `<command>` -> <failure before the change> | not applicable (<reason>)
 Deviations from the Issue: <none, or each with reason>
 Blockers / questions: <none, or each>
 ```

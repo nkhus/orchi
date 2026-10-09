@@ -77,9 +77,9 @@ flowchart TD
 - **Every title shows its lineage.** Initiatives and Epics have short tags, and titles start with them: Initiative `[PAY] Card payments`, Epic `[PAY][TOKEN] Tokenize stored cards`, Task `[PAY][TOKEN] Add token column`. Labels carry the type, and branches reuse the tags (`epic/pay-token-tokenize-cards`).
 - **GitHub is the shared state.** `Initiative`, `Epic`, and `Task` labels, native sub-issues and `blocked by` dependencies, assignees, and `in-progress` describe hierarchy and ownership. Several Claude Code sessions can work on independent Epics in parallel, each in its own branch and worktree. `scripts/status.py` shows which Epics are ready, blocked, or claimed.
 - **Documentation follows the code.** Core documentation changes land with the implementation in the Epic branch, and every PR states its documentation impact. With `--github`, CI fails on broken local links the PR introduces or an empty impact section. Initiative plans live in `docs/initiatives/<tag>-<slug>/README.md` and are never presented as current behavior.
-- **Verify once, repair precisely.** Each Epic gets one full review, with a design audit by `orchi-designer` when it changes user interface; demonstrated blockers are repaired and rechecked with a targeted follow-up. Interrupted work leaves a fixed Handoff section in the PR. Merging and deployment stay within the user's authority.
+- **Verify once, repair precisely.** Every new test is shown failing before the change. Each Epic gets one full review along three separate axes (Spec, including scope creep; Standards; Tests), with a design audit by `orchi-designer` when it changes user interface; demonstrated blockers are repaired and rechecked with a targeted follow-up. Each PR states its merge risk: a one-way or two-way door, and the blast radius. Interrupted work leaves a fixed Handoff section in the PR. Merging and deployment stay within the user's authority.
 
-The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references cover [planning](skills/orchi/references/planning.md), [readiness](skills/orchi/references/readiness.md), [execution](skills/orchi/references/execution.md), [knowledge](skills/orchi/references/knowledge.md), [review and delivery](skills/orchi/references/review-delivery.md), [GitHub conventions](skills/orchi/references/github.md), and [documentation retrieval](skills/orchi/references/retrieval.md).
+The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references cover [planning](skills/orchi/references/planning.md), [readiness](skills/orchi/references/readiness.md), [execution](skills/orchi/references/execution.md), [testing](skills/orchi/references/testing.md), [knowledge](skills/orchi/references/knowledge.md), [review and delivery](skills/orchi/references/review-delivery.md), [GitHub conventions](skills/orchi/references/github.md), and [documentation retrieval](skills/orchi/references/retrieval.md).
 
 ## Subagents and entry skills
 
@@ -111,7 +111,7 @@ Both enforce the [readiness checklists](skills/orchi/references/readiness.md) fo
 | Root `CLAUDE.md` | Managed Orchi workflow instructions |
 | `.claude/agents/orchi-*.md` | Rendered subagents |
 | `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml` | Issue forms and documentation check, with `--github`; reinstalling replaces unmodified files; edited ones are conflicts that need `--replace-orchi` |
-| PR template | Managed Summary, Verification, Documentation impact, and Handoff sections, with `--github` |
+| PR template | Managed Summary, Verification, Merge risk, Documentation impact, and Handoff sections, with `--github` |
 | `.claude/.orchi-install.json` | Installation manifest: the installed version, options, and the managed files (with hashes) and sections that reinstalling and uninstalling rely on |
 
 The installer preserves your existing instruction text. It maintains only the section between `<!-- orchi:begin -->` and `<!-- orchi:end -->` and refuses to overwrite a locally edited managed section. Repository instructions take precedence over Orchi's defaults, so an existing issue template or check command keeps working.

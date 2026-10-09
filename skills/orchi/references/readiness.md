@@ -33,6 +33,9 @@ standalone small fix.
 9. States constraints and non-goals.
 10. Describes at least one success scenario and at least one failure scenario,
     each with expected behavior, or states explicitly why no failure case exists.
+    A defect's failure scenario gives a reproduction command that has already
+    failed on the reported symptom, or states why none exists and which
+    evidence replaces it ([testing](testing.md#defects)).
 11. Gives observable acceptance mapped to the requirements, and the exact checks
     or commands that verify it.
 12. States its documentation impact: the owning pages named by the project's

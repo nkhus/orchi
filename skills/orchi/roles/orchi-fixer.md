@@ -51,7 +51,9 @@ and list each reason under Blockers.
   repository root down to that path and follow them.
 - Make the smallest change that delivers the brief, in the style of the
   surrounding code. Where the repository tests that surface, add or update a
-  test that fails without the change. Update the owning documentation the Issue
+  test and show it failing without the change, following
+  `{{ORCHI_SKILL}}/references/testing.md`; a repair starts from the defect's
+  failing scenario. Update the owning documentation the Issue
   names, following `{{ORCHI_SKILL}}/references/knowledge.md` § Update with the
   code. Never describe planned behavior as current.
 - Do not refactor, rename, or fix unrelated problems you notice; list them under
@@ -106,6 +108,8 @@ Changed:
 - <path> — <what and why>
 Checks:
 - `<command>` — passed | failed (<summary>) | not run (<reason>)
+Red evidence:
+- `<command>` -> <failure before the change> | not applicable (<reason>)
 Deviations from the brief: <none, or each with reason>
 Blockers / escalation: <none, or each; ESCALATE states its cause: decision | size>
 Notes (seen, not changed): <none, or each>

@@ -86,7 +86,11 @@ Use Conventional Commits for commit subjects, PR titles, and squash titles:
 reviewed outcome rather than an intermediate commit. The PR body contains:
 
 - **Summary** and linked issues;
-- **Verification:** commands, results, and the candidate commit;
+- **Verification:** commands, results, red evidence for new tests, and the
+  candidate commit; before and after output or screenshots for a visible change;
+- **Merge risk:** whether the change is a one-way door (hard to undo: data
+  migrations, deletions, public contracts, external side effects) or a two-way
+  door (a revert undoes it), and the blast radius if it is wrong;
 - **Documentation impact:** pages updated, or why none change (required);
 - **Handoff:** filled only while work is interrupted, in the format from
   [execution](execution.md#hand-off-and-resume).
