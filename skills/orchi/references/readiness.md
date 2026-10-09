@@ -37,7 +37,8 @@ standalone small fix.
     failed on the reported symptom, or states why none exists and which
     evidence replaces it ([testing](testing.md#defects)).
 11. Gives observable acceptance mapped to the requirements, and the exact checks
-    or commands that verify it.
+    or commands that verify it, naming the seams where new tests go (when
+    applicable).
 12. States its documentation impact: the owning pages named by the project's
     documentation routing, or why none change.
 13. Lists no open question in the Task or its parent Epic that is marked as
@@ -59,8 +60,8 @@ until the deferral is resolved.
 4. Lists numbered requirements (R1, R2, ...) the Epic delivers, each traceable
    to a source or a recorded decision.
 5. Contains a design, or a link to one, covering approach, interfaces and
-   boundaries, invariants, and tradeoffs, and why this approach was chosen over
-   the alternatives considered; or states "no architecture change".
+   boundaries, invariants, test seams, and tradeoffs, and why this approach was
+   chosen over the alternatives considered; or states "no architecture change".
 6. Records the decisions that shape the Epic — each with its question, answer,
    who decided, date, and reason, quoting the user's answers faithfully.
 7. Names affected code, schema, contract, test, and documentation surfaces.

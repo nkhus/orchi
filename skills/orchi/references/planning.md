@@ -18,6 +18,9 @@ continues that agent with the answers.
 - **Find the gaps first.** Check what you know against the readiness checklist
   for the planned scope. Every item you would otherwise have to guess becomes a
   question.
+- **Look up facts; ask for decisions.** Never ask the user what the code,
+  documentation, Issues, or an external source can answer: send scouts, and
+  keep asking the questions that do not depend on what they find.
 - **Ask only what changes the result.** Ask when the answer changes
   requirements, approach, scope, acceptance, or risk. Decide ordinary
   implementation choices yourself and record them as decisions with a reason.
@@ -31,11 +34,14 @@ continues that agent with the answers.
   granted separately.
 - **Make each question easy to answer.** Give one or two sentences of context,
   two to four concrete options with their consequences, and your recommendation
-  first; always allow a free answer. Use the assistant's structured question
+  first, worded so that "yes" accepts it; always allow a free answer. Use the assistant's structured question
   tool when it has one.
-- **Ask in rounds.** Group related questions, most consequential first, a few
-  per round. Follow up when an answer opens a new gap or contradicts earlier
-  evidence.
+- **Ask in rounds along dependencies.** A round holds open questions whose
+  prerequisites are settled, most consequential first, a few at a time; a
+  question that depends on another open question waits for a later round.
+  Follow up when an answer opens a new gap or contradicts earlier evidence.
+  Clarifying ends when no open question would change the requirements,
+  approach, scope, acceptance, or risk.
 - **Record answers at once.** Keep a decision log: question, answer, who decided
   (the user, or the main session with or without a delegation), date, and
   reason. Quote the user's answers
@@ -91,6 +97,8 @@ the result means:
 - the decisions that shape it, with the user's answers from the decision log;
 - relevant current implementation and the change needed;
 - public interfaces, data and ownership boundaries, and invariants;
+- test seams: where tests go, what each seam catches and misses, and an
+  existing test to follow ([testing](testing.md#seams));
 - chosen approach and significant tradeoffs, including an explicit
   no-architecture-change statement when that is the decision;
 - observable acceptance, relevant failure and recovery cases, and verification;
@@ -110,6 +118,20 @@ acceptance, verification, sources, and constraints, so that its owner does not
 have to reconstruct them from the Epic. Name likely
 affected areas to orient the implementer, not as a permission list. Order Tasks by
 real dependencies; native child order or brief ordering text is enough.
+
+Slice Tasks vertically: each is a narrow but complete path through the layers it
+touches (data, logic, interface, tests, documentation) that can be verified on
+its own, small enough for one owner to finish in one fresh context. Put the
+refactoring that makes the change easy in its own first Task. Sequence a wide
+mechanical change, such as a rename with many call sites, as expand, migrate in
+batches, then contract, so that checks stay green after every Task.
+
+## Agree the breakdown
+
+Before creating Issues, show the user the proposed Epics or Tasks: for each, its
+title, what it delivers, and what blocks it. Ask whether the granularity is
+right, whether each blocker is real, and what to merge or split. Revise until
+the user agrees; a list is cheaper to change than Issues.
 
 Check every Task against the [Task readiness checklist](readiness.md#task-readiness-checklist)
 and every Epic against the [Epic readiness checklist](readiness.md#epic-readiness-checklist)

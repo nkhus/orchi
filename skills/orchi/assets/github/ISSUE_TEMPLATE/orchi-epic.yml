@@ -45,7 +45,7 @@ body:
     id: design
     attributes:
       label: Design
-      description: Approach, domain and interface decisions, data and ownership boundaries, invariants, and tradeoffs - and why this approach was chosen over the alternatives considered - or a link to them. State explicitly when there is no architecture change.
+      description: Approach, domain and interface decisions, data and ownership boundaries, invariants, test seams (where tests go and what each catches), and tradeoffs - and why this approach was chosen over the alternatives considered - or a link to them. State explicitly when there is no architecture change.
     validations:
       required: true
   - type: textarea
