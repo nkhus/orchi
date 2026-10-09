@@ -49,7 +49,8 @@ approach it affects is not ready until it is answered.
 
 ## 4. Create tracking
 
-Follow the Orchi [planning](../orchi/references/planning.md)
+First [agree the breakdown](../orchi/references/planning.md#agree-the-breakdown)
+with the user; create no Issue before they agree. Then follow the Orchi [planning](../orchi/references/planning.md)
 and [GitHub](../orchi/references/github.md) references for
 titles, tags, labels, branches, and native relationships.
 

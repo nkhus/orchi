@@ -26,6 +26,12 @@ whether examples, public contracts, runbooks, and known limitations change too.
 Record the result in the PR's `Documentation impact` section; if nothing changes,
 give the reason there instead of creating a no-op Task.
 
+Most decisions stay in their Issue's decision log. Write a decision into the
+project's decision records (its ADRs, or the owning Core page when it has none)
+only when it is hard to reverse, would surprise a reader without context, and
+was a real choice between alternatives; land it with the code that implements
+it.
+
 When an Epic merges, its Core changes become the Initiative branch's working Core;
 they reach main only with final Initiative integration. Keep plans and unresolved
 decisions in the Initiative documentation, label proposed behavior clearly, and

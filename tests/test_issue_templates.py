@@ -22,7 +22,7 @@ TASK_FIELDS = {
     8: ("sources", ("inspected while planning",)),
     9: ("constraints", ("non-goals",)),
     10: ("scenarios", ("failure scenarios", "reproduction command")),
-    11: ("acceptance", ("mapped to the requirements", "exact checks or commands")),
+    11: ("acceptance", ("mapped to the requirements", "exact checks or commands", "seams where new tests go")),
     12: ("docs", ("documentation routing",)),
     13: ("questions", ("affects this task's approach",)),
 }
@@ -31,7 +31,7 @@ EPIC_FIELDS = {
     2: ("sources", ("requirement/decision ids", "parent initiative")),
     3: ("current", ("why this outcome is needed", "files, symbols, behavior")),
     4: ("requirements", ("numbered requirements", "traceable")),
-    5: ("design", ("no architecture change", "why this approach")),
+    5: ("design", ("no architecture change", "why this approach", "test seams")),
     6: ("decisions", ("who decided", "quote the user's answers")),
     7: ("surfaces", ("documentation",)),
     8: ("failure", ("inputs and outputs, risks",)),

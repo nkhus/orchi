@@ -73,7 +73,7 @@ body:
     id: acceptance
     attributes:
       label: Acceptance and verification
-      description: Observable behavior mapped to the requirements (R1 -> ...), and the exact checks or commands that establish it.
+      description: Observable behavior mapped to the requirements (R1 -> ...), the exact checks or commands that establish it, and the seams where new tests go, with an existing test to follow.
     validations:
       required: true
   - type: textarea
