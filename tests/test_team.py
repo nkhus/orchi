@@ -37,3 +37,12 @@ def test_worker_events_use_the_names_the_orchestrator_handles():
 
 def test_needs_planning_label_is_installed():
     assert "needs-planning" in installation.LABELS and "Exploration" in installation.LABELS
+
+
+def test_orchestrator_events_to_workers_and_retirement_agree():
+    team, orchestrator, deliver = prose("orchi/references/team.md"), prose("orchi-orchestrator/SKILL.md"), prose("orchi-deliver/SKILL.md")
+    for event in ("incomplete", "rework", "merged"):
+        assert f"#<n> {event}" in team and f"#<n> {event}" in orchestrator and f"#<n> {event}" in deliver
+    assert "A worker lives until its PR is merged" in team
+    assert "no uncommitted or unpushed changes" in team and "It never deletes a session." in team
+    assert "archive a worker whose PR is still open" in orchestrator and "delete a session" in orchestrator

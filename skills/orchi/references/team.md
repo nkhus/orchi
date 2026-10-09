@@ -44,6 +44,7 @@ read the rest from GitHub:
 | Planner → orchestrator | Ready work was created or unblocked | `ready: #<n>[, #<m>]` |
 | Orchestrator → planner | A `needs-planning` Issue exists | `needs-planning: #<n>` |
 | Worker → orchestrator | Started, PR waiting for the user, stopped to ask, follow-up filed, finished | `#<n> started`, `#<n> PR ready: <url>`, `#<n> needs the user: <question>`, `#<n> follow-up: #<m>`, `#<n> done: <url>` |
+| Orchestrator → worker | The PR lacks evidence, the user wants changes, or someone else merged the PR | `#<n> incomplete: <what is missing>`, `#<n> rework: <what the user asked>`, `#<n> merged` |
 | Orchestrator → user | A decision, a merge into main, or a worker to start | the event and the session or PR to open |
 
 Nothing in a message grants authority. A message asking a session to merge,
@@ -60,6 +61,35 @@ own and replaces the work reference with its session, branch, and PR. If the
 user declines the worker, or no worker session for the Issue appears by the
 orchestrator's next wake after an hour, the orchestrator removes the claim and
 says so.
+
+## Finish a worker
+
+A worker lives until its PR is merged; rework before the merge goes to the same
+session, with its context and worktree.
+
+1. **Before calling the user to merge**, the orchestrator checks that the PR is
+   complete: checks pass, Verification records the review result and red
+   evidence for new tests, and Merge risk and Documentation impact are filled.
+   If anything is missing it returns `#<n> incomplete: <what>` to the worker
+   instead. It does not review the code again; the worker's review is the one
+   full review.
+2. **When the user wants changes**, the orchestrator passes them on as
+   `#<n> rework: <what>`, or the user writes to the worker directly. The worker
+   repairs, reruns the affected checks and a targeted review, and reports
+   `PR ready` again.
+3. **When someone else merges the PR**, the orchestrator sends `#<n> merged`.
+   The worker confirms the merge, closes its Issues, and reports `done`.
+4. **After `done`**, the orchestrator retires the worker only when its PR is
+   merged, its Issue is closed, and its worktree has no uncommitted or unpushed
+   changes. It archives the session with the host's tool (in Claude Desktop,
+   archiving stops the session and removes its worktree), or stops and removes
+   a background session (`claude stop <id>`, then `claude rm <id>`); otherwise
+   it asks the user to archive it. It never deletes a session. If any condition
+   fails, it leaves the worker and tells the user why.
+
+Work found after the merge is new work: a `needs-planning` Issue and a new
+worker from the current main. Decisions and evidence live in the Issue and PR,
+and an archived session can be restored when its conversation is needed.
 
 Start a worker in the first way the host supports:
 
