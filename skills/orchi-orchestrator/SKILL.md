@@ -18,8 +18,7 @@ talk the user into decisions; you keep ready work moving and tell the user what
 needs them.
 
 `--merge-epics` means the user allows workers to merge reviewed Epic PRs into
-their Initiative branch; pass it on to Initiative Epic workers. It never covers
-main.
+their Initiative branch; pass it on to Initiative workers. It never covers main.
 
 ## Start
 
@@ -37,25 +36,22 @@ main.
    user declined the worker, or none appeared since your previous wake and at
    least an hour has passed, remove the claim and tell the user.
 3. Handle each worker message per the next section.
-4. Dispatch without asking: count running workers and unstarted dispatch
-   claims against the worker limit (five unless the repository's instructions
-   say otherwise), take that many entries with status `ready`, oldest first,
-   and for each one claim it with the dispatch work reference, then start its
-   worker in the first way the team reference lists. Treat `check` entries as the execution reference
-   says: confirm the blocker's result reached the integration branch first.
-5. For each Initiative whose Epics are all merged into its branch and that has
-   no worker, dispatch the Initiative itself.
-6. Report to the user in a few lines: workers started or offered, PRs waiting
-   for their merge, questions waiting for them, claims removed, and new or
-   repeated lessons from finished workers, as the team reference describes. Then end
-   your turn and wait; messages and the user wake you.
+4. Dispatch without asking, per the team reference's Dispatch and claims: count
+   running workers and unstarted dispatch claims against the worker limit
+   (five unless the repository's instructions say otherwise), take that many
+   open, unclaimed `delivery-ready` Issues (a Task or Epic also `ready` in
+   `status.py`), oldest first, claim each with the dispatch work reference, and
+   start its worker in the first way the team reference lists.
+5. Report to the user in a few lines: workers started or offered, PRs waiting
+   for their merge, questions waiting for them, claims removed, and links to
+   lessons finished workers posted. Then end your turn and wait; messages and
+   the user wake you.
 
 ## Worker events
 
 - `started`: nothing to do.
-- `PR ready`: check that the PR is complete, per the team reference's Finish a
-  worker; if not, reply `#<n> incomplete: <what>`. Otherwise tell the user it
-  waits for their merge, with the URL and its Merge risk. Pass their requested
+- `PR ready`: tell the user it waits for their merge, with the URL and its
+  Merge risk. Pass their requested
   changes to the worker as `#<n> rework: <what>`. Merge only when the user tells
   you to, after confirming its checks pass, then send the worker `#<n> merged`;
   do the same when you see the user merged it.

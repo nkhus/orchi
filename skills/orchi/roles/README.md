@@ -38,7 +38,9 @@ A fixer `ESCALATE` report names its cause:
   only when the user delegated it, otherwise ask; record the answer in the
   Issue's decisions, then restart a writer.
 - `size`: the change is correct but larger than the fixer's scope. Restart the
-  same Issue with `orchi-implementer`, or `orchi-designer` for a UI Task.
+  same Issue with `orchi-implementer`, or `orchi-designer` for a UI Task; for a
+  repair, first reopen the owning Task (or create a repair Task) with the
+  defect in its requirements.
 
 A designer `ESCALATE` is always a `decision`: it lists options and a
 recommendation. Handle it like a fixer's.

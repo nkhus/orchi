@@ -159,6 +159,6 @@ Audit mode:
 <Task|Epic> #<n> design audit of <range>
 Design skills used: <names and commands, or none installed>
 Findings (most severe first):
-- [blocker|major|minor] <path>:<line> — <defect>; where: <element, state, breakpoint>; basis: <requirement, design rule, or accessibility standard>
+- [blocker|major|minor] <path>:<line> — <defect>; where: <element, state, breakpoint>; basis: <requirement, design rule, or accessibility standard>; expected: <result>
 Not verifiable: <none, or each with reason>
 ```

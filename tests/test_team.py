@@ -41,10 +41,11 @@ def test_needs_planning_label_is_installed():
 
 def test_orchestrator_events_to_workers_and_retirement_agree():
     team, orchestrator, deliver = prose("orchi/references/team.md"), prose("orchi-orchestrator/SKILL.md"), prose("orchi-deliver/SKILL.md")
-    for event in ("incomplete", "rework", "merged"):
+    for event in ("rework", "merged"):
         assert f"#<n> {event}" in team and f"#<n> {event}" in orchestrator and f"#<n> {event}" in deliver
     assert "A worker lives until its PR is merged" in team
-    assert "no uncommitted or unpushed changes" in team and "It never deletes a session." in team
+    assert "no uncommitted changes" in team and "It never deletes a session." in team
+    assert "incomplete" not in orchestrator and "incomplete" not in team
     assert "archive a worker whose PR is still open" in orchestrator and "delete a session" in orchestrator
 
 
@@ -56,3 +57,11 @@ def test_lessons_are_proposals_with_one_home():
     assert "review-delivery.md#lessons" in prose("orchi-deliver/SKILL.md")
     assert "review-delivery.md#lessons" in prose("orchi/references/team.md")
     assert "retro" in installation.LABELS
+
+
+def test_only_planner_handed_work_is_dispatched():
+    team, orchestrator, planner = prose("orchi/references/team.md"), prose("orchi-orchestrator/SKILL.md"), prose("orchi-planner/SKILL.md")
+    assert "delivery-ready" in installation.LABELS
+    assert "dispatches only open, unclaimed Issues with that label" in team
+    assert "`delivery-ready` Issues" in orchestrator and "add the `delivery-ready` label" in planner
+    assert "An Initiative goes to one worker" in team

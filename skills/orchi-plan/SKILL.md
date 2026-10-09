@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 Arguments: $ARGUMENTS
 
-You are the main session: planner and orchestrator. Follow `CLAUDE.md`, the
+You are the main session and the only one that talks to the user. Follow `CLAUDE.md`, the
 [Orchi skill](../orchi/SKILL.md), its [readiness checklists](../orchi/references/readiness.md)
 and [GitHub conventions](../orchi/references/github.md), and the repository's own
 issue rules, which take precedence. This skill only fixes the order of steps. It
@@ -18,8 +18,8 @@ does not replace those rules.
 ## 1. Research (no tracking yet)
 
 - Inspect the branch and worktree. Search open and closed Issues and PRs for
-  existing or overlapping work. If this continues tracked work, stop and propose
-  `/orchi-deliver #<n>` instead.
+  existing or overlapping work. If this continues a tracked Task, Epic, or
+  Initiative, stop and propose `/orchi-deliver #<n>` instead.
 - With a shaped Exploration (`#<n>`), take its destination, requirements,
   decisions, and Epic candidates as agreed, link it as the source request, and
   ask only what it leaves open ([hand off](../orchi/references/exploration.md#hand-off)).
@@ -45,11 +45,9 @@ not agreement.
 
 ## 3. Clarify (after agreement, before tracking)
 
-Ask the questions that research gaps raise, following [Clarify with the user](../orchi/references/planning.md#clarify-with-the-user):
-answerable options with a recommendation, in rounds, most consequential first.
-Decide yourself what the user has delegated, citing the delegation. Keep the
-decision log as you go. A question left open stays an open question; work whose
-approach it affects is not ready until it is answered.
+Ask the questions that research gaps raise, following
+[Clarify with the user](../orchi/references/planning.md#clarify-with-the-user),
+and keep the decision log as you go.
 
 ## 4. Create tracking
 
@@ -65,18 +63,16 @@ titles, tags, labels, branches, and native relationships.
 - **Initiative:** create the Initiative Issue (`orchi-initiative.yml` when
   present), then the Initiative branch with the plan at
   `docs/initiatives/<tag>-<slug>/README.md`. Create every Epic as a native
-  sub-issue with its context, requirements, decisions, scenarios, boundaries,
-  likely surfaces, acceptance, risks, and open questions. A field that depends
-  on a predecessor's result may say `Deferred until #<n>: <reason>`.
+  sub-issue with every field of the Epic readiness checklist; a field that
+  depends on a predecessor's result may say `Deferred until #<n>: <reason>`.
   Add native blocked-by relationships. Split into Tasks only the Epics that are
   ready to deliver now. The rest are split during delivery.
 
 Only the Initiative branch is created during intake. Epic and fix branches are
 named in their Issues and created at delivery.
 
-Write every Issue per [Write Issues for agents](../orchi/references/planning.md#write-issues-for-agents):
-context, numbered requirements, solution vision, and the decision log with the
-user's answers. Nothing agreed may stay only in chat.
+Write every Issue per [Write Issues for agents](../orchi/references/planning.md#write-issues-for-agents).
+Nothing agreed may stay only in chat.
 
 ## 5. Readiness gate
 

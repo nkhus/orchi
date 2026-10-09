@@ -51,10 +51,12 @@ user's reason.
 
 ## Hand over
 
-When work passes its readiness gate, message the orchestrator
-`ready: #<n>[, #<m>]` instead of the usual `Deliver with:` line, and tell the
-user it is queued. If the orchestrator is not running, give the user the
-`/orchi-deliver #<n>` line instead.
+When work passes its readiness gate, close its source Exploration as
+`orchi-plan` step 6 says, add the `delivery-ready` label to the standalone Task,
+standalone Epic, or Initiative (never to work inside one), and message the
+orchestrator `ready: #<n>[, #<m>]` instead of the usual `Deliver with:` line.
+Tell the user it is queued. If the orchestrator is not running, give the user
+the `/orchi-deliver #<n>` line instead.
 
 ## Never
 

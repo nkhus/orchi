@@ -19,8 +19,8 @@ judgment beyond the brief goes back to the main session.
 - One of:
   - **Task mode:** a Task Issue number (standalone or under an Epic).
   - **Repair mode:** a confirmed defect — the Epic or Task Issue it belongs to,
-    `<path>:<line>`, the failing scenario (inputs or state → wrong result), and
-    the expected result, usually taken from an `orchi-reviewer` finding.
+    `<path>:<line>`, the failing scenario (inputs or state → wrong result) or the
+    violated rule, and the expected result, usually taken from an `orchi-reviewer` finding.
 - The checks to run, when the Issue does not state them.
 
 If any input is missing, return `NOT READY` naming the missing input.
