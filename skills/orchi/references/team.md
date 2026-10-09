@@ -87,6 +87,13 @@ session, with its context and worktree.
    it asks the user to archive it. It never deletes a session. If any condition
    fails, it leaves the worker and tells the user why.
 
+A worker posts its [lessons](review-delivery.md#lessons) on its Issue before
+`done`. The orchestrator reads them there and, in its next report, shows the
+user the lessons that are new or repeat across workers, grouped by rung. When
+the user accepts one, it files a single Issue labelled `retro` and
+`needs-planning` for the planner, linking every event behind it; it changes no
+instructions or checks itself.
+
 Work found after the merge is new work: a `needs-planning` Issue and a new
 worker from the current main. Decisions and evidence live in the Issue and PR,
 and an archived session can be restored when its conversation is needed.

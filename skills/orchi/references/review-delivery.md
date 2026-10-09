@@ -59,3 +59,30 @@ relevant checks.
 Report the delivered scope, PR and merge reference, checks, and material
 limitations. If publication is pending, say so: local verification is not a
 remote merge, and merging is not deployment.
+
+## Lessons
+
+After delivery, turn what went wrong into changes to the environment rather
+than into more instructions. Collect the events this delivery produced: `NOT
+READY` and `ESCALATE` reports, review blockers and context gaps, repair rounds,
+checks that failed late, held messages, and corrections the user made.
+
+For an event that could recur, propose one change on the first rung that fits:
+
+1. A deterministic check (test, lint rule, CI job, or hook) for a mechanical
+   mistake.
+2. A field or item in the repository's Issue forms or stricter readiness
+   checklist, for context an Issue lacked.
+3. A rule in the coding standards the reviewer reads, for a judgement call.
+4. A pointer in `CLAUDE.md` or `AGENTS.md`, for something an agent could not
+   find.
+5. An Issue in the Orchi repository, for a defect in Orchi itself.
+
+Propose removing an instruction that changed nothing, too. Each lesson names
+its event (an Issue, PR, or finding link) and its rung; without an observed
+event it is not a lesson. Report at most three, most costly first, and post
+them as a `Lessons` comment on the delivered Issue. Only propose: never change
+instructions, checklists, or checks on your own. A lesson the user accepts
+becomes an Issue labelled `retro`. When a failure recurs after its `retro`
+Issue closed, say so: that change did not work, and the next one belongs on a
+more deterministic rung.

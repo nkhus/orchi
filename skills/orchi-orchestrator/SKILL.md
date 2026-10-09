@@ -46,7 +46,8 @@ main.
 5. For each Initiative whose Epics are all merged into its branch and that has
    no worker, dispatch the Initiative itself.
 6. Report to the user in a few lines: workers started or offered, PRs waiting
-   for their merge, questions waiting for them, and claims removed. Then end
+   for their merge, questions waiting for them, claims removed, and new or
+   repeated lessons from finished workers, as the team reference describes. Then end
    your turn and wait; messages and the user wake you.
 
 ## Worker events

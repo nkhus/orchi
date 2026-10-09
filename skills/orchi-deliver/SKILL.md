@@ -71,4 +71,4 @@ Before stopping for any reason, fill in each open PR's `Handoff` section in the 
 
 ## Final report
 
-Delivered scope, PR and merge references, closed Issues, checks run with results, review findings and their resolution, and anything waiting on the user.
+Delivered scope, PR and merge references, closed Issues, checks run with results, review findings and their resolution, anything waiting on the user, and up to three [lessons](../orchi/references/review-delivery.md#lessons), also posted as a `Lessons` comment on the delivered Issue.

@@ -47,7 +47,7 @@ npx --yes github:nkhus/orchi --github
 | `.github/ISSUE_TEMPLATE/orchi-initiative.yml`, `orchi-epic.yml`, `orchi-task.yml`, `orchi-exploration.yml` | Issue forms that apply the matching type label; the Task, Epic, and Initiative forms have a field for every item of the [readiness checklists](../skills/orchi/references/readiness.md), and the Exploration form prepares an Initiative's first five |
 | PR template section | Summary, Verification, Merge risk, Documentation impact, and Handoff, as a managed section in an existing template (`.github/pull_request_template.md` or another location GitHub reads) or a new one |
 | `.github/workflows/orchi-docs.yml` | On every PR, fails on broken local links the PR introduces (`knowledge.py lint --since` the base branch) or a missing or empty Documentation impact section; omitted with `--no-docs-workflow` |
-| Labels `Initiative`, `Epic`, `Task`, `in-progress`, `Exploration`, `needs-planning` | Created with `gh` when missing; existing labels are not changed |
+| Labels `Initiative`, `Epic`, `Task`, `in-progress`, `Exploration`, `needs-planning`, `retro` | Created with `gh` when missing; existing labels are not changed |
 
 The template and workflow files are recorded in the manifest with their hashes, so they follow the same rules as the skill: unmodified files update in place, edited or pre-existing files need `--replace-orchi`, and uninstalling refuses edited files. Label creation needs a GitHub remote and an authenticated `gh`. If either is missing, the installation still completes and reports the error in `labels`; rerun it later to create them. Uninstalling leaves labels in place.
 
@@ -109,6 +109,10 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 ## Upgrading
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
+
+### From 0.11.x to 0.12.x
+
+- **Lessons.** `orchi-deliver` ends with up to three [lessons](../skills/orchi/references/review-delivery.md#lessons) posted on the delivered Issue; in a team, the orchestrator groups them for the user. Accepted lessons become Issues labelled `retro`, which `--github` now creates.
 
 ### From 0.10.x to 0.11.x
 

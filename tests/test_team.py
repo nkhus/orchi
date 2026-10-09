@@ -46,3 +46,13 @@ def test_orchestrator_events_to_workers_and_retirement_agree():
     assert "A worker lives until its PR is merged" in team
     assert "no uncommitted or unpushed changes" in team and "It never deletes a session." in team
     assert "archive a worker whose PR is still open" in orchestrator and "delete a session" in orchestrator
+
+
+def test_lessons_are_proposals_with_one_home():
+    review = prose("orchi/references/review-delivery.md")
+    assert "## Lessons" in (SKILLS / "orchi/references/review-delivery.md").read_text()
+    assert "Only propose: never change instructions, checklists, or checks on your own." in review
+    assert "without an observed event it is not a lesson" in review
+    assert "review-delivery.md#lessons" in prose("orchi-deliver/SKILL.md")
+    assert "review-delivery.md#lessons" in prose("orchi/references/team.md")
+    assert "retro" in installation.LABELS
