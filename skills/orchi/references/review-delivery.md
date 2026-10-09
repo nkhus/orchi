@@ -20,6 +20,14 @@ correctness, requirement coverage, shared contracts, failure behavior, attributa
 regressions, and agreement between code and documentation. Report actual coverage
 and limitations; do not infer a clean result from the author's summary.
 
+Keep three axes apart, so that a pass on one cannot hide a failure on another:
+**Spec** (the Issues' requirements, acceptance, and scenarios, including scope
+creep: behavior no requirement asks for), **Standards** (the repository's rules
+and documentation), and **Tests** (per [testing](testing.md#review-the-tests)).
+A new or changed test without red evidence or a stated reason goes back to its
+writer like any other missing check. Remove scope creep, or agree it with the
+user and record the decision; never accept it silently.
+
 A blocker states the violated criterion, concrete causal path, consequence, and
 evidence. Deduplicate root causes. Advisory style, speculative concerns, and
 unrelated existing defects do not become required repair Tasks. Repair supported

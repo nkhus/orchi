@@ -45,7 +45,11 @@ PR_TEMPLATE = """## Summary
 
 ## Verification
 
-<!-- Commands, results, and the candidate commit. -->
+<!-- Commands, results, red evidence for new tests, and the candidate commit. Before/after output or screenshots for a visible change. -->
+
+## Merge risk
+
+<!-- One-way door (hard to undo) or two-way door (a revert undoes it), and the blast radius if it is wrong. -->
 
 ## Documentation impact
 

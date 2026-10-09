@@ -45,8 +45,9 @@ and scoped instructions. Check that the actual branch matches the issue.
 
 Implement Tasks in sequence on the Epic branch; Tasks have no separate branch or
 PR. Mark the current Task `in-progress`. Update code, tests, and owning
-documentation together. Run the checks that establish the Task's acceptance and
-record the result and commit in the shared PR. A failing check is unresolved
+documentation together, writing tests per [testing](testing.md). Run the checks
+that establish the Task's acceptance and record the result, the red evidence,
+and the commit in the shared PR. A failing check is unresolved
 work; an unavailable environment is a verification limitation, not evidence of
 success or of a product defect.
 

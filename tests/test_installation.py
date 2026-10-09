@@ -396,7 +396,8 @@ def test_github_setup_installs_managed_files_and_persists(tmp_path, labels):
     for relative in ("ISSUE_TEMPLATE/orchi-epic.yml", "ISSUE_TEMPLATE/orchi-task.yml",
                      "ISSUE_TEMPLATE/orchi-initiative.yml", "workflows/orchi-docs.yml"):
         assert (tmp_path / ".github" / relative).is_file()
-    assert "## Documentation impact" in (tmp_path / ".github/pull_request_template.md").read_text()
+    template = (tmp_path / ".github/pull_request_template.md").read_text()
+    assert "## Documentation impact" in template and "## Merge risk" in template
     # A later installation without the flag keeps the GitHub setup.
     assert installation.install(tmp_path)["github"] is True
     installation.install(tmp_path, uninstall=True)

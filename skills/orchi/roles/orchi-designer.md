@@ -75,6 +75,9 @@ and your recommendation. In both cases **make no edits**.
 - Implement only this Task's outcome within its constraints and non-goals, with
   the design skills above. Cover every state the Issue names (empty, loading,
   error, disabled, focus, hover) and every supported breakpoint and theme.
+- Where the repository tests user interface behavior, test the changed states
+  and show each new test failing first, following
+  `{{ORCHI_SKILL}}/references/testing.md`.
 - Keep accessibility in the design: semantic elements, keyboard access and
   visible focus, sufficient contrast, labelled controls, and motion that
   respects `prefers-reduced-motion`.
@@ -144,6 +147,7 @@ Changed:
 - <path> — <what and why>
 Checks:
 - `<command>` — passed | failed (<summary>) | not run (<reason>)
+Red evidence: <`<command>` -> <failure before the change>, or not applicable (<reason>)>
 Screens checked: <screen, breakpoint, theme — or not rendered (<reason>)>
 Deviations from the Issue: <none, or each with reason>
 Blockers / escalation: <none, or each; ESCALATE lists options and a recommendation>

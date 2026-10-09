@@ -21,7 +21,7 @@ TASK_FIELDS = {
     7: ("decisions", ("who decided", "quote the user's answers")),
     8: ("sources", ("inspected while planning",)),
     9: ("constraints", ("non-goals",)),
-    10: ("scenarios", ("failure scenarios",)),
+    10: ("scenarios", ("failure scenarios", "reproduction command")),
     11: ("acceptance", ("mapped to the requirements", "exact checks or commands")),
     12: ("docs", ("documentation routing",)),
     13: ("questions", ("affects this task's approach",)),

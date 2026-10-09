@@ -98,6 +98,12 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
 
+### From 0.7.x to 0.8.x
+
+- **Testing and review.** The new [testing reference](../skills/orchi/references/testing.md) defines seams, test quality, red evidence, and the defect diagnosis steps. Writers report red evidence (each new or changed test failing before the change), and `orchi-reviewer` reports Spec (with scope creep), Standards, and Tests as separate axes, starting one reviewer per axis in Epic and Initiative mode. Reinstalling updates the rendered agents in place.
+- **Defect readiness.** Task readiness item 10 now asks a defect's failure scenario for a reproduction command that has already failed, or the reason none exists. Open defect Tasks written earlier may get `NOT READY` until that is added. With `--github`, reinstalling replaces an unmodified `orchi-task.yml` form.
+- **PR template.** With `--github`, the managed PR template gains a `Merge risk` section, and Verification asks for red evidence. An unmodified managed section updates in place; an edited one is a conflict, as before.
+
 ### From 0.6.x to 0.7.x
 
 Versions before 0.7.0 installed for Codex, GitHub Copilot, and Claude Code together: one copy of each skill in `.agents/skills/`, Claude links to it in `.claude/skills/`, the workflow section in root `AGENTS.md` with an `@AGENTS.md` import in `CLAUDE.md`, and, depending on the selection, a pointer in `.github/copilot-instructions.md`, Codex agents in `.codex/agents/`, and a block in `.codex/config.toml`. The manifest was `.agents/.orchi-install.json`.
