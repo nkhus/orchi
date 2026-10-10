@@ -1,4 +1,5 @@
 """Installation behavior in disposable project and home directories."""
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -555,3 +556,35 @@ def test_cli_docs_workflow_flags(tmp_path, labels, capsys):
     assert (tmp_path / ".github/workflows/orchi-docs.yml").is_file()
     with pytest.raises(SystemExit):
         installation.main(["--project", str(tmp_path), "--docs-workflow", "--no-docs-workflow"])
+
+
+def test_clean_update_leaves_no_backup(tmp_path):
+    installation.install(tmp_path)
+    # Simulate an older, unmodified installed version of a managed agent.
+    agent = tmp_path / ".claude/agents/orchi-scout.md"
+    agent.write_text("older managed version\n")
+    manifest = json.loads((tmp_path / MANIFEST).read_text())
+    manifest["files"][".claude/agents/orchi-scout.md"] = hashlib.sha256(agent.read_bytes()).hexdigest()
+    (tmp_path / MANIFEST).write_text(json.dumps(manifest, indent=2) + "\n")
+    result = installation.install(tmp_path)
+    assert result["status"] == "installed" and result["backup"] is None
+    assert not list(tmp_path.parent.glob(tmp_path.name + "-orchi-backup-*"))
+    assert agent.read_text() != "older managed version\n"
+
+
+def test_dry_run_lists_the_labels_github_setup_would_create(tmp_path, monkeypatch):
+    calls = []
+    def fake_run(args, **kwargs):
+        calls.append(args)
+        return subprocess.CompletedProcess(args, 0, stdout=json.dumps([{"name": "Task"}, {"name": "epic"}]), stderr="")
+    monkeypatch.setattr(installation.subprocess, "run", fake_run)
+    result = installation.install(tmp_path, github=True, dry=True)
+    assert result["labels"]["create"] == [name for name in installation.LABELS if name not in ("Task", "Epic")]
+    assert all(args[:3] == ["gh", "label", "list"] for args in calls)
+    assert not (tmp_path / ".github").exists()
+
+    def failing(args, **kwargs):
+        raise OSError("gh not found")
+    monkeypatch.setattr(installation.subprocess, "run", failing)
+    planned = installation.install(tmp_path, github=True, dry=True)["labels"]
+    assert planned["create"] == list(installation.LABELS) and "gh not found" in planned["error"]

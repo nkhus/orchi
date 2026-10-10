@@ -105,12 +105,26 @@ def github_files() -> dict[str, bytes]:
             for path in sorted(GITHUB_ASSETS.rglob("*")) if path.is_file()}
 
 
+def existing_labels(root: Path) -> set[str]:
+    return {item["name"].casefold() for item in json.loads(subprocess.run(
+        ["gh", "label", "list", "--limit", "500", "--json", "name"], cwd=root,
+        check=True, capture_output=True, text=True).stdout)}
+
+
+def label_plan(root: Path) -> dict:
+    """The Orchi labels an installation with --github would create; read-only."""
+    try:
+        existing = existing_labels(root)
+    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+        return {"create": list(LABELS), "error": (getattr(exc, "stderr", "") or str(exc)).strip(),
+                "note": "Existing labels could not be listed; each of these is created only if it is missing."}
+    return {"create": [name for name in LABELS if name.casefold() not in existing]}
+
+
 def ensure_labels(root: Path) -> dict:
     """Create missing Orchi labels with gh; report rather than fail when GitHub is unavailable."""
     try:
-        existing = {item["name"].casefold() for item in json.loads(subprocess.run(
-            ["gh", "label", "list", "--limit", "500", "--json", "name"], cwd=root,
-            check=True, capture_output=True, text=True).stdout)}
+        existing = existing_labels(root)
         created = []
         for name, (color, description) in LABELS.items():
             if name.casefold() not in existing:
@@ -376,17 +390,26 @@ def install(project: Path, replace: bool = False, dry: bool = False, global_scop
                             "Authenticate the GitHub CLI (gh auth login) so Claude Code can manage Issues and PRs.",
                             "Open a new Claude Code session and ask it to use Orchi."] if not uninstall else []
     if dry:
-        return {**report, "dry_run": True, "conflicts": conflicts, "requires_replace": bool(conflicts and not replace)}
+        planned = {"labels": label_plan(root)} if github and not uninstall else {}
+        return {**report, **planned, "dry_run": True, "conflicts": conflicts,
+                "requires_replace": bool(conflicts and not replace)}
+    # Keep a backup only when the update replaces content that Orchi did not install unchanged.
+    recorded = {MANIFEST, *(SKILLS_DIR + name for name in previous.get("skills", {})),
+                *previous.get("instructions", {}), *previous.get("files", {})}
+    keep_backup = bool(conflicts) or any(
+        relative not in recorded for relative in replacements
+        if (root / relative).exists() or (root / relative).is_symlink())
     result = {**report, "status": "unchanged"}
     if replacements:
-        result = {**report, **apply_changes(root, replacements, desired, global_scope),
+        result = {**report, **apply_changes(root, replacements, desired, global_scope, keep_backup),
                   "status": "removed" if uninstall else "installed"}
     if github and not uninstall:
         result["labels"] = ensure_labels(root)
     return result
 
 
-def apply_changes(root: Path, changes: dict, desired: dict, global_scope: bool = False) -> dict:
+def apply_changes(root: Path, changes: dict, desired: dict, global_scope: bool = False,
+                  keep_backup: bool = True) -> dict:
     """Stage first; roll back skill directories, links, instructions, and manifest together."""
     staging = Path(tempfile.mkdtemp(prefix=".orchi-stage-", dir=root if global_scope else root.parent))
     backup = (root if global_scope else root.parent) / ((".orchi-backup-" if global_scope else root.name + "-orchi-backup-") + uuid.uuid4().hex[:10])
@@ -442,6 +465,9 @@ def apply_changes(root: Path, changes: dict, desired: dict, global_scope: bool =
         raise
     finally:
         shutil.rmtree(staging, ignore_errors=True)
+    if moved and not keep_backup:
+        shutil.rmtree(backup)
+        return {"backup": None}
     return {"backup": str(backup) if moved else None}
 
 
