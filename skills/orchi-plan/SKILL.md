@@ -1,7 +1,7 @@
 ---
 name: orchi-plan
 description: Turn a user request into agreed, tracked, delivery-ready Orchi work (standalone Task, Epic, or Initiative). Ends with the Issue number to pass to orchi-deliver.
-argument-hint: "<request in plain words> | #<exploration>"
+argument-hint: "<request in plain words> | #<exploration> | #<needs-planning> [--report-to <planner session>]"
 disable-model-invocation: true
 ---
 
@@ -19,7 +19,8 @@ does not replace those rules.
 
 - Inspect the branch and worktree. Search open and closed Issues and PRs for
   existing or overlapping work. If this continues a tracked Task, Epic, or
-  Initiative, stop and propose `/orchi-deliver #<n>` instead.
+  Initiative, stop and propose `/orchi-deliver #<n>` instead (a team planning
+  worker runs the readiness gate on it unless it is `delivery-ready`).
 - With a shaped Exploration (`#<n>`), take its destination, requirements,
   decisions, and Epic candidates as agreed, link it as the source request, and
   ask only what it leaves open ([hand off](../orchi/references/exploration.md#hand-off)).
@@ -71,8 +72,8 @@ titles, tags, labels, branches, and native relationships.
 Only the Initiative branch is created during intake. Epic and fix branches are
 named in their Issues and created at delivery.
 
-Write every Issue per [Write Issues for agents](../orchi/references/planning.md#write-issues-for-agents).
-Nothing agreed may stay only in chat.
+Write every Issue per [Write Issues for agents](../orchi/references/planning.md#write-issues-for-agents);
+nothing agreed may stay only in chat.
 
 ## 5. Readiness gate
 
@@ -85,7 +86,7 @@ Issues. Read back labels, parents, and blockers from GitHub.
 
 ## 6. Hand off
 
-Close a source Exploration as completed with a link to the new work. Report the
+Close a source Exploration as completed, linking the new work. Report the
 created Issue URLs and which Epics are ready or deferred, and end with one line:
 
 ```
@@ -94,3 +95,6 @@ Deliver with: /orchi-deliver #<n>
 
 For an Initiative, suggest `--merge-epics` if the user wants reviewed Epic PRs
 merged into the Initiative branch without asking each time.
+
+With `--report-to <planner>`, follow the [team](../orchi/references/team.md)'s
+Planning workers section instead of the `Deliver with:` line.

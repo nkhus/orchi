@@ -21,7 +21,7 @@ def test_team_roles_are_explicit_entry_skills():
 
 def test_worker_limit_and_dispatch_claim_match():
     team, orchestrator, deliver = prose("orchi/references/team.md"), prose("orchi-orchestrator/SKILL.md"), prose("orchi-deliver/SKILL.md")
-    assert "At most five workers" in team and "without asking the user" in team
+    assert "At most three planning workers and five development workers" in team and "without asking the user" in team
     assert "five unless the repository's instructions say otherwise" in orchestrator
     assert "`Dispatched to orchi-worker #<n> · <repo> by orchi-orchestrator · <repo> on <date>`" in team
     assert "`Dispatched to orchi-worker #<n> … by <that orchestrator>` is yours" in deliver
@@ -43,8 +43,9 @@ def test_orchestrator_events_to_workers_and_retirement_agree():
     team, orchestrator, deliver = prose("orchi/references/team.md"), prose("orchi-orchestrator/SKILL.md"), prose("orchi-deliver/SKILL.md")
     for event in ("rework", "merged"):
         assert f"#<n> {event}" in team and f"#<n> {event}" in orchestrator and f"#<n> {event}" in deliver
-    assert "A worker lives until its PR is merged" in team
+    assert "A development worker lives until its PR is merged" in team
     assert "no uncommitted changes and no commits that the merged PR does not contain" in team
+    assert "a question for the user keeps it waiting, not finished" in team
     assert "It never deletes a session." in team
     assert all("incomplete" not in text for text in (orchestrator, team, deliver))
     assert "archive a worker whose PR is still open" in orchestrator and "delete a session" in orchestrator
@@ -60,12 +61,14 @@ def test_lessons_are_proposals_with_one_home():
     assert "retro" in installation.LABELS
 
 
-def test_only_planner_handed_work_is_dispatched():
+def test_only_work_that_passed_planning_is_dispatched():
     team, orchestrator, planner = prose("orchi/references/team.md"), prose("orchi-orchestrator/SKILL.md"), prose("orchi-planner/SKILL.md")
     assert "delivery-ready" in installation.LABELS
-    assert "dispatches only open, unclaimed Issues with that label" in team
-    assert "`delivery-ready` Issues" in orchestrator and "add the `delivery-ready` label" in planner
-    assert "An Initiative goes to one worker" in team
+    assert "dispatches an open, unclaimed Issue labelled `delivery-ready`" in team
+    assert "dispatch an Issue without `delivery-ready`" in orchestrator
+    assert "adds the `delivery-ready` label to the top item" in team
+    assert "add `delivery-ready` (planning workers do)" in planner
+    assert "An Initiative goes to one development worker" in team
     assert "for `check`, confirm the blocker's result reached the target first" in team
     assert "confirm a `check` blocker first" in orchestrator and "held back" in orchestrator
 
@@ -75,3 +78,61 @@ def test_accepted_lessons_have_an_owner_in_a_team():
     assert "(in a team, the orchestrator) files each lesson the user accepts" in review
     assert "files the ones the user accepts" in team
     assert "search closed `retro` Issues for the same failure" in review
+
+
+def test_planning_workers_report_what_the_planner_handles():
+    team, planner = prose("orchi/references/team.md"), prose("orchi-planner/SKILL.md")
+    for event in ("started", "needs the user", "planned", "declined"):
+        assert f"<id> {event}" in team and f"`{event}" in planner
+    assert "`Planning by orchi-planning <id> · <repo>`" in team
+    assert "At most three planning workers" in team
+    for skill in ("orchi-explore", "orchi-plan"):
+        text = prose(f"{skill}/SKILL.md")
+        assert "--report-to" in text and "Planning workers" in text and "../orchi/references/team.md" in text
+    assert "orchi-plan](../orchi-plan/SKILL.md) `#<n> --report-to <planner>` in this session" in prose("orchi-explore/SKILL.md")
+    assert "you never explore or plan yourself" in planner
+
+
+def test_results_are_routed_by_who_asked():
+    team, planner, orchestrator = prose("orchi/references/team.md"), prose("orchi-planner/SKILL.md"), prose("orchi-orchestrator/SKILL.md")
+    line = "`Requested by: orchi-orchestrator · <repo>`"
+    assert line in team and line in planner and line in orchestrator
+    assert "Work the user requested stays with the planner" in team
+    assert "message the orchestrator `ready: #<n>[, #<m>]`" in planner
+    assert "tell the user the work is ready" in planner
+
+
+def test_orchestrator_explains_why_work_cannot_be_taken():
+    team, orchestrator = prose("orchi/references/team.md"), prose("orchi-orchestrator/SKILL.md")
+    assert "the orchestrator says why: being planned (and by whom), not planned, tracked but not labelled (planned outside the team), claimed, or blocked" in team
+    assert "say why in one line" in orchestrator and "not planned (no `delivery-ready`)" in orchestrator
+    assert "`Queued for delivery at the user's request`" in team and "queued for delivery at the user's request" in orchestrator
+
+
+def test_hubs_start_each_other():
+    team, planner, orchestrator = prose("orchi/references/team.md"), prose("orchi-planner/SKILL.md"), prose("orchi-orchestrator/SKILL.md")
+    assert "Either hub may be started first" in team and "A hub starts the other hub the same way" in team
+    assert "the way the team reference starts a hub" in planner and "the way the team reference starts a hub" in orchestrator
+
+
+def test_follow_ups_carry_the_line_that_routes_them_back():
+    deliver, team = prose("orchi-deliver/SKILL.md"), prose("orchi/references/team.md")
+    assert "`Requested by: <that orchestrator>`" in deliver
+    assert "`Requested by: orchi-orchestrator · <repo>`" in team.split("## Follow-ups")[1]
+
+
+def test_planning_requests_are_claimed_before_their_worker_starts():
+    team, planner = prose("orchi/references/team.md"), prose("orchi-planner/SKILL.md")
+    assert "Before starting a worker for a request that is an Issue, the planner claims it" in team
+    assert "claim it and start its planning worker" in planner
+    assert "for tracked work without `delivery-ready`, runs the readiness gate on it" in team
+    assert "closes the source Exploration" in team
+    assert "`<id> declined: parked`" in team and "as not planned with the user's reason" in team
+
+
+def test_queued_claims_and_cancellations_are_explicit():
+    team, planner, orchestrator = prose("orchi/references/team.md"), prose("orchi-planner/SKILL.md"), prose("orchi-orchestrator/SKILL.md")
+    assert "`Planning queued for orchi-planning <id> · <repo> by orchi-planner · <repo> on <date>`" in team
+    assert "`Planning queued for …` by you" in planner
+    assert "`Delivery cancelled at the user's request`" in team and "`Delivery cancelled at the user's request`" in orchestrator
+    assert "a team planning worker runs the readiness gate on it unless it is `delivery-ready`" in prose("orchi-plan/SKILL.md")

@@ -36,8 +36,8 @@ LABELS = {
     "Task": ("1d76db", "Orchi: one reviewable result"),
     "in-progress": ("fbca04", "Orchi: owned work in progress"),
     "Exploration": ("c5def5", "Orchi: an idea being researched and shaped before planning"),
-    "needs-planning": ("d4c5f9", "Orchi: a follow-up request waiting for the planner"),
-    "delivery-ready": ("0e8a16", "Orchi: planned work the planner handed to the orchestrator"),
+    "needs-planning": ("d4c5f9", "Orchi: a request waiting for a planning worker"),
+    "delivery-ready": ("0e8a16", "Orchi: planned work that passed its readiness gate"),
     "retro": ("bfd4f2", "Orchi: an accepted lesson that changes checks, forms, or instructions"),
 }
 # GitHub reads the first PR template it finds; extend an existing one instead of adding a rival.

@@ -57,15 +57,16 @@ Broken links that already exist on the base branch are reported as pre-existing 
 
 ## Team setup
 
-A team is optional: one planner session, one orchestrator session, and worker sessions, as the [team reference](../skills/orchi/references/team.md) describes. To set it up in a project:
+A team is optional: a planner hub with planning workers and an orchestrator hub with development workers, as the [team reference](../skills/orchi/references/team.md) describes. To set it up in a project:
 
-1. Install with `--github`, so the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels exist. The orchestrator dispatches only Issues the planner labelled `delivery-ready`.
+1. Install with `--github`, so the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels exist. Planning workers add `delivery-ready` when work passes its readiness gate; the orchestrator dispatches nothing without it.
 2. Decide how far workers may run alone. A worker stops at every permission prompt until someone answers it, so give the project a permission mode and an allowlist that fit your risk, in `.claude/settings.json`, for example `{"permissions": {"defaultMode": "auto"}}` with `allow` rules for the repository's `git`, `gh`, and check commands. Orchi does not change these settings.
-3. Start one session in the repository in that same permission mode and run `/orchi-planner`; keep the planner and orchestrator sessions in the mode workers get from the settings. It names itself and, when no orchestrator is running, offers to start one with `/orchi-orchestrator`.
-4. Talk to the planner. When it reports work as ready, the orchestrator claims it and starts a worker per Issue: in Claude Desktop it offers a one-click session for you to accept; in a terminal signed in to the Claude Code CLI it starts `claude --bg` sessions (`claude agents` lists them, `claude attach <id>` opens one).
-5. Open a worker when the orchestrator says it needs you, and merge PRs into main yourself or tell the orchestrator to.
+3. Start two sessions in the repository in that same permission mode, the mode workers get from the settings, and run `/orchi-planner` in one and `/orchi-orchestrator` in the other. Either may come first; each offers to start the other when it needs it.
+4. Bring ideas and requests to the planner. It starts a planning worker per request: in Claude Desktop it offers a one-click session for you to accept; in a terminal signed in to the Claude Code CLI it starts a `claude --bg` session (`claude agents` lists them, `claude attach <id>` opens one). Answer the worker's questions in its own session; the planner tells you which one is waiting.
+5. When the planner reports work as ready, ask the orchestrator to take it ("take #12"). Follow-ups the orchestrator requested come back to it planned and are taken without asking. It starts a development worker per Issue the same way.
+6. Open a worker when a hub says it needs you, and merge PRs into main yourself or tell the orchestrator to.
 
-Background sessions need the folder to be trusted and the CLI to be signed in (`claude auth login`); Claude Desktop and the CLI sign in separately. Workers start in fresh worktrees from main, so commit the permission settings to main. Sessions in different permission modes cannot exchange messages: the message is held and, in a session that cannot ask its user, expires. The orchestrator runs at most five workers at once; the repository's instructions can set another limit. A role skill's text is re-attached after compaction, and each role rebuilds its state from GitHub, so rerunning `/orchi-planner` or `/orchi-orchestrator` is safe.
+Background sessions need the folder to be trusted and the CLI to be signed in (`claude auth login`); Claude Desktop and the CLI sign in separately. Workers start in fresh worktrees from main, so commit the permission settings to main. Sessions in different permission modes cannot exchange messages: the message is held and, in a session that cannot ask its user, expires. At most three planning workers and five development workers run at once; the repository's instructions can set other limits. A role skill's text is re-attached after compaction, and each role rebuilds its state from GitHub, so rerunning `/orchi-planner` or `/orchi-orchestrator` is safe.
 
 ## User-wide installation
 
@@ -110,14 +111,15 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
 
-### From 0.7.x to 0.13.x
+### From 0.7.x to 0.14.x
 
 Reinstalling adds and updates everything below; rendered agents and unmodified managed files update in place.
 
 - **New entry skills and agent.** `orchi-explore`, `orchi-planner`, and `orchi-orchestrator`, the [exploration](../skills/orchi/references/exploration.md), [testing](../skills/orchi/references/testing.md), and [team](../skills/orchi/references/team.md) references, and the read-only `orchi-researcher` agent. An existing skill or agent with one of these names that Orchi did not install is a conflict that needs `--replace-orchi`.
 - **Changed behavior.** Writers report red evidence; `orchi-reviewer` reports Spec (with scope creep), Standards, and Tests as separate sections and accepts a Recheck input; `orchi-plan` shows the breakdown before creating Issues and takes a shaped Exploration; `orchi-deliver` accepts `--report-to` for team workers and ends with up to three [lessons](../skills/orchi/references/review-delivery.md#lessons).
 - **Readiness.** Task item 10 asks a defect for a reproduction command; Task item 11 and Epic item 5 ask for test seams. Open Issues written earlier may get `NOT READY` until a line is added.
-- **Team hand-off.** The orchestrator dispatches only Issues labelled `delivery-ready`: add the label to already planned standalone Tasks, standalone Epics, and Initiatives you want a team to deliver. An Initiative goes to one worker with its Epics. Workers stay for rework until their PR is merged and are archived afterwards.
+- **Team hand-off.** The orchestrator dispatches only Issues labelled `delivery-ready`: add the label to already planned standalone Tasks, standalone Epics, and Initiatives you want a team to deliver. It takes them when you name them, and by itself only when they say `Requested by: orchi-orchestrator · <repo>`. An Initiative goes to one worker with its Epics. Workers stay for rework until their PR is merged and are archived afterwards.
+- **Planning workers.** The planner no longer explores or plans in its own session: each request gets an `orchi-planning` worker running `/orchi-explore` or `/orchi-plan` with `--report-to`, which holds a `Planning by` claim on its Issues until it reports.
 - **Installer.** `--dry-run` with `--github` lists the labels it would create, and a clean update keeps no backup directory.
 - **GitHub setup.** With `--github`: the `orchi-exploration.yml` form, a `Merge risk` section in the managed PR template, and the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels.
 
