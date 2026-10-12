@@ -181,3 +181,7 @@ def test_idle_workers_are_cleared_once_and_queued_work_survives():
     assert "as plain `clear`" in team and "it works in a linked worktree" in team
     assert "the hub tells the user to continue it with that worker instead" in team
     assert "when none is free, comment that it is queued" in orchestrator
+
+
+def test_hubs_rebrief_workers_that_lost_their_role():
+    assert "its hub sends the same work message again" in prose("orchi/references/team.md")

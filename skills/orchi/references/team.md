@@ -164,6 +164,9 @@ plus only the context the Issue lacks:
 
 The worker invokes that skill itself; nobody pastes a command, and no hub
 creates a session. When no listed worker is free, the work waits for one.
+When a worker's message shows it lost its role or its work (after compaction or
+a manual clear), its hub sends the same work message again; the skill resumes
+from the claim, the Issue, and the PR's `Handoff`.
 
 Run every session of the team in the same permission mode: a message between
 sessions in different modes is held for approval, and a session that cannot ask
