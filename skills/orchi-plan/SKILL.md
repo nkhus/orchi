@@ -1,8 +1,7 @@
 ---
 name: orchi-plan
-description: Turn a user request into agreed, tracked, delivery-ready Orchi work (standalone Task, Epic, or Initiative). Ends with the Issue number to pass to orchi-deliver.
+description: Turn a user request into agreed, tracked, delivery-ready Orchi work (standalone Task, Epic, or Initiative). Ends with the Issue number to pass to orchi-deliver. Invoke only when the user or an Orchi team planner asks for orchi-plan by name, or orchi-explore continues into it.
 argument-hint: "<request in plain words> | #<exploration> | #<needs-planning> [--report-to <planner session>]"
-disable-model-invocation: true
 ---
 
 # Orchi intake: request → ready Issues
@@ -97,4 +96,5 @@ For an Initiative, suggest `--merge-epics` if the user wants reviewed Epic PRs
 merged into the Initiative branch without asking each time.
 
 With `--report-to <planner>`, follow the [team](../orchi/references/team.md)'s
-Planning workers section instead of the `Deliver with:` line.
+Planning workers section instead of the `Deliver with:` line, and its Free a
+worker section on `<id> clear`.
