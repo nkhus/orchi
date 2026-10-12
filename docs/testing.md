@@ -32,7 +32,7 @@ For a team, check that:
 - work the user requested stays with the planner when planned, "take #n" on the orchestrator dispatches it, and "take #m" on work without `delivery-ready` is refused with the reason;
 - a development worker's follow-up goes to the planner, is planned by a worker, and comes back to the orchestrator, which dispatches it;
 - after `/compact` in each hub, asking "who are you and what is next?" gets the role and its next step;
-- after `/compact` in a development worker mid-task (its skill was invoked by the worker, not typed), asking "who are you and what is next?" gets the role, the Issue, and the next step;
+- after `/compact` in a development worker mid-task and in a planning worker mid-exploration, before any Issue exists (their skills were invoked by the worker, not typed), asking "who are you and what is next?" gets the role, the request, and the next step;
 - a cleared worker given new work loads the skill version from its updated checkout, not the one from before the clear;
 - rules a hub puts in a work message survive the worker's compaction, or belong in the repository's instructions instead;
 - after their work is merged or planned, workers update their checkout to the latest main and clear themselves when their hub asks, and no session is renamed, archived, or deleted;
