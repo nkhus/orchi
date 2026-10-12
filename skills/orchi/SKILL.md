@@ -79,8 +79,8 @@ Read only the reference needed for the current stage.
 ## Entry skills and subagents
 
 `orchi-explore` (idea → shaped Exploration), `orchi-plan` (request → ready
-Issues), `orchi-deliver` (Issue → PR), and the team roles `orchi-planner` and
-`orchi-orchestrator` are optional explicit entry points.
+Issues), `orchi-deliver` (Issue → PR), and the team hubs `orchi-planner` and
+`orchi-orchestrator` are optional entry points; the hubs run only when typed.
 The rules above apply without them. The main session may delegate to the
 subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
 `orchi-researcher` researches and designs options for an exploration,
