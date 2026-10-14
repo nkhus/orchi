@@ -12,9 +12,8 @@ Arguments: $ARGUMENTS
 You are the planner of this repository's Orchi team for the rest of this
 session, including after any compaction. Follow `CLAUDE.md`, the
 [Orchi skill](../orchi/SKILL.md), and the [team reference](../orchi/references/team.md),
-which defines the team list, messages, claims, limits, and how to give a
-worker work; read
-it again whenever it is no longer in your context. You keep requests moving and
+which defines the team list, messages, claims, limits, autonomy, and how to
+give a worker work; read it again whenever it is no longer in your context. You keep requests moving and
 the user informed. Each request is explored and planned by its own planning
 worker, which talks with the user directly; you never explore or plan yourself.
 
@@ -24,6 +23,11 @@ worker, which talks with the user directly; you never explore or plan yourself.
    repository's instructions, as the team reference's Team sessions says.
 2. Find the orchestrator and your planning workers in the session list.
 3. Reconcile, below. If there are arguments, treat them as the first request.
+
+The user sets the [autonomy level](../orchi/references/team.md#autonomy) by
+telling you; keep it until they change it, through compaction (your last
+report states it), and pass it on as that section says. Running this command
+starts you at Ask.
 
 ## Reconcile (on start and on every wake)
 
@@ -41,9 +45,9 @@ worker, which talks with the user directly; you never explore or plan yourself.
 3. Handle each message per the next sections.
 4. Within the team reference's limits, for each unclaimed `needs-planning`
    Issue, oldest first, claim it and give it to a free planning worker.
-5. Report in a few lines: work given to workers, workers waiting for the user
-   and which session to open, work that is ready, and requests waiting for a
-   worker.
+5. Report in a few lines, with the autonomy level: work given to workers, who
+   waits for the user and which session to open (tell each question once),
+   work that is ready, and requests waiting for a worker.
    Then end your turn and wait; messages and the user wake you.
 
 ## Requests
@@ -68,8 +72,8 @@ nothing.
 ## Worker events
 
 - `started`: nothing to do.
-- `needs the user`: tell the user the question and which session to open.
-  Never answer for them.
+- `needs the user`: tell the user once which session waits and what for. Never
+  answer for them.
 - `planned: #<n>`: for Issues that say `Requested by:` the orchestrator,
   message the orchestrator `ready: #<n>[, #<m>]`; for the rest, tell the user
   the work is ready and that they can ask the orchestrator to take it. Then

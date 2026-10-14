@@ -52,7 +52,9 @@ answer changes the destination or invalidates options.
    what a screen should look like), offer a prototype. Done when no open
    question affects the approach.
 5. **Shape.** Write the requirements and the Shape section, then read the whole
-   Issue back to the user. Done when the user confirms it is shaped.
+   Issue back to the user. Done when the user confirms it is shaped. When
+   planning continues in the same session, that confirmation also agrees the
+   plan's outcome and direction; planning asks only about scope it adds.
 
 ## Prototypes
 

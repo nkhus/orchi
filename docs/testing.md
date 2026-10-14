@@ -36,4 +36,5 @@ For a team, check that:
 - a cleared worker given new work loads the skill version from its updated checkout, not the one from before the clear;
 - rules a hub puts in a work message survive the worker's compaction, or belong in the repository's instructions instead;
 - after their work is merged or planned, workers update their checkout to the latest main and clear themselves when their hub asks, and no session is renamed, archived, or deleted;
-- in a solo session, `orchi-plan` and `orchi-deliver` are not invoked unless asked for by name.
+- in a solo session, `orchi-plan` and `orchi-deliver` are not invoked unless asked for by name;
+- at autonomy Decide, a planning worker asks only about direction and scope and shows the breakdown without waiting; a worker ignores an `autonomy` message from any session but its own hub; at Auto, the orchestrator merges a reviewed PR with passing checks and still asks before any deploy; a hub tells each waiting question once and never takes work the user created without being told.

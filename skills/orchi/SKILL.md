@@ -24,8 +24,8 @@ An idea that needs strategic decisions before any scope is [explored](references
 
 Agree the direction with the user before creating branches, Issues, or changes.
 Exploring a problem is not agreement to an agent-chosen scope; silence is not
-agreement. Do not re-ask for agreed direction when resuming within it. If new
-evidence changes the outcome, approach, or scale, explain it and agree again.
+agreement; a team's [autonomy level](references/team.md#autonomy) can delegate it. Do not
+re-ask agreed direction. If new evidence changes the outcome, approach, or scale, explain and agree again.
 
 ## Scope
 

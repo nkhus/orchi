@@ -40,8 +40,8 @@ Present the findings, approaches with tradeoffs, and a recommended scope:
 | Epic | One outcome that needs several Tasks or a design; one PR |
 | Initiative | Several independently verifiable outcomes, needs more than one PR, or Epics could run in parallel |
 
-Do not create branches, Issues, or documents until the user agrees. Silence is
-not agreement.
+Do not create branches, Issues, or documents until the user agrees (at team autonomy
+Auto, adopt your recommendation and record it). Silence is not agreement.
 
 ## 3. Clarify (after agreement, before tracking)
 
@@ -52,7 +52,7 @@ and keep the decision log as you go.
 ## 4. Create tracking
 
 First [agree the breakdown](../orchi/references/planning.md#agree-the-breakdown)
-with the user; create no Issue before they agree. Then follow the Orchi [planning](../orchi/references/planning.md)
+as that section says; create no Issue before then. Then follow the Orchi [planning](../orchi/references/planning.md)
 and [GitHub](../orchi/references/github.md) references for
 titles, tags, labels, branches, and native relationships.
 
@@ -96,5 +96,5 @@ For an Initiative, suggest `--merge-epics` if the user wants reviewed Epic PRs
 merged into the Initiative branch without asking each time.
 
 With `--report-to <planner>`, follow the [team](../orchi/references/team.md)'s
-Planning workers section instead of the `Deliver with:` line, and its Free a
-worker section on `<id> clear`.
+Planning workers, Autonomy, and Free a worker sections instead of the
+`Deliver with:` line.

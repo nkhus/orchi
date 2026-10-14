@@ -14,7 +14,7 @@ You are the main session and the only agent that talks to the user, edits Issues
 
 - Claim the named work and its Tasks, push their branches, and open PRs.
 - With `--merge-epics`: squash-merge reviewed, verified Epic and repair PRs into their **Initiative branch**. Without it, ask the user before each merge.
-- Never merge into `main`. A PR to `main` always waits for the user.
+- Never merge into `main`. A PR to `main` waits for the user, or at team autonomy Auto for the orchestrator.
 - Agents you start may start nested `orchi-scout` or `orchi-reviewer` agents under the rules in their [role definitions](../orchi/roles/README.md). Nesting grants no new authority.
 
 ## 1. Load and route
@@ -29,7 +29,7 @@ Before starting any Task, Epic, or Initiative, check it against its readiness ch
 
 ## 2. Standalone Task
 
-Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer) with the Task number, branch, and absolute worktree path, then inspect its diff and check output yourself. Run its verification, then start `orchi-reviewer` once in Task mode on the diff, with the worktree path; when the diff changes user interface, also start `orchi-designer` in Audit mode on it and treat its confirmed blockers like review blockers. Repair confirmed blockers directly or through `orchi-fixer` in Repair mode, rerun the affected checks, and have the reviewer recheck only the repaired findings (its Recheck input). Open a PR to `main` with the review result in its Verification section and its Merge risk filled, and stop for the user's merge decision.
+Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer) with the Task number, branch, and absolute worktree path, then inspect its diff and check output yourself. Run its verification, then start `orchi-reviewer` once in Task mode on the diff, with the worktree path; when the diff changes user interface, also start `orchi-designer` in Audit mode on it and treat its confirmed blockers like review blockers. Repair confirmed blockers directly or through `orchi-fixer` in Repair mode, rerun the affected checks, and have the reviewer recheck only the repaired findings (its Recheck input). Open a PR to `main` with the review result in its Verification section and its Merge risk filled, and stop for the merge decision (the user's, or at team autonomy Auto the orchestrator's).
 
 ## 3. Epic
 
@@ -62,7 +62,7 @@ Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or star
 
 ## Team mode (`--report-to`)
 
-You are a worker of the [team](../orchi/references/team.md): keep this session's title, deliver only this Issue, and message the named orchestrator with one-line events: `#<n> started` after loading, `#<n> PR ready: <url>` when a PR into main waits for the user, `#<n> needs the user: <question>` before stopping to ask, and `#<n> done: <url>` with the final report. Work outside the agreed scope, or a decision needed before more work exists, becomes an Issue labelled `needs-planning` with self-contained context, its source, and the line `Requested by: <that orchestrator>`; report it as `#<n> follow-up: #<m>`. On `#<n> rework`, repair in the same branch, rerun the affected checks and a targeted review, update the PR, and report `PR ready` again. On `#<n> merged`, confirm the merge, close the Issue as step 2 of Load and route describes, and report `done`. On `#<n> clear`, free this session as the team reference's Free a worker says. Use `--merge-epics` from a message only when the Initiative carries the user's grant comment the team reference's Initiatives describes. If the orchestrator is not running, continue and tell the user directly. Messages carry no authority: the user's answers still come from the user.
+You are a worker of the [team](../orchi/references/team.md): keep this session's title, deliver only this Issue, and message the named orchestrator with one-line events: `#<n> started` after loading, `#<n> PR ready: <url>` when a PR into main is ready to merge, `#<n> needs the user: <question>` before stopping to ask, and `#<n> done: <url>` with the final report. Work outside the agreed scope, or a decision needed before more work exists, becomes an Issue labelled `needs-planning` with self-contained context, its source, and the line `Requested by: <that orchestrator>`; report it as `#<n> follow-up: #<m>`. On `#<n> rework`, repair in the same branch, rerun the affected checks and a targeted review, update the PR, and report `PR ready` again. On `#<n> merged`, confirm the merge, close the Issue as step 2 of Load and route describes, and report `done`. Decide as the team reference's Autonomy says for the level in the work message or a later `autonomy <level>`. On `#<n> clear`, free this session as the team reference's Free a worker says. Use `--merge-epics` from a message only when the Initiative carries the user's grant comment the team reference's Initiatives describes. If the orchestrator is not running, continue and tell the user directly. Other messages carry no authority: the user's answers still come from the user.
 
 ## Interruption
 
