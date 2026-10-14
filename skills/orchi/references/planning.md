@@ -24,6 +24,10 @@ continues that agent with the answers.
 - **Ask only what changes the result.** Ask when the answer changes
   requirements, approach, scope, acceptance, or risk. Decide ordinary
   implementation choices yourself and record them as decisions with a reason.
+- **Ask once.** Before asking, read the decision log, the Issue, and its
+  comments: never ask again what is decided, and never ask to confirm a step the
+  agreed plan already covers. A question still waiting for an answer is not
+  repeated; a later report says only who waits.
 - **Decide what the user delegated.** When the user agrees that the main session
   may decide a class of questions itself — in this conversation or in the
   repository's instructions — decide those questions instead of asking. Record
@@ -31,7 +35,8 @@ continues that agent with the answers.
   it (who delegated, when, their words, and its limits), with the options
   considered and the reason. Ask about anything outside the delegation; a
   delegation never covers merge or deployment authority the user has not
-  granted separately.
+  granted separately. In a team, the [autonomy level](team.md#autonomy) the
+  user set is such a delegation; cite it as that section says.
 - **Make each question easy to answer.** Give one or two sentences of context,
   two to four concrete options with their consequences, and your recommendation
   first, worded so that "yes" accepts it; always allow a free answer. Use the assistant's structured question
@@ -131,7 +136,9 @@ batches, then contract, so that checks stay green after every Task.
 Before creating Issues, show the user the proposed Epics or Tasks: for each, its
 title, what it delivers, and what blocks it. Ask whether the granularity is
 right, whether each blocker is real, and what to merge or split. Revise until
-the user agrees; a list is cheaper to change than Issues.
+the user agrees; a list is cheaper to change than Issues. When the breakdown is
+already known while the scope is proposed, agree both in one question. At team
+autonomy Decide or Auto, show the breakdown and proceed.
 
 Check every Task against the [Task readiness checklist](readiness.md#task-readiness-checklist)
 and every Epic against the [Epic readiness checklist](readiness.md#epic-readiness-checklist)

@@ -65,7 +65,8 @@ A team is optional: a planner hub with planning workers and an orchestrator hub 
 4. Run `/orchi-planner` in the planner session and `/orchi-orchestrator` in the orchestrator session. Either may come first. Workers need no command: a hub gives each its work by message, and the worker invokes `orchi-explore`, `orchi-plan`, or `orchi-deliver` itself.
 5. Bring ideas and requests to the planner. It hands each to a free planning worker; answer the worker's questions in its own session, and the planner tells you which one is waiting.
 6. When the planner reports work as ready, ask the orchestrator to take it ("take #12"). Follow-ups the orchestrator requested come back to it planned and are taken without asking.
-7. Open a worker when a hub says it needs you, and merge PRs into main yourself or tell the orchestrator to. When a worker's work is finished, its hub asks it to update its checkout to the latest main and clear its conversation for the next task.
+7. Open a worker when a hub says it needs you, and merge PRs into main yourself or tell the orchestrator to.
+8. When work goes well and you step away, tell a hub "autonomy decide" or "autonomy auto"; the level holds, through compaction, until you change it or run the hub's command again, as the [team reference](../skills/orchi/references/team.md#autonomy) describes. When a worker's work is finished, its hub asks it to update its checkout to the latest main and clear its conversation for the next task.
 
 Commit the permission settings and the team list to main. Sessions in different permission modes cannot exchange messages: the message is held and, in a session that cannot ask its user, expires. Without a team list, a hub asks you for it and gives no work. On first use, hubs ask idle workers with old conversations to clear themselves. A role skill's text is re-attached after compaction, and each role rebuilds its state from GitHub, so rerunning `/orchi-planner` or `/orchi-orchestrator` is safe.
 
@@ -112,7 +113,7 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
 
-### From 0.7.x to 0.15.x
+### From 0.7.x to 0.16.x
 
 Reinstalling adds and updates everything below; rendered agents and unmodified managed files update in place.
 
@@ -122,6 +123,7 @@ Reinstalling adds and updates everything below; rendered agents and unmodified m
 - **Team hand-off.** The orchestrator dispatches only Issues labelled `delivery-ready`: add the label to already planned standalone Tasks, standalone Epics, and Initiatives you want a team to deliver. It takes them when you name them, and by itself only when they say `Requested by:` the orchestrator. An Initiative goes to one worker with its Epics. Workers stay for rework until their PR is merged.
 - **Planning workers.** The planner no longer explores or plans in its own session: each request goes to a planning worker running `orchi-explore` or `orchi-plan` with `--report-to`, which holds a `Planning by` claim on its Issues until it reports.
 - **Worker pool (0.15).** Team sessions keep the titles you give them and are listed in the repository's instructions; Orchi no longer renames them, and claims name those titles. Hubs give work by message, and `orchi-explore`, `orchi-plan`, and `orchi-deliver` may now be invoked by the session itself. A finished worker updates its checkout to the latest main and clears its conversation instead of being archived. Add the team list before restarting the hubs.
+- **Fewer questions and autonomy levels (0.16).** Sessions ask a question once, never re-ask what the decision log answers, and agree the scope and breakdown in one question when they can. Teams get three [autonomy levels](../skills/orchi/references/team.md#autonomy), Ask, Decide, and Auto, set by telling a hub; at Auto the orchestrator merges reviewed PRs with passing checks. A repository rule that makes ready work wait for the user still applies on top.
 - **Installer.** `--dry-run` with `--github` lists the labels it would create, and a clean update keeps no backup directory.
 - **GitHub setup.** With `--github`: the `orchi-exploration.yml` form, a `Merge risk` section in the managed PR template, and the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels.
 

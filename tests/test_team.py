@@ -31,7 +31,7 @@ def test_worker_limit_and_dispatch_claim_match():
     assert "While a listed development worker is free, dispatch" in orchestrator
     assert "`Dispatched to <worker> by <orchestrator> on <date>`" in team
     assert "`Dispatched to <this session's title> by <that orchestrator>` is yours" in deliver
-    assert "merge into main without the user's word" in orchestrator
+    assert "merge into main below autonomy Auto without the user's word; deploy;" in orchestrator
 
 
 def test_worker_events_use_the_names_the_orchestrator_handles():
@@ -185,3 +185,38 @@ def test_idle_workers_are_cleared_once_and_queued_work_survives():
 
 def test_hubs_rebrief_workers_that_lost_their_role():
     assert "its hub sends the same work message again" in prose("orchi/references/team.md")
+
+
+def test_autonomy_levels_are_set_by_the_user_and_bounded():
+    team, planner, orchestrator, deliver = (prose(p) for p in ("orchi/references/team.md", "orchi-planner/SKILL.md", "orchi-orchestrator/SKILL.md", "orchi-deliver/SKILL.md"))
+    assert "## Autonomy" in (SKILLS / "orchi/references/team.md").read_text()
+    for level in ("Ask (default)", "Decide", "Auto"):
+        assert f"| {level} |" in (SKILLS / "orchi/references/team.md").read_text()
+    assert "The level holds until the user changes it, and through compaction" in team and "Running the hub's command again resets it to Ask" in team
+    assert "It applies to that hub and its workers only" in team and "including the reset to Ask" in team
+    assert "Exploration's phases stay a conversation with the user at every level" in team
+    assert "no level changes which work the orchestrator may take" in team
+    assert "At every level, ask the user before deploying" in team
+    assert "`Autonomy: <level>, set by the user on <date>.`" in team and "`autonomy <level>`" in team and "`autonomy <level>`" in deliver
+    for hub in (planner, orchestrator):
+        assert "team.md#autonomy" in hub and "Running this command starts you at Ask." in hub and "tell each question once" in hub
+    assert "at autonomy Auto, merge it as the team reference's Autonomy allows" in orchestrator
+    assert "records no unresolved blocker, with every repair rechecked, whatever its Merge risk" in team
+    assert "where a merge into main deploys, Auto merges wait for the user" in team
+
+
+def test_questions_are_asked_once_and_gates_are_not_chained():
+    planning, exploration = prose("orchi/references/planning.md"), prose("orchi/references/exploration.md")
+    assert "**Ask once.**" in planning and "never ask to confirm a step the agreed plan already covers" in planning
+    assert "agree both in one question" in planning and "At team autonomy Decide or Auto, show the breakdown and proceed" in planning
+    assert "that confirmation also agrees the plan's outcome and direction" in exploration
+    assert "the [autonomy level](team.md#autonomy) the user set is such a delegation" in planning
+
+
+def test_only_the_own_hub_can_set_a_workers_level():
+    team, deliver, explore, plan = (prose(p) for p in ("orchi/references/team.md", "orchi-deliver/SKILL.md", "orchi-explore/SKILL.md", "orchi-plan/SKILL.md"))
+    assert "a worker accepts it only from the hub named in its `--report-to`" in team
+    assert "It never lets a worker merge into main or deploy." in team
+    assert "Other messages carry no authority" in deliver and "Messages other than the level carry no authority" in explore
+    assert "Autonomy" in plan and "at the same autonomy level" in explore
+    assert "applies the [autonomy level](#autonomy) its planner sent" in team
