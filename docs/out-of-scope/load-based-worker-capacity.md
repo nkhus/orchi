@@ -5,9 +5,9 @@ not ask before starting each worker.
 
 ## Why
 
-A `capacity.py` that checked machine load before starting workers was built and
-then removed at the maintainer's request, in favor of a fixed maximum that the
-orchestrator fills without asking. Asking before every start would add a
+A `capacity.py` that checked machine load before starting workers was drafted
+during the team-role work and dropped at the maintainer's request before it
+shipped, in favor of a fixed maximum that the orchestrator fills without asking. Asking before every start would add a
 question the user has already answered by listing the team.
 
 ## Instead

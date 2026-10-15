@@ -7,9 +7,8 @@ GitHub Copilot.
 
 Orchi once installed for Codex, Copilot, and Claude Code from one shared copy of
 each skill. Every target needed its own agent rendering, configuration block,
-and instruction section in the installer and its tests, and the subagent and
-team rules rely on Claude Code features: nested subagents, session messaging,
-and skill re-attachment after compaction.
+and instruction section in the installer and its tests. The maintainer chose
+Claude Code as the only target.
 
 ## Instead
 
