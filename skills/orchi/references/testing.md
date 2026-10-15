@@ -55,8 +55,9 @@ production behavior is a design decision for the Issue, not the writer's.
 
 Report each acceptance claim with the evidence behind it and one verdict:
 
-- **Established:** a check ran on the candidate commit and would fail without
-  the change.
+- **Established:** a check ran on the candidate commit and passed, with red
+  evidence that it fails without the change, or the recorded reason why none
+  can (see Red evidence).
 - **Limited:** the evidence covers part of the claim; name the gap, such as a
   stubbed provider, an unrendered screen, or an untested platform.
 - **Not established:** no check covers it, or a check failed.

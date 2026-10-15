@@ -15,10 +15,10 @@ allowed.
 | --- | --- | --- |
 | [`orchi-scout`](orchi-scout.md) | haiku / medium | nothing |
 | [`orchi-researcher`](orchi-researcher.md) | opus / medium | nothing |
-| [`orchi-implementer`](orchi-implementer.md) | opus / low | one commit per Task |
-| [`orchi-fixer`](orchi-fixer.md) | sonnet / medium | one commit per Task or repair |
+| [`orchi-implementer`](orchi-implementer.md) | opus / low | one commit per run |
+| [`orchi-fixer`](orchi-fixer.md) | sonnet / medium | one commit per run (Task or repair) |
 | [`orchi-reviewer`](orchi-reviewer.md) | opus / high | nothing |
-| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task; nothing in Audit mode |
+| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task run; nothing in Audit mode |
 
 ## Choosing a writer
 
@@ -52,9 +52,10 @@ its `NOT READY`, `BLOCKED`, or `ESCALATE` (`decision`) report, or a confirmed
 defect in its result — continue that writer instead of starting a new one: send
 the answer or the defect, as the Issue now records it, with `SendMessage` to the
 agent ID its start returned. It keeps the context it already built and adds a
-commit on the same branch. Start a new writer when the host cannot continue the
-old one, when the work belongs to another role (a `size` escalation), or when
-the Task [changed course](../references/execution.md#change-course).
+commit on the same branch. Start a new writer when the old one cannot be
+continued (its agent ID is gone after compaction or in a resumed session), when
+the work belongs to another role (a `size` escalation), or when the Task
+[changed course](../references/execution.md#change-course).
 
 ## Design skills
 

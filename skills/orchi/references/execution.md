@@ -70,10 +70,10 @@ the missing decision or context in the Issue, split the Task, give it to the
 writer that fits, or do it yourself; if none fits, stop and ask the user. A
 second `NOT READY` already means asking the user.
 
-Step back the same way when work outgrows its plan: a Task needs a third writer
-run, or an Epic keeps gaining Tasks or repairs it did not plan. Re-plan the
-remaining work before continuing. Within the agreed outcome, update the pending
-Tasks and record why; a change of outcome or approach goes to the user.
+Re-plan when work outgrows its plan: an Epic keeps gaining Tasks or repair
+rounds it did not plan, or a Task's change spreads well beyond the areas its
+Issue names. Within the agreed outcome, update the pending Tasks or
+Epics and record why; a change of outcome, approach, or scope goes to the user.
 
 ## Hand off and resume
 

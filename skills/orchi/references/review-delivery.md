@@ -62,14 +62,15 @@ remote merge, and merging is not deployment.
 
 ## Step back between Epics
 
-After an Epic merges into its Initiative branch, look at the combined result
-before the next Epic starts: run it, or read it as its user would. Check whether
-the remaining Epics still fit what it shows (their outcomes, dependencies, and
-deferred fields), whether modules the Epic touched grew too large or lost clear
-boundaries, and whether checks became slow enough to hold up the next Epic.
-Within the agreed outcome, adjust pending Epics and record why in the Initiative
-plan, or make the restructuring or speed-up the first Task of the next affected
-Epic. A change of outcome, approach, or scope goes to the user.
+Each time an Epic merges into its Initiative branch, look at the combined result:
+run it, or read it as its user would. Check whether the remaining Epics still
+fit what it shows (their outcomes, dependencies, and deferred fields), whether
+modules the Epic touched grew too large or lost clear boundaries, and whether
+checks became slow enough to hold up later Epics. Re-plan what it shows as
+[change course](execution.md#change-course) says: record changes to Epics not
+yet started in the Initiative plan, make a restructuring or speed-up the first
+Task of the next affected Epic, and add a Task to an Epic already in flight
+instead of pausing it.
 
 ## Lessons
 

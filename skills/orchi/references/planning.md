@@ -15,9 +15,10 @@ and in the repository's out-of-scope records, if it keeps them. When it was
 declined before, put the earlier reason, with its link, into the proposal: new
 evidence can reopen it, asking again cannot. When the user declines a request
 for a lasting reason, record it with the user's words so the next session finds
-it: close its Issue or Exploration as not planned with the reason, or, when no
-Issue exists, add a record where the repository keeps them. A request parked
-for later is not declined.
+it: close its Issue or Exploration as not planned with the reason. When no Issue
+exists, add a record where the repository keeps out-of-scope records, or else
+open an Issue with the request and close it as not planned at once. A request
+parked for later is not declined.
 
 ## Clarify with the user
 
