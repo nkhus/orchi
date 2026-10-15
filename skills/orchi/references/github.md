@@ -78,7 +78,8 @@ reviewed outcome rather than an intermediate commit. The PR body contains:
 
 - **Summary** and linked issues;
 - **Verification:** commands, results, red evidence for new tests, and the
-  candidate commit; before and after output or screenshots for a visible change;
+  candidate commit; each acceptance claim's [verdict](testing.md#verdicts);
+  before and after output or screenshots for a visible change;
 - **Merge risk:** whether the change is a one-way door (hard to undo: data
   migrations, deletions, public contracts, external side effects) or a two-way
   door (a revert undoes it), and the blast radius if it is wrong;

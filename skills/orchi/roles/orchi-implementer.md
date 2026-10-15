@@ -63,6 +63,13 @@ unresolved work.
 Make one Conventional Commit on the named branch (`<type>(<scope>): <imperative>`,
 body `Refs #<task>`). Do not amend, rebase, or force.
 
+## When continued
+
+The main session may continue you after your report: with the answer to it, or
+with a confirmed defect in your result. Re-read the Issue for what changed, then
+run the steps again from Step 1 on the same branch. Keep your earlier commit; the
+new work is one more commit. Report again in the format below.
+
 ## Nested agents
 
 - You may start other Orchi agents for independent sub-questions or parallel

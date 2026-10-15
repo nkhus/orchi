@@ -15,10 +15,10 @@ allowed.
 | --- | --- | --- |
 | [`orchi-scout`](orchi-scout.md) | haiku / medium | nothing |
 | [`orchi-researcher`](orchi-researcher.md) | opus / medium | nothing |
-| [`orchi-implementer`](orchi-implementer.md) | opus / low | one commit per Task |
-| [`orchi-fixer`](orchi-fixer.md) | sonnet / medium | one commit per Task or repair |
+| [`orchi-implementer`](orchi-implementer.md) | opus / low | one commit per run |
+| [`orchi-fixer`](orchi-fixer.md) | sonnet / medium | one commit per run (Task or repair) |
 | [`orchi-reviewer`](orchi-reviewer.md) | opus / high | nothing |
-| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task; nothing in Audit mode |
+| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task run; nothing in Audit mode |
 
 ## Choosing a writer
 
@@ -36,7 +36,7 @@ A fixer `ESCALATE` report names its cause:
 
 - `decision`: the change needs a product or design choice. Decide it yourself
   only when the user delegated it, otherwise ask; record the answer in the
-  Issue's decisions, then restart a writer.
+  Issue's decisions, then continue the writer with the answer.
 - `size`: the change is correct but larger than the fixer's scope. Restart the
   same Issue with `orchi-implementer`, or `orchi-designer` for a UI Task; for a
   repair, first reopen the owning Task (or create a repair Task) with the
@@ -44,6 +44,18 @@ A fixer `ESCALATE` report names its cause:
 
 A designer `ESCALATE` is always a `decision`: it lists options and a
 recommendation. Handle it like a fixer's.
+
+## Continue a writer
+
+When a writer's own Task needs more work in the same delivery — the answer to
+its `NOT READY`, `BLOCKED`, or `ESCALATE` (`decision`) report, or a confirmed
+defect in its result — continue that writer instead of starting a new one: send
+the answer or the defect, as the Issue now records it, with `SendMessage` to the
+agent ID its start returned. It keeps the context it already built and adds a
+commit on the same branch. Start a new writer when the old one cannot be
+continued (its agent ID is gone after compaction or in a resumed session), when
+the work belongs to another role (a `size` escalation), or when the Task
+[changed course](../references/execution.md#change-course).
 
 ## Design skills
 

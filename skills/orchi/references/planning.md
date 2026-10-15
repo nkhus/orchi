@@ -8,6 +8,18 @@ Plan proportionately. A fix still needs a Task that passes the Task readiness
 checklist; keep each answer short. An Epic needs the design below in its issue or a linked branch document,
 then its Tasks. Do not create a planning Task per field or empty design documents.
 
+## Declined work
+
+Before proposing, look for the same request among Issues closed as not planned
+and in the repository's out-of-scope records, if it keeps them. When it was
+declined before, put the earlier reason, with its link, into the proposal: new
+evidence can reopen it, asking again cannot. When the user declines a request
+for a lasting reason, record it with the user's words so the next session finds
+it: close its Issue or Exploration as not planned with the reason. When no Issue
+exists, add a record where the repository keeps out-of-scope records, or else
+open an Issue with the request and close it as not planned at once. A request
+parked for later is not declined.
+
 ## Clarify with the user
 
 The questions and answers with the user are the most valuable input to an Issue.

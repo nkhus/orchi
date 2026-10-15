@@ -17,7 +17,7 @@ does not replace those rules.
 ## 1. Research (no tracking yet)
 
 - Inspect the branch and worktree. Search open and closed Issues and PRs for
-  existing or overlapping work. If this continues a tracked Task, Epic, or
+  existing, overlapping, or [declined](../orchi/references/planning.md#declined-work) work. If this continues a tracked Task, Epic, or
   Initiative, stop and propose `/orchi-deliver #<n>` instead (a team planning
   worker runs the readiness gate on it unless it is `delivery-ready`).
 - With a shaped Exploration (`#<n>`), take its destination, requirements,
@@ -41,7 +41,7 @@ Present the findings, approaches with tradeoffs, and a recommended scope:
 | Initiative | Several independently verifiable outcomes, needs more than one PR, or Epics could run in parallel |
 
 Do not create branches, Issues, or documents until the user agrees (at team autonomy
-Auto, adopt your recommendation and record it). Silence is not agreement.
+Auto, adopt your recommendation and record it). Silence is not agreement; record a refusal as [declined work](../orchi/references/planning.md#declined-work) says.
 
 ## 3. Clarify (after agreement, before tracking)
 

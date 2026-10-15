@@ -49,7 +49,7 @@ PR_TEMPLATE = """## Summary
 
 ## Verification
 
-<!-- Commands, results, red evidence for new tests, and the candidate commit. Before/after output or screenshots for a visible change. -->
+<!-- Commands, results, red evidence for new tests, and the candidate commit. Each acceptance claim: established, limited, or not established. Before/after output or screenshots for a visible change. -->
 
 ## Merge risk
 
