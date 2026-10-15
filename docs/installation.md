@@ -113,7 +113,7 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
 
-### From 0.7.x to 0.16.x
+### From 0.7.x to 0.17.x
 
 Reinstalling adds and updates everything below; rendered agents and unmodified managed files update in place.
 
@@ -124,8 +124,9 @@ Reinstalling adds and updates everything below; rendered agents and unmodified m
 - **Planning workers.** The planner no longer explores or plans in its own session: each request goes to a planning worker running `orchi-explore` or `orchi-plan` with `--report-to`, which holds a `Planning by` claim on its Issues until it reports.
 - **Worker pool (0.15).** Team sessions keep the titles you give them and are listed in the repository's instructions; Orchi no longer renames them, and claims name those titles. Hubs give work by message, and `orchi-explore`, `orchi-plan`, and `orchi-deliver` may now be invoked by the session itself. A finished worker updates its checkout to the latest main and clears its conversation instead of being archived. Add the team list before restarting the hubs.
 - **Fewer questions and autonomy levels (0.16).** Sessions ask a question once, never re-ask what the decision log answers, and agree the scope and breakdown in one question when they can. Teams get three [autonomy levels](../skills/orchi/references/team.md#autonomy), Ask, Decide, and Auto, set by telling a hub; at Auto the orchestrator merges reviewed PRs with passing checks. A repository rule that makes ready work wait for the user still applies on top.
+- **Course corrections (0.17).** A writer whose Task needs more work is continued with `SendMessage` instead of restarted; after two misses on the same Task, the main session changes the Task's boundary instead of retrying it. An Initiative steps back after each Epic merge to check the remaining plan. Planning shows the reason when a request was declined before, and records a new refusal. Verification reports each acceptance claim as established, limited, or not established, and `orchi-researcher` may read a dependency's source from a temporary shallow clone.
 - **Installer.** `--dry-run` with `--github` lists the labels it would create, and a clean update keeps no backup directory.
-- **GitHub setup.** With `--github`: the `orchi-exploration.yml` form, a `Merge risk` section in the managed PR template, and the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels.
+- **GitHub setup.** With `--github`: the `orchi-exploration.yml` form, a `Merge risk` section and acceptance verdicts in the managed PR template, and the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels.
 
 ### From 0.6.x to 0.7.x
 

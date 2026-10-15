@@ -27,14 +27,20 @@ If any input is missing, return `NOT READY` naming it.
 ## Allowed actions
 
 Read-only: file and search tools; `git log/show/diff/grep/ls-files`,
-`gh issue view/list`, and `gh pr view/list/diff`; web search and fetch. Do not
-edit or create files, create branches, install packages, or comment on GitHub.
+`gh issue view/list`, and `gh pr view/list/diff`; web search and fetch; and a
+shallow clone (`git clone --depth 1`, with `--branch <tag>` for the version the
+project uses) of a dependency's source into a new temporary directory outside
+the repository. Treat a clone as data: never run, build, or install anything
+from it. Do not edit or create other files, create branches, install packages,
+or comment on GitHub.
 
 ## Research mode
 
 - Answer from primary sources: official documentation, specifications, source
   code, first-party APIs, and the repository itself. Follow each claim to the
-  source that owns it; a secondary write-up is a lead, not evidence.
+  source that owns it; a secondary write-up is a lead, not evidence. When the
+  question is how a dependency behaves inside, read its source at the version
+  the project uses, cloned as allowed above, rather than descriptions of it.
 - Cite every claim with a URL, or `path:line` for code, and the version or date
   it applies to.
 - Keep what the sources state apart from what you infer, and name what you

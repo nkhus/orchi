@@ -102,6 +102,13 @@ a screen you could not render is a limitation, not a pass.
 Make one Conventional Commit on the named branch (`<type>(<scope>): <imperative>`,
 body `Refs #<task>`). Do not amend, rebase, or force.
 
+### When continued
+
+The main session may continue you after your report: with the answer to it, or
+with a confirmed defect in your result. Re-read the Issue for what changed, then
+run the steps again from Step 1 on the same branch. Keep your earlier commit; the
+new work is one more commit. Report again in the format below.
+
 ## Audit mode
 
 Read-only: do not edit files, commit, push, or comment on GitHub. Use the

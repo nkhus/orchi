@@ -19,7 +19,9 @@ steps. It creates no Epic, Task, or delivery branch and changes no product code.
 - With `#<n>`: read the Exploration Issue and its comments, and continue from
   the first phase that is not done. Do not re-ask what its decisions answer.
 - With an idea: look for an open Exploration or tracked work that already
-  covers it, and propose continuing that instead. Without a GitHub remote,
+  covers it, and propose continuing that instead. If it matches a
+  [declined](../orchi/references/planning.md#declined-work) request, show that
+  reason first. Without a GitHub remote,
   follow the reference's New projects first.
 - If the request is already agreed, scoped work, propose `/orchi-plan` instead.
 

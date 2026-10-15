@@ -40,6 +40,30 @@ documentation), record the reason instead. If you forced a failure by breaking
 code or a fixture, check with `git diff` that the change reached the tested path,
 and restore it before committing.
 
+## Observation aids
+
+When no seam or check can observe a claimed behavior directly, because it
+happens in a background job, an external service, a timing window, or a state
+no test can set up, add the smallest aid that makes it observable and
+repeatable: a fixture or seed, a test-only hook, a command that prints the
+state, or tagged logging. Decide before building it whether it is temporary
+(removed before committing, like debug logging) or durable (kept, tested, and
+documented). A durable aid that adds a dependency, a public interface, or
+production behavior is a design decision for the Issue, not the writer's.
+
+## Verdicts
+
+Report each acceptance claim with the evidence behind it and one verdict:
+
+- **Established:** a check ran on the candidate commit and would fail without
+  the change.
+- **Limited:** the evidence covers part of the claim; name the gap, such as a
+  stubbed provider, an unrendered screen, or an untested platform.
+- **Not established:** no check covers it, or a check failed.
+
+Only an established claim counts as verified. A limited or not established
+claim is reported as such, never rounded up.
+
 ## Defects
 
 A defect Task starts from a reproduction: one command that has already failed on

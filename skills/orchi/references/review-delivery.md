@@ -56,9 +56,20 @@ Squash the final PR into main within the user's publication authority, confirm t
 merge, then close the Initiative. A small fix uses one proportional review and its
 relevant checks.
 
-Report the delivered scope, PR and merge reference, checks, and material
-limitations. If publication is pending, say so: local verification is not a
+Report the delivered scope, PR and merge reference, checks with each acceptance
+claim's [verdict](testing.md#verdicts), and material limitations. If publication is pending, say so: local verification is not a
 remote merge, and merging is not deployment.
+
+## Step back between Epics
+
+After an Epic merges into its Initiative branch, look at the combined result
+before the next Epic starts: run it, or read it as its user would. Check whether
+the remaining Epics still fit what it shows (their outcomes, dependencies, and
+deferred fields), whether modules the Epic touched grew too large or lost clear
+boundaries, and whether checks became slow enough to hold up the next Epic.
+Within the agreed outcome, adjust pending Epics and record why in the Initiative
+plan, or make the restructuring or speed-up the first Task of the next affected
+Epic. A change of outcome, approach, or scope goes to the user.
 
 ## Lessons
 
