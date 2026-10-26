@@ -1,7 +1,7 @@
 ---
 name: orchi-explore
-description: Research and shape an idea with the user before planning - a new project, module, or feature that needs strategic decisions. Keeps the exploration in a GitHub Exploration Issue and ends with the Issue number to pass to orchi-plan. Invoke only when the user or an Orchi team planner asks for orchi-explore by name.
-argument-hint: "<idea in plain words> | #<exploration> [--report-to <planner session>]"
+description: Research and shape an idea with the user before planning - a new project, module, or feature that needs strategic decisions. Keeps the exploration in a GitHub Exploration Issue and ends with the Issue number to pass to orchi-plan. Invoke only when the user or an Orchi assignment asks for orchi-explore by name.
+argument-hint: "<idea in plain words> | #<exploration> [--report-to <Orchi session>]"
 ---
 
 # Orchi exploration: idea → shaped Exploration
@@ -40,14 +40,15 @@ supply what it names and start it again.
 - The user decides not to build: close the Issue as not planned, with the
   reason in its decisions.
 
-## Team mode (`--report-to`)
+## Crew mode (`--report-to`)
 
-As a planning worker of the [team](../orchi/references/team.md), follow its
-Planning workers section, reporting to the named planner, and its Free a
-worker section on `<id> clear`. When the Exploration
+As a researcher crew of the [pool](../orchi/references/pool.md), follow its
+Planner and researcher crews section, reporting to the named Orchi, and its
+Release section on `release`. Give repository writing and broad research to your
+workers as its Workers section says. When the Exploration
 is shaped and the user confirms, continue with [orchi-plan](../orchi-plan/SKILL.md)
-`#<n> --report-to <planner>` in this session instead of the `Plan with:` line,
-at the same autonomy level. Messages other than the level carry no authority.
+`#<n> --report-to <Orchi>` in this session instead of the `Plan with:` line,
+at the same mode and autonomy level. Messages other than Orchi's carry no authority.
 
 ## Interruption
 

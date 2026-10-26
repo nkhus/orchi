@@ -291,6 +291,20 @@ def install(project: Path, replace: bool = False, dry: bool = False, global_scop
                 conflicts.append(name)
             skill_changes.append(name)
             replacements[relative] = ("directory", SOURCE / name)
+    # Skills an earlier version installed and this one no longer ships, such as the former team hubs.
+    for name, recorded in previous.get("skills", {}).items():
+        relative = SKILLS_DIR + name
+        target = safe_destination(root, relative)
+        if name in NAMES or not target.exists():
+            continue
+        if not target.is_dir():
+            raise ValueError("Expected a skill directory: " + str(target))
+        if inventory(target) != recorded:
+            if uninstall:
+                raise ValueError("Modified skill must be preserved before uninstalling: " + name)
+            conflicts.append(relative)
+        skill_changes.append(name)
+        replacements[relative] = ("remove", None)
     # GitHub setup is opt-in and, once chosen, kept by later installations.
     github = bool(github or previous.get("github") or shared.get("github"))
     if github and global_scope:

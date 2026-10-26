@@ -10,11 +10,11 @@ installed.
 | --- | --- |
 | [Controller and state database](controller-and-state-database.md) | Git branches and GitHub Issues hold all shared state |
 | [Other assistants](other-assistants.md) | Claude Code only |
-| [Load-based worker capacity](load-based-worker-capacity.md) | The team list in the repository's instructions is the limit |
-| [Team roles as agents](team-roles-as-agents.md) | Roles are skills the user types or a hub sends by message |
+| [Load-based worker capacity](load-based-worker-capacity.md) | The pool size is the limit |
+| [Team roles as agents](team-roles-as-agents.md) | Roles are skills the user types or Orchi sends by message |
 | [Hidden worker skills](hidden-worker-skills.md) | Skill descriptions restrict invocation to requests by name |
-| [Session identity mechanisms](session-identity-mechanisms.md) | A hub re-sends the work message |
-| [Managing session lifecycles](session-lifecycle.md) | Workers keep their titles, update, and clear themselves |
+| [Session identity mechanisms](session-identity-mechanisms.md) | The owner re-sends the assignment |
+| [Archiving or deleting sessions](session-lifecycle.md) | Pool sessions are cleared and reused |
 | [Per-axis sub-reviewers](per-axis-sub-reviewers.md) | One reviewer keeps the axes in separate sections |
 
 ## Add a record

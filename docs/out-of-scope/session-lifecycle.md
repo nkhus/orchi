@@ -1,22 +1,23 @@
-# Managing session lifecycles
+# Archiving or deleting sessions
 
-Orchi does not rename, archive, or delete sessions, and does not make the user
-paste a command into a worker to start it.
+Orchi does not archive or delete sessions, and does not make the user paste a
+command into a session to start it.
 
 ## Why
 
-Team sessions belong to the user. Their titles are the addresses the team list
-names, so renaming breaks routing; archiving or deleting removes a session the
-user may still read or reuse. A pasted command is a manual step the hub can
-replace with a message.
+Pool sessions belong to the user, who may still read or reuse them; archiving or
+deleting one loses that, and archiving also removes its worktree. A pasted
+command is a manual step a message can replace.
 
 ## Instead
 
-Each session keeps the title the user gave it. A hub gives work by message and
-the worker invokes the skill itself. A finished worker updates its checkout to
-the latest main and clears its own conversation when its hub asks.
+Orchi builds a pool once and reuses it: a finished worker or crew returns its
+worktree to the default branch and is cleared, and Orchi renames a crew back to
+`crew-<k>`. Work is given by message, and the session invokes the skill itself.
 
 ## Decided in
 
 - [nkhus/orchi#34](https://github.com/nkhus/orchi/pull/34): the reusable worker
-  pool replaced renaming and archiving.
+  pool replaced archiving.
+- The [ENTRY] Initiative (`docs/initiatives/entry-single-entry/`): Orchi creates,
+  renames, and clears pool sessions; the user no longer creates and titles them.

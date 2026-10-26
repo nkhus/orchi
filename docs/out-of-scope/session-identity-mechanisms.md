@@ -12,8 +12,9 @@ sessions that are not team workers.
 
 ## Instead
 
-When a worker no longer knows its role, its hub re-sends the work message. The
-worker re-invokes the skill and rebuilds its state from GitHub.
+When a crew or worker no longer knows its role, its owner (Orchi or its crew)
+re-sends the assignment or task. The session re-invokes the skill and rebuilds
+its state from GitHub.
 
 ## Decided in
 
