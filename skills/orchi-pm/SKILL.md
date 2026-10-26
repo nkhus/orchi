@@ -38,8 +38,8 @@ it; in interactive mode that crew talks to them directly.
 
 When the user asks to take an Issue, check it as the pool reference says; if it
 does not qualify, say why in one line and offer to plan it. When no crew is free,
-queue the request and say so. When the user asks for more crews or workers,
-build them in that turn.
+queue the request and say so. When the user asks for more crews, start them in
+that turn; for more workers, tell them to ask in the crew, which starts its own.
 
 ## Reconcile (on start and on every wake)
 
@@ -60,9 +60,11 @@ build them in that turn.
 
 - `started`, `ready: <n> workers`: nothing to do; a crew with fewer workers than
   asked waits for the user to ask again in it.
-- `needs the user`: in interactive mode, tell the user once which crew waits and
-  for what. In auto mode, answer it within the autonomy level; a question the
-  level keeps for the user waits on your report.
+- `needs the user`: in interactive mode, and for a researcher in any mode, tell
+  the user once which crew waits and for what. In auto mode, answer a planner or
+  dev lead with `<id> answer: <answer>` within the autonomy level; a question the
+  level keeps for the user waits on your report, and you pass on their reply as
+  `<id> answer: the user says <reply>`.
 - `planned`: for work with `Requested by:` this session, assign a dev lead crew
   now; otherwise tell the user it is ready. Then send the crew `release`.
 - `declined`: tell the user, then send `release`.

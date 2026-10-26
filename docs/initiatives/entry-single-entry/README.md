@@ -100,7 +100,8 @@ changes no other session.
    Workers report to the crew and ask it, never the user. The crew is told when
    each worker's turn ends.
 5. **Worker done.** A worker keeps its context until the PR with its work is
-   merged, so rework goes to the same worker. Then it checks that nothing would be
+   merged, so rework goes to the same worker; meanwhile it takes the crew's next
+   tasks, so an Epic with more Tasks than workers keeps moving. Then it checks that nothing would be
    lost, returns its worktree to a detached `origin/<default>`, and the crew
    clears it. Its title stays `worker-#`.
 6. **Crew done.** The crew reports to Orchi. On Orchi's request it clears its

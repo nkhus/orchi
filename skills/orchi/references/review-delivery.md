@@ -96,7 +96,7 @@ its event (an Issue, PR, or finding link) and its rung; without an observed
 event it is not a lesson. Report at most three, most costly first, and post
 them as a `Lessons` comment on the delivered Issue. Only propose: never change
 instructions, checklists, or checks on your own. The session that ran the
-delivery (in a team, the orchestrator) files each lesson the user accepts as an
+delivery, or Orchi in a session pool, files each lesson the user accepts as an
 Issue labelled `retro` and `needs-planning`, which planning takes like any
 request; a rung 5 lesson goes to the Orchi repository instead, without those
 labels, and only with the user's agreement. When a failure recurs after its `retro`
