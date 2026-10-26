@@ -16,8 +16,8 @@ the entry skills with a `--report-to` flag.
 
 ## Instead
 
-The hubs are the explicit-only skills `orchi-planner` and `orchi-orchestrator`.
-Workers run the ordinary entry skills with `--report-to <hub>`.
+The pool entry is the explicit-only skill `orchi-pm`. Crews run the ordinary
+entry skills with `--report-to <Orchi>`, and workers run `orchi-work`.
 
 ## Decided in
 

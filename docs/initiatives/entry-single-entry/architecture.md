@@ -38,7 +38,7 @@ New constraints:
 ```
                          ┌──────────────────────────────┐
               talks to   │            Orchi             │  top level, created by the user
-  User ─────────────────►│  entry · router · board      │  skill: /orchi
+  User ─────────────────►│  entry · router · board      │  skill: /orchi-pm
    │                     └──────┬───────────────▲───────┘
    │ talks to (interactive)     │ assign/release│ reports, requests
    ▼                            ▼               │
@@ -63,7 +63,7 @@ New constraints:
 
 ### 3.1 Orchi
 
-- **Created by** the user, who types `/orchi` in a session of the repository.
+- **Created by** the user, who types `/orchi-pm` in a session of the repository.
 - **Lifetime:** long-lived; only the user clears it.
 - **Does:** routes requests, builds and maintains the pool, assigns and releases
   crews, answers crews in auto mode, keeps the board, leads acceptance with a
@@ -112,7 +112,8 @@ Adding a role means adding its skill and one row to the role table in
 
 | Skill | Today | Target |
 | --- | --- | --- |
-| `orchi` | Core workflow, references, roles, scripts | The entry: `/orchi` makes a session Orchi (`disable-model-invocation: true`). Still holds references, subagent roles, and scripts |
+| `orchi` | Core workflow, references, roles, scripts | Unchanged in role: the workflow a single session follows, and the bundle that holds references, subagent roles, and scripts |
+| `orchi-pm` | — | The entry: `/orchi-pm` makes a session Orchi (`disable-model-invocation: true`) |
 | `orchi-explore` | Exploration with `--report-to` | Researcher crew role; adds challenger mode and vision documents |
 | `orchi-plan` | Planning with `--report-to` | Planner crew role; plans research and design Epics |
 | `orchi-deliver` | Delivery with subagent writers | Dev lead crew role; writers become workers |
@@ -125,8 +126,10 @@ clearing, modes). Scripts: `status.py` stays; `board.py` (new, read-only) builds
 the board.
 
 Crew and worker skills are model-invocable, because they are invoked from a
-message; the `orchi` entry stays explicit-only, as the hubs were, because it
-holds the authority to build the pool and to merge in auto mode.
+message; the `orchi-pm` entry stays explicit-only, as the hubs were, because it
+holds the authority to build the pool and to merge in auto mode. The entry is a
+skill of its own because `orchi` is the workflow that a single session invokes
+for any implementation request.
 
 ## 5. State model
 
@@ -161,7 +164,7 @@ No other record exists. A lost conversation loses no work: claims, Issues, PR
 
 ### 6.1 Pool setup
 
-Runs in the user's first `/orchi` turn, or when the user asks to enlarge the pool.
+Runs in the user's first `/orchi-pm` turn, or when the user asks to enlarge the pool.
 
 1. Orchi checks that it runs in bypass permissions mode; if not, it asks the user
    to switch and stops.
@@ -314,7 +317,7 @@ The user sets one mode at Orchi; Orchi passes it in every assignment.
 - Exploration stays a conversation with the user in both modes; in auto mode a
   greenfield idea waits for the user.
 - The mode holds through compaction and resets to interactive when the user runs
-  `/orchi` again.
+  `/orchi-pm` again.
 
 ## 10. Branches and worktrees
 
@@ -332,7 +335,7 @@ The user sets one mode at Orchi; Orchi passes it in every assignment.
 | --- | --- | --- |
 | A worker's work is merged or dropped | Its crew | After the worker reports `released` (§6.3) |
 | A crew's assignment is done | The crew itself | Last action of its turn, after its workers are cleared; Orchi then renames it |
-| Orchi | The user | `/clear`, then `/orchi` |
+| Orchi | The user | `/clear`, then `/orchi-pm` |
 
 - A clear is refused for a pinned session, one open on the user's screen, one with
   an unprocessed message or live work, or one that serves Remote Control. The
@@ -403,8 +406,8 @@ reports.
   labels `needs-user`, `research`, `design`, the `Estimate` form field,
   Impeccable.
 - Removed: `orchi-planner`, `orchi-orchestrator`, `references/team.md`.
-- The managed `CLAUDE.md` section drops the team list and says: type `/orchi` in
-  one session in bypass permissions mode.
+- The managed `CLAUDE.md` section stays as it is; the repository's own team list,
+  where a project added one, is no longer read and can be removed.
 - `docs/out-of-scope/`: delete or rewrite the records this Initiative reopens, in
   the same PR as the change.
 - Existing projects are migrated by the maintainer.
@@ -416,7 +419,7 @@ reports.
   every role in `pool.md` has a skill and that message names agree across skills.
   These prove wording and scripts, not behavior.
 - **Live run before the next Epic starts,** on a disposable repository:
-  1. `/orchi` builds the pool; five clicks create the workers.
+  1. `/orchi-pm` builds the pool; five clicks create the workers.
   2. A greenfield idea reaches vision documents and a plan.
   3. A two-Task Epic runs in parallel to a merged PR, with one rework round.
   4. `/compact` in a crew and in a worker mid-task; the role is restored by

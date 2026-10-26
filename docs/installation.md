@@ -10,13 +10,13 @@ npx --yes github:nkhus/orchi
 
 The current directory is the installation target; `--project /path/to/project` chooses another one.
 
-The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the entry skills `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-planner`, and `orchi-orchestrator` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, and reports whether `git` and `gh` are available. It does not install or authenticate Claude Code or the GitHub CLI.
+The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the entry skills `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-work`, and `orchi-pm` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, and reports whether `git` and `gh` are available. It does not install or authenticate Claude Code or the GitHub CLI.
 
 Requirements: Git, the GitHub CLI (`gh`) for Issue and PR work, and Python 3.11 or newer for the bundled scripts, which use only the standard library. The npm wrapper also needs Node.js/npm and `uv`. Linux, macOS, and WSL are supported.
 
 ## Skills and instructions
 
-Each skill is installed as a directory in `.claude/skills/` (`orchi`, `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-planner`, `orchi-orchestrator`), where Claude Code discovers it. The skills move and clone with the repository.
+Each skill is installed as a directory in `.claude/skills/` (`orchi`, `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-work`, `orchi-pm`), where Claude Code discovers it. The skills move and clone with the repository.
 
 The installer appends an Orchi workflow section to the target root `CLAUDE.md`. Its rules route implementation through the Orchi skill, require research and agreement before tracking or changes, and keep merge and deployment within the user's authority. It never copies this repository's contributor `AGENTS.md` into another project, and it does not change an existing root `AGENTS.md`. When `CLAUDE.md` is a symlink to root `AGENTS.md`, the section goes into `AGENTS.md`, which Claude Code reads through the link.
 
@@ -55,20 +55,20 @@ To skip the documentation check workflow, add `--no-docs-workflow`. The manifest
 
 Broken links that already exist on the base branch are reported as pre-existing and do not fail a PR, so the workflow can be enabled in a repository with documentation debt. Run `python3 .claude/skills/orchi/scripts/knowledge.py lint` to see that debt. Make the check required in branch protection if it should block merges.
 
-## Team setup
+## Pool setup
 
-A team is optional: a planner hub with planning workers and an orchestrator hub with development workers, as the [team reference](../skills/orchi/references/team.md) describes. To set it up in a project:
+A session pool is optional and needs Claude Desktop: Orchi, the entry you talk to, and crews with nested workers that do the work, as the [pool reference](../skills/orchi/references/pool.md) describes. To set it up in a project:
 
-1. Install with `--github`, so the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels exist. Planning workers add `delivery-ready` when work passes its readiness gate; the orchestrator dispatches nothing without it.
-2. Decide how far workers may run alone. A worker stops at every permission prompt until someone answers it, so give the project a permission mode and an allowlist that fit your risk, in `.claude/settings.json`, for example `{"permissions": {"defaultMode": "auto"}}` with `allow` rules for the repository's `git`, `gh`, and check commands. Orchi does not change these settings.
-3. Create the team's sessions in the repository, all in that same permission mode and each worker in its own worktree, and title them as you like: a planner, an orchestrator, planning workers, and development workers. List them in the repository's instructions (`CLAUDE.md` or `AGENTS.md`), for example `Orchi team: planner Planner; orchestrator Orchestrator; planning workers worker-planer-1 to worker-planer-3; development workers worker-dev-1 to worker-dev-5.` Orchi never renames, archives, or deletes them. In Claude Desktop, keep workers off Remote Control: a session served over Remote Control cannot be cleared.
-4. Run `/orchi-planner` in the planner session and `/orchi-orchestrator` in the orchestrator session. Either may come first. Workers need no command: a hub gives each its work by message, and the worker invokes `orchi-explore`, `orchi-plan`, or `orchi-deliver` itself.
-5. Bring ideas and requests to the planner. It hands each to a free planning worker; answer the worker's questions in its own session, and the planner tells you which one is waiting.
-6. When the planner reports work as ready, ask the orchestrator to take it ("take #12"). Follow-ups the orchestrator requested come back to it planned and are taken without asking.
-7. Open a worker when a hub says it needs you, and merge PRs into main yourself or tell the orchestrator to.
-8. When work goes well and you step away, tell a hub "autonomy decide" or "autonomy auto"; the level holds, through compaction, until you change it or run the hub's command again, as the [team reference](../skills/orchi/references/team.md#autonomy) describes. When a worker's work is finished, its hub asks it to update its checkout to the latest main and clear its conversation for the next task.
+1. Install with `--github`, so the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels exist. Planner crews add `delivery-ready` when work passes its readiness gate; Orchi gives a dev lead nothing without it.
+2. Protect `main` with branch protection. The pool runs in bypass permissions mode, so its sessions run every tool without a prompt; role instructions, the dev lead's checks, the review, and branch protection are what remain.
+3. In Claude Desktop, open one session in the repository, switch it to bypass permissions mode, and type `/orchi-pm`. That session becomes Orchi. In that turn it starts five crews (`--crews <n>` for another number), detaches them to the top level, and files them into the sidebar group `Orchi pool · <repo>`.
+4. Click `Create workers` in each crew. In that turn the crew starts three workers (`--workers <n>` on `/orchi-pm` for another number), nested under it. A session can start other sessions only in a turn you started, so these clicks are the only manual steps; no session is created after setup.
+5. Bring every request to Orchi. It gives each to a free crew, renames the crew after its role and topic (`planner-pay`, `dev-lead-pay-token`), and links you to it. In interactive mode, answer the crew in its own session.
+6. Ask Orchi to take planned work ("take #12"). Follow-ups a dev lead files come back planned and are taken without asking.
+7. Merge PRs into main yourself or tell Orchi to. When you step away, tell Orchi "mode auto": crews then ask Orchi instead of you, and Orchi merges reviewed PRs with passing checks; deployment, access, and destructive actions still wait for you. The mode holds through compaction until you change it or type `/orchi-pm` again.
+8. When work is done, workers and crews clear themselves and return to the pool as `worker-<n>` and `crew-<k>`. Nothing is archived or deleted.
 
-Commit the permission settings and the team list to main. Sessions in different permission modes cannot exchange messages: the message is held and, in a session that cannot ask its user, expires. Without a team list, a hub asks you for it and gives no work. On first use, hubs ask idle workers with old conversations to clear themselves. A role skill's text is re-attached after compaction, and each role rebuilds its state from GitHub, so rerunning `/orchi-planner` or `/orchi-orchestrator` is safe.
+Pool sessions run with Remote Control off, because a session served over Remote Control cannot be cleared; Orchi itself can stay on it. A clear is also refused while you have the session open on screen or pinned; the clearing session retries later. Rerunning `/orchi-pm` is safe: it finds its crews by the sidebar group and adds only what is missing.
 
 ## User-wide installation
 
@@ -113,19 +113,20 @@ python3 .claude/skills/orchi/scripts/orchi_install.py --project "$PWD"
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
 
-### From 0.7.x to 0.17.x
+### From 0.7.x to 0.18.x
 
 Reinstalling adds and updates everything below; rendered agents and unmodified managed files update in place.
 
-- **New entry skills and agent.** `orchi-explore`, `orchi-planner`, and `orchi-orchestrator`, the [exploration](../skills/orchi/references/exploration.md), [testing](../skills/orchi/references/testing.md), and [team](../skills/orchi/references/team.md) references, and the read-only `orchi-researcher` agent. An existing skill or agent with one of these names that Orchi did not install is a conflict that needs `--replace-orchi`.
+- **New entry skills and agent.** `orchi-explore`, `orchi-work`, and `orchi-pm`, the [exploration](../skills/orchi/references/exploration.md), [testing](../skills/orchi/references/testing.md), and [pool](../skills/orchi/references/pool.md) references, and the read-only `orchi-researcher` agent. An existing skill or agent with one of these names that Orchi did not install is a conflict that needs `--replace-orchi`.
 - **Changed behavior.** Writers report red evidence; `orchi-reviewer` reports Spec (with scope creep), Standards, and Tests as separate sections and accepts a Recheck input; `orchi-plan` shows the breakdown before creating Issues and takes a shaped Exploration; `orchi-deliver` accepts `--report-to` for team workers and ends with up to three [lessons](../skills/orchi/references/review-delivery.md#lessons).
 - **Readiness.** Task item 10 asks a defect for a reproduction command; Task item 11 and Epic item 5 ask for test seams. Open Issues written earlier may get `NOT READY` until a line is added.
 - **Team hand-off.** The orchestrator dispatches only Issues labelled `delivery-ready`: add the label to already planned standalone Tasks, standalone Epics, and Initiatives you want a team to deliver. It takes them when you name them, and by itself only when they say `Requested by:` the orchestrator. An Initiative goes to one worker with its Epics. Workers stay for rework until their PR is merged.
 - **Planning workers.** The planner no longer explores or plans in its own session: each request goes to a planning worker running `orchi-explore` or `orchi-plan` with `--report-to`, which holds a `Planning by` claim on its Issues until it reports.
 - **Worker pool (0.15).** Team sessions keep the titles you give them and are listed in the repository's instructions; Orchi no longer renames them, and claims name those titles. Hubs give work by message, and `orchi-explore`, `orchi-plan`, and `orchi-deliver` may now be invoked by the session itself. A finished worker updates its checkout to the latest main and clears its conversation instead of being archived. Add the team list before restarting the hubs.
-- **Fewer questions and autonomy levels (0.16).** Sessions ask a question once, never re-ask what the decision log answers, and agree the scope and breakdown in one question when they can. Teams get three [autonomy levels](../skills/orchi/references/team.md#autonomy), Ask, Decide, and Auto, set by telling a hub; at Auto the orchestrator merges reviewed PRs with passing checks. A repository rule that makes ready work wait for the user still applies on top.
+- **Fewer questions and autonomy levels (0.16).** Sessions ask a question once, never re-ask what the decision log answers, and agree the scope and breakdown in one question when they can. Teams get three [autonomy levels](../skills/orchi/references/pool.md#modes-and-autonomy), Ask, Decide, and Auto, set by telling a hub; at Auto the orchestrator merges reviewed PRs with passing checks. A repository rule that makes ready work wait for the user still applies on top.
 - **Course corrections (0.17).** A writer whose Task needs more work is continued with `SendMessage` instead of restarted; after two misses on the same Task, the main session changes the Task's boundary instead of retrying it. An Initiative steps back after each Epic merge to check the remaining plan. Planning shows the reason when a request was declined before, and records a new refusal. Testing adds observation aids for behavior no check can see, verification reports each acceptance claim as established, limited, or not established (with `--github`, the managed PR template's Verification comment says so), and `orchi-researcher` may read a dependency's source from a temporary shallow clone.
-- **Installer.** `--dry-run` with `--github` lists the labels it would create, and a clean update keeps no backup directory.
+- **Session pool (0.18).** The team hubs `orchi-planner` and `orchi-orchestrator`, the team list in the repository's instructions, and the team reference are gone. `/orchi-pm` makes one Claude Desktop session Orchi, which builds a pool of crews with nested workers and routes every request; see [pool setup](#pool-setup). `orchi-work` runs a worker's task. Claims read `Assigned to crew-<k> (<session id>)`; finish or release work held under the old `Dispatched to` and `Planning by` claims before updating. Reinstalling removes the two hub skills; an edited copy is a conflict that needs `--replace-orchi`.
+- **Installer.** `--dry-run` with `--github` lists the labels it would create, a clean update keeps no backup directory, and skills a release no longer ships are removed.
 - **GitHub setup.** With `--github`: the `orchi-exploration.yml` form, a `Merge risk` section and acceptance verdicts in the managed PR template, and the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels.
 
 ### From 0.6.x to 0.7.x

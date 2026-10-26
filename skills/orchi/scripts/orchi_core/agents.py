@@ -1,5 +1,5 @@
 """Version and skill names shared by installation."""
 from __future__ import annotations
 
-VERSION = "0.17.0"
-SKILLS = ("orchi", "orchi-explore", "orchi-plan", "orchi-deliver", "orchi-planner", "orchi-orchestrator")
+VERSION = "0.18.0"
+SKILLS = ("orchi", "orchi-explore", "orchi-plan", "orchi-deliver", "orchi-work", "orchi-pm")

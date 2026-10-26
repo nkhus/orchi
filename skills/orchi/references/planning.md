@@ -47,7 +47,7 @@ continues that agent with the answers.
   it (who delegated, when, their words, and its limits), with the options
   considered and the reason. Ask about anything outside the delegation; a
   delegation never covers merge or deployment authority the user has not
-  granted separately. In a team, the [autonomy level](team.md#autonomy) the
+  granted separately. In a pool, the [autonomy level](pool.md#modes-and-autonomy) the
   user set is such a delegation; cite it as that section says.
 - **Make each question easy to answer.** Give one or two sentences of context,
   two to four concrete options with their consequences, and your recommendation
