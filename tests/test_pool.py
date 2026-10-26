@@ -109,3 +109,16 @@ def test_lessons_are_proposals_with_one_home():
     assert "Only propose: never change instructions, checklists, or checks on your own." in review
     assert "review-delivery.md#lessons" in prose("orchi-deliver/SKILL.md")
     assert "review-delivery.md#lessons" in prose("orchi/references/pool.md")
+
+
+def test_answers_claim_adoption_and_branch_handover_agree():
+    pool, entry, work = prose("orchi/references/pool.md"), prose("orchi-pm/SKILL.md"), prose("orchi-work/SKILL.md")
+    deliver, plan, explore = prose("orchi-deliver/SKILL.md"), prose("orchi-plan/SKILL.md"), prose("orchi-explore/SKILL.md")
+    assert "`<id> answer: <answer>`" in pool and "`<id> answer: <answer>`" in entry and "`#<n> answer:`" in deliver
+    assert "A crew takes an answer from Orchi only in auto mode" in pool
+    assert "appends `, started <date>` to the work reference" in pool and ", started <date>" in deliver
+    for text in (plan, explore):
+        assert "adopt Orchi's claim" in text
+    assert "--report-to <Orchi's session id>" in pool and "this request's id is <id>" in pool
+    assert "`git branch <branch> origin/<base>`" in pool and "`git switch --detach`" in work
+    assert "A worker takes many tasks during one assignment" in pool and "branch check passes" in work

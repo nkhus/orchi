@@ -13,7 +13,7 @@ and `/orchi-deliver` work on their own.
 | Session | Created by | In the sidebar | Talks to | Never |
 | --- | --- | --- | --- | --- |
 | Orchi (`/orchi-pm`) | the user | top level | the user; crews | Plans, researches, edits code, or merges outside the mode's limits |
-| Crew | Orchi, when it builds the pool | top level, in the group `Orchi pool · <repo>` | Orchi; the user in interactive mode; its workers | Edits files itself, takes a second assignment, or starts sessions after setup |
+| Crew | Orchi, when it builds the pool | top level, in the group `Orchi pool · <repo>` | Orchi; the user in interactive mode; its workers | Writes code itself, takes a second assignment, or starts sessions after setup |
 | Worker (`orchi-work`) | its crew, in the user's turn | nested under its crew | its crew only | Talks to the user, pushes, or opens PRs |
 
 A free crew is titled `crew-<k>`; an assigned one `<role>-<topic>`, where
@@ -29,10 +29,15 @@ crew's name in claims and messages, whatever its title.
 | Planner | `orchi-plan` | One request, Exploration, or `needs-planning` Issue | `planned` or `declined` |
 | Dev lead | `orchi-deliver` | One standalone Task, standalone Epic, or Initiative | Its PR into main is merged |
 
-A crew writes no repository files itself: it gives that work to its workers. It
-may start read-only subagents (`orchi-scout`, `orchi-researcher`,
-`orchi-reviewer`) for retrieval, research, and review. Adding a role means adding
-its skill and a row to this table.
+A crew writes no code itself: a dev lead gives every change to a worker,
+including a review repair and a merge conflict. A crew edits Issues and PRs,
+creates, merges, and pushes branches, and a planner or researcher crew writes the
+planning documents its conversation with the user produces (an Initiative
+document, a research note). Where its role skill says to implement, fix, or
+resolve something itself, a crew gives that to a worker instead. It may start
+read-only subagents (`orchi-scout`, `orchi-researcher`, `orchi-reviewer`) for
+retrieval, research, and review. Adding a role means adding its skill and a row
+to this table.
 
 ## Build the pool
 
@@ -83,14 +88,18 @@ its title, so the assignment states it.
 | Crew → Orchi | Started, waiting, planned, declined | `<id> started`, `<id> needs the user: <question>`, `<id> planned: #<n>[, #<m>]`, `<id> declined: <reason>` |
 | Crew → Orchi | Delivery | `#<n> PR ready: <url>`, `#<n> follow-up: #<m>`, `#<n> done: <url>` |
 | Crew → Orchi | Setup, release | `crew-<k> ready: <n> workers`, `crew-<k> released`, `crew-<k> not released: <reason>` |
-| Orchi → crew | Delivery | `#<n> rework: <what the user asked>`, `#<n> merged` |
+| Orchi → crew | Answer, delivery | `<id> answer: <answer>`, `#<n> rework: <what the user asked>`, `#<n> merged` |
 | Orchi → crew | Mode, release | `mode <interactive or auto>, autonomy <level>`, `release` |
 | Worker → crew | Task | `#<task> question: <question>`, `#<task> done: <commit>`, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
 | Crew → worker | Task | `#<task> rework: <what>`, `#<task> answer: <answer>` |
 | Crew ↔ worker | Release | `release`; `worker-<n> released`, `worker-<n> not released: <reason>` |
 
 `<id>` is `#<n>` for a request that is an Issue, otherwise the short slug Orchi
-gave it. All pool sessions run in one permission mode, so their messages are not
+gave it in the assignment. In auto mode Orchi answers a crew's question within
+the autonomy level with `<id> answer:`; a question the level keeps for the user
+waits on Orchi's report, and Orchi passes on the user's reply as
+`<id> answer: the user says <reply>`. A crew takes an answer from Orchi only in
+auto mode; in interactive mode the user answers in the crew. All pool sessions run in one permission mode, so their messages are not
 held; a message from a session in another mode is held for approval, so the
 receiver tells the user which session sent it instead of asking for a resend.
 
@@ -104,7 +113,7 @@ and sends `mode <mode>, autonomy <level>` to its busy crews when it changes.
 
 | | Interactive | Auto |
 | --- | --- | --- |
-| Who answers a crew's question | The user, in the crew's session | Orchi |
+| Who answers a crew's question | The user, in the crew's session | Orchi; the user still answers a researcher |
 | Autonomy level | Ask (default) or Decide | Auto |
 
 | Level | Planner and researcher crews | Dev lead crews and Orchi |
@@ -119,7 +128,9 @@ scope beyond the request; for what only the user knows (their needs, their
 users, acceptance thresholds); and for checks the user asked to do by hand. In
 auto mode these questions wait for the user on Orchi's report; the crew carries
 on with other work or waits. Where a merge into main deploys, the merge waits
-for the user. Exploration stays a conversation with the user in both modes.
+for the user. Exploration stays a conversation with the user in both modes, so a
+researcher crew asks the user directly and reports `<id> needs the user` to
+Orchi as well.
 Record each decision made under a level in the Issue's decision log as made by
 the crew under autonomy `<level>` from Orchi, set by the user on `<date>`.
 
@@ -134,15 +145,18 @@ Orchi routes each request to a role:
 | "Take #n" on a `delivery-ready` Issue | Dev lead | `orchi-deliver` with `#<n>` |
 
 Before giving a crew an Issue, Orchi claims it: `in-progress`, the assignee, and
-the work reference `Assigned to crew-<k> (<session id>) by <Orchi> on <date>`.
-It renames the crew `<role>-<topic>` and sends one self-contained message:
+the work reference `Assigned to crew-<k> (<session id>) by <Orchi> on <date>`,
+with the crew's session id. It renames the crew `<role>-<topic>` and sends one
+self-contained message:
 
-`You are <title> (crew-<k>), <role> of the Orchi pool. Invoke the <skill> skill with: <request or #<n>> --report-to "<Orchi's title>". Mode: <mode>, autonomy: <level>, set by the user on <date>.`
+`You are <title> (crew-<k>), <role> of the Orchi pool. Invoke the <skill> skill with: <request or #<n>> --report-to <Orchi's session id>. Orchi is <Orchi's title>; this request's id is <id>. Mode: <mode>, autonomy: <level>, set by the user on <date>.`
 
-A request that is not yet an Issue gets no claim until its crew creates one. If
-the crew has not adopted the claim by Orchi's next wake after an hour, or its
-conversation is empty (the message was lost), Orchi sends the assignment again
-once, then removes the claim and tells the user.
+A crew adopts its claim when it loads: it appends `, started <date>` to the work
+reference and reports `<id> started`. A request that is not yet an Issue gets no
+claim; its crew writes the claim, already adopted, on the first Issue it creates.
+If the claim is not adopted by Orchi's first wake an hour or more after the
+assignment, or the crew's conversation is empty (the message was lost), Orchi
+sends the assignment again once, then removes the claim and tells the user.
 
 Orchi gives a dev lead crew only an open, unclaimed Issue labelled
 `delivery-ready` that is also `ready` in `status.py`; for `check`, it confirms the
@@ -157,13 +171,13 @@ offers to plan it. When no crew is free, it comments
 ## Planner and researcher crews
 
 A planner or researcher crew holds one request until it is planned or declined,
-and asks the user directly (Orchi in auto mode), with the host's question tool
-when it has one. It takes no other request, and:
+and asks the user directly, with the host's question tool when it has one; in
+auto mode a planner asks Orchi instead. It takes no other request, and:
 
 - reports `<id> started` after loading, and `<id> needs the user: <question>`
   whenever it waits for an answer;
 - claims the Exploration and every Issue it creates or plans with its adopted
-  work reference;
+  work reference, the one Orchi gave it;
 - once an Issue exists, writes each question it asks there as well, under the
   Exploration's Open questions or as a comment, so a lost session loses no
   question;
@@ -184,28 +198,39 @@ Orchi tells the user about planned work they requested; work that says
 
 ## Workers
 
-A crew gives each piece of repository work to a free worker: one whose
-conversation is empty and that holds no task of the crew. It records the task on
-the Issue as `Task <task> on worker-<n> (<session id>), branch <branch>` and sends:
+A crew gives each piece of work to a free worker. A worker is free when it holds
+no unfinished task of the crew: it has reported `done` on its last task and owes
+no answer or rework. A worker takes many tasks during one assignment and keeps
+their context, so the crew records each on its Issue as
+`Task <task> on worker-<n> (<session id>), branch <branch>` and sends:
 
 `You are worker-<n> of <crew title>. Invoke the orchi-work skill with: <mode> #<task> --branch <branch> --base <base>. Report to <crew session id>.`
 
 The modes are `implement`, `fix`, and `design` (one ready Task, as the writer
-roles say) and `research` and `retrieve` (read-only answers). A worker works only
-in its own worktree, commits on the named branch, and never pushes; its crew
-reads the branch, which all worktrees of the repository share. Two sessions never
-check out the same branch. When no worker is free, the work waits for one.
+roles say) and `research` and `retrieve` (one read-only answer, given as
+`<mode> <id>: <question>` with no branch). A worker works only in its own
+worktree, commits on the named branch, and never pushes; its crew reads the
+branch, which all worktrees of the repository share. When no worker is free, the
+work waits for one.
+
+Git lets only one worktree check out a branch, so a session holds a branch only
+while it writes on it. A crew creates a branch without checking it out
+(`git branch <branch> origin/<base>`), checks out the Epic branch only to merge
+its workers' branches, and detaches afterwards. A writer detaches when it reports
+`done` and switches back for rework.
 
 A dev lead runs an Epic's Tasks in parallel only when they touch different
 files; each Task gets `task/<slug>` from the Epic branch. Before merging a
 worker's branch into the Epic branch, the dev lead checks that its commits sit on
 that branch above the expected base and that its checks pass. Rework on a Task
-goes to the worker that wrote it.
+goes to the worker that wrote it, after that worker's current task.
 
 ## Release
 
 A worker keeps its context until the PR that contains its work is merged, or its
-task is dropped, so rework reaches the session that has the context. Then:
+task is dropped, so rework reaches the session that has the context; meanwhile it
+takes the crew's next tasks. A worker that only answered questions keeps nothing
+that rework needs and may be released once answered. Then:
 
 1. The crew sends `release`. It sends no second `release` until the first is
    answered.

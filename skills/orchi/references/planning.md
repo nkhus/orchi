@@ -149,7 +149,7 @@ Before creating Issues, show the user the proposed Epics or Tasks: for each, its
 title, what it delivers, and what blocks it. Ask whether the granularity is
 right, whether each blocker is real, and what to merge or split. Revise until
 the user agrees; a list is cheaper to change than Issues. When the breakdown is
-already known while the scope is proposed, agree both in one question. At team
+already known while the scope is proposed, agree both in one question. At pool
 autonomy Decide or Auto, show the breakdown and proceed.
 
 Check every Task against the [Task readiness checklist](readiness.md#task-readiness-checklist)
