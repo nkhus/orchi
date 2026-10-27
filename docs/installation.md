@@ -68,7 +68,7 @@ A session pool is optional and needs Claude Desktop: Orchi, the entry you talk t
 7. Merge PRs into main yourself or tell Orchi to. When you step away, tell Orchi "mode auto": crews then ask Orchi instead of you, and Orchi merges reviewed PRs with passing checks; deployment, access, and destructive actions still wait for you. The mode holds through compaction until you change it or type `/orchi-pm` again.
 8. When work is done, workers and crews clear themselves and return to the pool as `worker-<n>` and `crew-<k>`. Nothing is archived or deleted.
 
-Pool sessions run with Remote Control off, because a session served over Remote Control cannot be cleared; Orchi itself can stay on it. A clear is also refused while you have the session open on screen or pinned; the clearing session retries later. Rerunning `/orchi-pm` is safe: it finds its crews by the sidebar group and adds only what is missing.
+Pool sessions run with Remote Control off, because a session served over Remote Control cannot be cleared; Orchi itself can stay on it. A clear is also refused while you have the session open on screen or pinned; the clearing session retries later. Type `/orchi-pm`, click `Create workers`, and ask for more crews in the desktop app: a message typed over Remote Control cannot start sessions. Rerunning `/orchi-pm` in Orchi is safe: it finds its crews by the sidebar group and adds only what is missing. In another session it changes nothing and points you to the pool's Orchi; it takes the pool over only when that Orchi is archived or gone.
 
 ## User-wide installation
 

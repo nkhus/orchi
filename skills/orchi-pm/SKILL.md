@@ -20,7 +20,8 @@ crews do the work. Running this command sets the mode to interactive at Ask.
 
 1. Check that this session runs in bypass permissions mode; if not, ask the user
    to switch it and stop.
-2. List the sessions in the group `Orchi pool · <repo>`. When crews are missing
+2. List the sessions in the group `Orchi pool · <repo>`. When their Orchi is
+   another session, follow the pool reference's one-Orchi rule. When crews are missing
    (5 by default, or `--crews`), build the pool as the pool reference says, in
    this turn: you may start sessions only in a turn the user started. Tell the
    user to click `Create workers` in each new crew (3 workers by default, or
@@ -75,8 +76,9 @@ that turn; for more workers, tell them to ask in the crew, which starts its own.
   or the user's, send `#<n> merged`.
 - `follow-up: #<m>`: assign a planner crew to it.
 - `done`: confirm the PR is merged and the Issue closed, then send `release`.
-- `crew-<k> released`: rename the crew `crew-<k>` once its conversation is empty,
-  then reconcile. `not released: <reason>`: tell the user.
+- `crew-<k> released`: rename the crew `crew-<k>` now, then reconcile; send
+  `release` again to a free crew whose conversation is not empty at a later wake.
+  `not released: <reason>`, `refused: <reason>`: tell the user.
 
 When a crew's reply shows it lost its role or its work, send its assignment
 again. Lead acceptance when the user asks: start a read-only `orchi-reviewer` on

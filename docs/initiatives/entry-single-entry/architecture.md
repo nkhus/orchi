@@ -71,7 +71,14 @@ New constraints:
 - **Never:** plans, researches, designs, edits code, or merges outside the mode's
   limits.
 - **Starts sessions** only while building or enlarging the pool, in the user's
-  turn.
+  turn, typed in the desktop app: a message typed over Remote Control starts no
+  session.
+- **One per pool:** the session that started the crews (their `parentSessionId`),
+  or the one they last accepted a takeover from. A second `/orchi-pm` changes
+  nothing while that Orchi exists and is not archived; it points the user to it.
+  When that Orchi is archived or gone, the new session takes its title and sends
+  each crew `Orchi is now <title> (<session id>)`, which a crew accepts only after
+  the host confirms its current Orchi is archived or gone.
 
 ### 3.2 Crew
 
@@ -157,7 +164,8 @@ Changed or added:
 
 - **Pool membership:** Orchi files every crew into the sidebar group
   `Orchi pool · <repo>`; `list_sessions` with that group lists the crews after any
-  restart. Workers are found through their crew (`parentSessionId`).
+  restart, and their `parentSessionId` names the Orchi that started them. Workers
+  are found through their crew (`parentSessionId`).
 - **Free crew:** no open Issue claim names it and its conversation is empty.
 - **Free worker:** it has reported `done` on its last task and owes no answer or
   rework. A worker is cleared only when its crew's assignment ends.
@@ -200,8 +208,10 @@ free ──assign──► assigned ──► working ⇄ waiting-for-user
   planner or dev lead asks Orchi instead, and a researcher still asks the user.
 - **done:** planner → `planned` or `declined`; researcher → documents committed;
   designer → direction approved; dev lead → PR merged.
-- **releasing:** the crew releases its workers (§6.3), clears itself as the last
-  action of its turn, and Orchi renames it `crew-<k>`.
+- **releasing:** the crew releases its workers (§6.3), replies `released`, and
+  clears itself as the last action of its turn. The reply reaches Orchi before the
+  clear lands, so Orchi renames the crew `crew-<k>` on the reply; a free crew whose
+  conversation is still not empty at a later wake gets `release` again.
 
 ### 6.3 Worker
 
@@ -240,6 +250,10 @@ once answered. Release, in this order:
   can act on it. When a session's reply shows it lost its role, its owner sends
   the same message again (agreed for 0.15).
 - A renamed session does not learn its title; the assignment states it.
+- A session reads its own id from the host (`get_session` with `self`) whenever
+  it writes it; in the live run a crew gave a worker a wrong id from memory.
+- The one exception to owner-only authority is a takeover (§3.1), which a crew
+  checks with the host before accepting.
 
 ### 7.2 Catalog
 
@@ -247,9 +261,9 @@ once answered. Release, in this order:
 | --- | --- | --- |
 | Orchi → crew | Assignment | `You are <title> (crew-<k>), <role> of the Orchi pool. Invoke the <skill> skill with: <args> --report-to <Orchi's session id>. Orchi is <Orchi's title>; this request's id is <id>. Mode: <mode>, autonomy: <level>, set by the user on <date>.` |
 | Orchi → crew | Answer, delivery | `<id> answer: <answer>` (auto mode), `#<n> rework: <what>`, `#<n> merged` |
-| Orchi → crew | Mode, release | `mode <mode>, autonomy <level>`, `release` |
+| Orchi → crew | Mode, takeover, release | `mode <mode>, autonomy <level>`, `Orchi is now <title> (<session id>)`, `release` |
 | Crew → Orchi | Progress | `<id> started`, `<id> needs the user: <question>`, `<id> planned: #<n>`, `<id> declined: <reason>`, `#<n> PR ready: <url>`, `#<n> follow-up: #<m>`, `#<n> done: <url>` |
-| Crew → Orchi | Setup, release | `crew-<k> ready: <n> workers`, `crew-<k> released`, `crew-<k> not released: <reason>` |
+| Crew → Orchi | Setup, takeover, release | `crew-<k> ready: <n> workers`, `crew-<k> refused: Orchi is <title> (<session id>)`, `crew-<k> released`, `crew-<k> not released: <reason>` |
 | Crew → worker | Task | `You are worker-<n> of <crew title>. Invoke the orchi-work skill with: <mode> #<task> --branch <branch> --base <base>. Report to <crew session id>.`; for `research` and `retrieve`, `<mode> <id>: <question>` with no branch |
 | Crew → worker | Answer, rework, release | `#<task> answer: <answer>`, `#<task> rework: <what>`, `release` |
 | Worker → crew | Progress | `#<task> question: <q>`, `#<task> done: <commit>`, `#<task> blocked: <reason>`, `#<task> not ready: <what>`, `worker-<n> released`, `worker-<n> not released: <reason>` |
@@ -348,7 +362,7 @@ The user sets one mode at Orchi; Orchi passes it in every assignment.
 | Event | Cleared by | How |
 | --- | --- | --- |
 | A worker's work is merged or dropped | Its crew | After the worker reports `released` (§6.3) |
-| A crew's assignment is done | The crew itself | Last action of its turn, after its workers are cleared; Orchi then renames it |
+| A crew's assignment is done | The crew itself | Last action of its turn, after its workers are cleared; Orchi renames it on its `released` reply |
 | Orchi | The user | `/clear`, then `/orchi-pm` |
 
 - A clear is refused for a pinned session, one open on the user's screen, one with
@@ -381,6 +395,8 @@ The user sets one mode at Orchi; Orchi passes it in every assignment.
 | A crew or worker lost its role (compaction, manual clear) | Its owner, from its reply | Send the assignment or task again; the skill resumes from GitHub |
 | A crew does not answer | Orchi, on its next wake | Check the session; tell the user which crew to open |
 | A clear is refused | The clearing session | Retry on the next wake; then tell the user the cause |
+| A crew's self-clear did not land | Orchi, at a later wake: a free crew's conversation is not empty | Send `release` again |
+| `/orchi-pm` runs in a second session | The new session, from the crews' `parentSessionId` | Point the user to the pool's Orchi and stop; take over only when it is archived or gone (§3.1) |
 | No free crew | Orchi | Keep the request on the board; offer to enlarge the pool in the user's next turn |
 | A message is held | The sender | Tell the user which session and why |
 | The user types into a worker | The worker | Answer the user, then tell its crew what changed |
