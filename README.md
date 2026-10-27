@@ -32,7 +32,7 @@ npx --yes github:nkhus/orchi --github
 /orchi
 ```
 
-That session becomes Orchi. You don't commit or push anything: it commits and pushes the installation to `main` first, because its sessions, branches, and CI start from there. Then it builds its pool: 5 crews, each in its own worktree. Click **`Create workers`** once in each crew, and each one starts 3 workers. That is the last setup step. From now on, just tell Orchi what you want.
+That session becomes Orchi. You don't commit or push anything: it commits and pushes the installation to `main` first, because its sessions, branches, and CI start from there. Then it builds its pool: 2 crews, each in its own worktree. Click **`Create workers`** once in each crew, and each one starts 2 workers. That is the last setup step. From now on, just tell Orchi what you want.
 
 Orchi also starts a **dashboard** session on Sonnet at low effort, which answers your questions about the pool. Every 10 minutes a Haiku subagent refreshes its live page with the crews and what each holds, the progress of every Initiative and Epic, what waits for you, PRs and their checks, and the planning queue, and its sidebar title sums it up (`📊 15:04 · 3 active · 1 wait for you · 2 PRs`). Orchi sends you the page's link and otherwise tells you only what needs you.
 

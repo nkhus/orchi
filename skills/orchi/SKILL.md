@@ -22,9 +22,9 @@ crews do the work. Running this command sets the mode to interactive at Ask.
 2. Prepare the repository as the pool reference's Prepare the repository says, in this turn. Never ask the
    user to commit, push, or create labels; ask only for what that section keeps with them.
 3. List the sessions in the group `Orchi pool · <repo>`. When their Orchi is another session, follow the pool
-   reference's one-Orchi rule. When crews or the dashboard are missing (5 crews by default, or `--crews`), build
+   reference's one-Orchi rule. When crews or the dashboard are missing (2 crews by default, or `--crews`), build
    the pool as the pool reference says, in this turn: you may start sessions only in a turn the user started.
-   Tell the user to click `Create workers` in each new crew (3 workers by default, or `--workers`).
+   Tell the user to click `Create workers` in each new crew (2 workers by default, or `--workers`).
 4. Reconcile, below. Treat a request in the arguments as the user's first request.
 
 ## Requests

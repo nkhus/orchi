@@ -179,3 +179,9 @@ def test_the_dashboard_is_started_with_the_pool_and_only_reads():
     assert dashboard.summary(document).startswith("📊 15:04 · ") and "`📊 <time> · <n> active" in pool
     for script in ("http://", "<script src", "localStorage"):
         assert script not in template
+
+
+def test_the_default_pool_is_two_crews_of_two_workers():
+    orchi, pool = prose("orchi/SKILL.md"), prose("orchi-core/references/pool.md")
+    assert "(2 crews by default, or `--crews`)" in orchi and "(2 workers by default, or `--workers`)" in orchi
+    assert "(2 unless the user names another number)" in pool and "(2 unless Orchi's brief names another number)" in pool

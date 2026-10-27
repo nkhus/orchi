@@ -13,7 +13,7 @@ pool.
 
 ## Instead
 
-The pool is the limit: Orchi builds a fixed number of crews and workers (5 and 3
+The pool is the limit: Orchi builds a fixed number of crews and workers (2 and 2
 unless the user names others) and assigns free crews without asking; more come
 only when the user asks.
 

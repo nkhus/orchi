@@ -115,7 +115,7 @@ in the desktop app.
 1. Orchi checks that it runs in bypass permissions mode, which the pool needs so
    that no start or clear waits for a classifier or a prompt. If it does not, it
    asks the user to switch and stops.
-2. It starts the missing crews (5 unless the user names another number), each
+2. It starts the missing crews (2 unless the user names another number), each
    with its own worktree, a brief to run the crew setup below, and the title
    `crew-<k>`. It detaches each to the top level and files it into the group
    `Orchi pool · <repo>`. When the group has no dashboard, it also starts one
@@ -124,7 +124,7 @@ in the desktop app.
    host's next-step box. Where there is none, it proposes its workers as start
    cards; failing both, it asks the user to reply `yes`.
 4. The user's click or reply starts a user turn in the crew. In it the crew
-   starts its missing workers (3 unless Orchi's brief names another number), one
+   starts its missing workers (2 unless Orchi's brief names another number), one
    call at a time, each with its own worktree and the title `worker-<n>`, and a
    brief to reply `ready` and wait for its crew.
 5. A session served over Remote Control cannot be cleared, so its starter turns
