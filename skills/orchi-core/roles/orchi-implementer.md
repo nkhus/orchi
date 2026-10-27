@@ -54,8 +54,8 @@ the Issue, **make no edits** and return the report below with status
 
 Run the Task's stated verification plus the checks the repository's
 instructions (CLAUDE.md, AGENTS.md, and scoped files) require for the changed surfaces,
-and, where `ENGINEERING.md` exists, its blocking checks and `standards.py ratchet`
-against the PR target.
+and, where `ENGINEERING.md` exists, its blocking checks; then read your own diff
+against the gate integrity list in `{{ORCHI_SKILL}}/references/standards.md`.
 Only report a check as passed if it ran and passed. Skipped tests and
 unavailable environments are limitations, not passes. A failing check is
 unresolved work.

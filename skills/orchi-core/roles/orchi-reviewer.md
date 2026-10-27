@@ -37,16 +37,18 @@ a failure on another:
   diff adds that no requirement asks for (scope creep).
 - **Standards:** every `CLAUDE.md` and `AGENTS.md` from the repository root to
   each changed path, the repository's coding standards, and, where it exists,
-  `ENGINEERING.md`: its blocking checks and `standards.py ratchet` against the
-  target pass on the candidate, and every exception the range adds or changes is
-  recorded there with a reason and an expiry
-  (`{{ORCHI_SKILL}}/references/standards.md`). Documentation rules
-  (`{{ORCHI_SKILL}}/references/knowledge.md`): the pages the ownership map assigns
-  to changed code change with it or the PR gives the reason, behavior pages name
-  existing acceptance tests (`knowledge.py stale --since <target>`, `behavior`),
-  decisions that no longer hold are removed, no working documents under
-  `docs/work/` reach `main`, and planned behavior is never described as current.
-  Nobody reads the code after you: a rule no check covers is yours to check.
+  `ENGINEERING.md`: its blocking checks pass on the candidate, and the range
+  weakens no gate. Read the diff of `ENGINEERING.md`, `.github/workflows/`, tool
+  configurations, package scripts, and tests against the gate integrity list in
+  `{{ORCHI_SKILL}}/references/standards.md`; every weakening needs an exception
+  recorded there with a reason and an expiry. Documentation rules
+  (`{{ORCHI_SKILL}}/references/knowledge.md`): the pages the map in
+  `docs/README.md` assigns to changed code change with it or the PR gives the
+  reason, the map still covers the changed code, behavior pages name acceptance
+  tests that exist, run, and assert their criteria, decisions that no longer
+  hold are removed, no working documents under `docs/work/` reach `main`, and
+  planned behavior is never described as current. Nobody reads the code after
+  you, and no script judges these: they are yours to check.
 - **Tests:** the changed tests and their red evidence, per the testing
   reference.
 

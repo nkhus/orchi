@@ -10,8 +10,11 @@ existing evidence and does not launch another test campaign.
 Every PR needs a filled `Documentation impact` section in its body: either the
 owning pages updated, or a short reason why no documentation changes. A missing,
 empty, or placeholder section is a blocker. Check that the listed pages actually
-describe the changed behavior, and that `knowledge.py lint`, `stale --since` the
-target, and `behavior` pass on the candidate. A PR into main carries no working
+describe the changed behavior and that `knowledge.py lint` passes on the
+candidate. Check against the map in `docs/README.md` that every page owning
+changed code changed or has a reason in the section, that the map still covers
+the changed code, and that each behavior page names acceptance tests that
+exist, run, and assert their criteria. A PR into main carries no working
 documents: `knowledge.py work` must pass
 ([move into current documentation](knowledge.md#move-into-current-documentation)).
 
@@ -40,9 +43,11 @@ writer like any other missing check. Remove scope creep, or agree it with the
 user and record the decision; never accept it silently.
 
 Where `ENGINEERING.md` exists, nobody reads the code but its checks and this
-review ([standards](standards.md#premise)). Its blocking checks and
-`standards.py ratchet` against the PR target must pass on the candidate; a
-failure is a blocker. Each user-facing acceptance criterion needs an acceptance
+review ([standards](standards.md#premise)). Its blocking checks must pass on the
+candidate, and the range must not weaken a gate as
+[gate integrity](standards.md#gate-integrity) lists: check the diff of
+`ENGINEERING.md`, the workflows, tool configurations, package scripts, and tests
+for it yourself; either is a blocker. Each user-facing acceptance criterion needs an acceptance
 test that asserts it, and the PR's Verification section gives the evidence per
 criterion: the test, and for a visible change a screenshot, a recording, or a
 preview link. A writer that needs an exception reports it; record it in
