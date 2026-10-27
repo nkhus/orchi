@@ -10,9 +10,9 @@ npx --yes github:nkhus/orchi
 
 The current directory is the installation target; `--project /path/to/project` chooses another one.
 
-The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the entry skills `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-work`, and `orchi-pm` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, and reports whether `git` and `gh` are available. It does not install or authenticate Claude Code or the GitHub CLI.
+The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the entry skills `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-work`, and `orchi-pm` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, installs [Impeccable](#impeccable), and reports whether `git`, `gh`, `node`, and `npx` are available. It does not install or authenticate Claude Code or the GitHub CLI.
 
-Requirements: Git, the GitHub CLI (`gh`) for Issue and PR work, and Python 3.11 or newer for the bundled scripts, which use only the standard library. The npm wrapper also needs Node.js/npm and `uv`. Linux, macOS, and WSL are supported.
+Requirements: Git, the GitHub CLI (`gh`) for Issue and PR work, Python 3.11 or newer for the bundled scripts, which use only the standard library, and Node.js 18.19 or newer with `npx` for Impeccable. Without Node.js the installer stops before changing anything. The npm wrapper also needs `uv`. Linux, macOS, and WSL are supported.
 
 ## Skills and instructions
 
@@ -28,11 +28,27 @@ Instruction discovery improves routing but does not prove model compliance. More
 
 Each role in `.claude/skills/orchi/roles/` is rendered to `.claude/agents/`: `orchi-scout.md`, `orchi-researcher.md`, `orchi-implementer.md`, `orchi-fixer.md`, `orchi-reviewer.md`, and `orchi-designer.md`.
 
-`orchi-designer` uses the design skills installed in the project or for the user (Impeccable, Taste Skill, SmoothUI) and the repository's own design system otherwise. Orchi does not install them; see [design skills](../skills/orchi/roles/README.md#design-skills) for their install commands.
+`orchi-designer` designs with Impeccable, which the installer installs, and follows the repository's own design system; see [design skills](../skills/orchi/roles/README.md#design-skills).
 
 Rendered agents name the installed skill as `.claude/skills/orchi` in a project installation and by its absolute path in a user-wide one. They are recorded in the manifest with their hashes: unmodified files update in place on reinstall, a locally edited or pre-existing unmanaged file needs `--replace-orchi` (which keeps a backup), and uninstalling removes them and refuses edited ones. Agent files do not depend on `--github`.
 
 Claude Code lets subagents start their own, up to three layers below the main conversation, by default, which is the nesting Orchi uses. Subagent models are pinned in the roles; if a pinned model is unavailable, the main session performs the step itself.
+
+## Impeccable
+
+Orchi installs [Impeccable](https://impeccable.style/), its design engine, with itself, so design work never runs without it. The installer runs Impeccable's own installer at its pinned version, currently 4.8.0:
+
+```bash
+npx --yes impeccable@4.8.0 install -y --providers=claude --scope=project --no-hooks
+```
+
+It installs in the same scope as Orchi (`--scope=global` for a user-wide installation), for Claude Code only, and without hooks, so the design detector does not run after every edit in every session. Impeccable adds `.claude/skills/impeccable/` and its own subagents (`.claude/agents/impeccable-*.md`); its engine is a binary it downloads, checksum-verified, into `~/.impeccable/bin/`.
+
+- **Telemetry.** The installer adds `"telemetry": false` to `.impeccable/config.json` (`~/.impeccable/config.json` user-wide), which turns Impeccable's usage pings off for everyone who uses the repository. A file that already sets `telemetry` keeps its value; other settings in it are kept.
+- **Ignored files.** In a project, a managed section in `.gitignore` between `# orchi:begin` and `# orchi:end` ignores Impeccable's runtime files: screenshots, draft comps, live-mode state, the local config, and the engine cache. Commit an approved comp with `git add -f`; commit `PRODUCT.md`, `DESIGN.md`, `.impeccable/config.json`, and the surface briefs.
+- **Versions.** The manifest records the Impeccable version Orchi installed, so a later Orchi release updates it. An Impeccable you installed yourself at another version is kept, with a note; `--replace-orchi` replaces it with the pinned version.
+- **Failure.** Impeccable is installed after the Orchi files. If its installation fails (no network or npm access), the Orchi files stay installed, the result reports the error under `impeccable`, the command exits with status 2, and rerunning installs Impeccable.
+- **Removal.** `--uninstall` removes Orchi and its `.gitignore` section but leaves Impeccable and its config, and says so.
 
 ## GitHub setup
 
@@ -47,7 +63,8 @@ npx --yes github:nkhus/orchi --github
 | `.github/ISSUE_TEMPLATE/orchi-initiative.yml`, `orchi-epic.yml`, `orchi-task.yml`, `orchi-exploration.yml` | Issue forms that apply the matching type label; the Task, Epic, and Initiative forms have a field for every item of the [readiness checklists](../skills/orchi/references/readiness.md), and the Exploration form prepares an Initiative's first five |
 | PR template section | Summary, Verification, Merge risk, Documentation impact, and Handoff, as a managed section in an existing template (`.github/pull_request_template.md` or another location GitHub reads) or a new one |
 | `.github/workflows/orchi-docs.yml` | On every PR, fails on broken local links the PR introduces (`knowledge.py lint --since` the base branch) or a missing or empty Documentation impact section; omitted with `--no-docs-workflow` |
-| Labels `Initiative`, `Epic`, `Task`, `in-progress`, `Exploration`, `needs-planning`, `delivery-ready`, `retro` | Created with `gh` when missing; existing labels are not changed |
+| `.github/workflows/orchi-design.yml` | On every PR that changes UI files (HTML, CSS and its preprocessors, JSX, TSX, Vue, Svelte, Astro), runs `impeccable detect --github` on them at the pinned version, annotates each finding, and fails when a primary finding remains |
+| Labels `Initiative`, `Epic`, `Task`, `in-progress`, `Exploration`, `needs-planning`, `delivery-ready`, `retro`, `design` | Created with `gh` when missing; existing labels are not changed |
 
 The template and workflow files are recorded in the manifest with their hashes, so they follow the same rules as the skill: unmodified files update in place, edited or pre-existing files need `--replace-orchi`, and uninstalling refuses edited files. Label creation needs a GitHub remote and an authenticated `gh`. If either is missing, the installation still completes and reports the error in `labels`; rerun it later to create them. Uninstalling leaves labels in place.
 
@@ -90,7 +107,7 @@ Dry-run lists file changes and conflicts (`conflicts`, `requires_replace`) witho
 
 The installer refuses symlinked skill destinations, symlinked agent files it manages, and instruction symlinks other than `CLAUDE.md` linking to root `AGENTS.md`. It preserves unrelated skills and agents, settings, and application manifests. Do not alternate installers to manage the same installation.
 
-`--uninstall` removes the complete managed Orchi installation at the selected project/user scope, including its instruction sections. It preserves surrounding user instructions and refuses modified skill files or managed sections. It does not remove Claude Code, authentication, GitHub Issues, branches, or backups.
+`--uninstall` removes the complete managed Orchi installation at the selected project/user scope, including its instruction and `.gitignore` sections. It preserves surrounding user instructions and refuses modified skill files or managed sections. It does not remove Claude Code, authentication, GitHub Issues, branches, backups, or [Impeccable](#impeccable).
 
 Commit the project skill files, rendered agents, instruction changes, and the installation manifest when sharing the setup with the team.
 
@@ -125,6 +142,7 @@ Reinstalling adds and updates everything below; rendered agents and unmodified m
 - **Course corrections (0.17).** A writer whose Task needs more work is continued with `SendMessage` instead of restarted; after two misses on the same Task, the main session changes the Task's boundary instead of retrying it. An Initiative steps back after each Epic merge to check the remaining plan. Planning shows the reason when a request was declined before, and records a new refusal. Testing adds observation aids for behavior no check can see, verification reports each acceptance claim as established, limited, or not established (with `--github`, the managed PR template's Verification comment says so), and `orchi-researcher` may read a dependency's source from a temporary shallow clone.
 - **Session pool (0.18).** The team hubs `orchi-planner` and `orchi-orchestrator`, the team list in the repository's instructions, and the team reference are gone. `/orchi-pm` makes one Claude Desktop session Orchi, which builds a pool of crews with nested workers and routes every request; see [pool setup](#pool-setup). `orchi-work` runs a worker's task. Claims read `Assigned to crew-<k> (<session id>)`; finish or release work held under the old `Dispatched to` and `Planning by` claims before updating. Reinstalling removes the two hub skills; an edited copy is a conflict that needs `--replace-orchi`.
 - **Installer.** `--dry-run` with `--github` lists the labels it would create, a clean update keeps no backup directory, and skills a release no longer ships are removed.
+- **Impeccable.** The installer now needs Node.js 18.19+ and installs [Impeccable](#impeccable) 4.8.0 without hooks and with telemetry off, adds a `.gitignore` section for its runtime files, and with `--github` adds the `orchi-design.yml` workflow and the `design` label. An Impeccable you installed yourself at another version is kept until you pass `--replace-orchi`.
 - **GitHub setup.** With `--github`: the `orchi-exploration.yml` form, a `Merge risk` section and acceptance verdicts in the managed PR template, and the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels.
 
 ### From 0.6.x to 0.7.x

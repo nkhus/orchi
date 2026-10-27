@@ -22,7 +22,7 @@ npx --yes github:nkhus/orchi
 
 The current directory is the installation target; use `--project /path/to/project` to choose another one.
 
-**Prerequisites:** Git, the GitHub CLI (`gh`, authenticated) for Issue and PR work, and Python 3.11+ for the bundled standard-library scripts. The `npx` installer also needs Node.js 18+ and `uv`. Use macOS, Linux, or WSL.
+**Prerequisites:** Git, the GitHub CLI (`gh`, authenticated) for Issue and PR work, Python 3.11+ for the bundled standard-library scripts, and Node.js 18.19+ with `npx`, which installs [Impeccable](https://impeccable.style/), the design skill Orchi installs with itself. The `npx` installer also needs `uv`. Use macOS, Linux, or WSL.
 
 <details>
 <summary><strong>Install across projects, preview changes, or remove Orchi</strong></summary>
@@ -33,10 +33,10 @@ npx --yes github:nkhus/orchi --global
 
 | Option | Effect |
 | --- | --- |
-| `--github` | Also add issue templates, a PR template, a documentation check workflow, and Orchi labels (project scope) |
+| `--github` | Also add issue templates, a PR template, documentation and design check workflows, and Orchi labels (project scope) |
 | `--no-docs-workflow` | With `--github`, skip the documentation check workflow; `--docs-workflow` restores it |
 | `--dry-run` | Show planned file changes, conflicts, and the labels `--github` would create, without writing |
-| `--replace-orchi` | Back up and replace locally edited Orchi files |
+| `--replace-orchi` | Back up and replace locally edited Orchi files, and replace an Impeccable of another version with the pinned one |
 | `--version` | Show the installed and bundled versions and the upgrade command |
 | `--uninstall` | Remove the complete managed Orchi installation at the selected scope |
 
@@ -120,7 +120,10 @@ Five entry skills fix the order of steps; they are conveniences, not a required 
 | `.claude/skills/orchi-explore/`, `orchi-plan/`, `orchi-deliver/`, `orchi-work/`, `orchi-pm/` | Optional entry skills |
 | Root `CLAUDE.md` | Managed Orchi workflow instructions |
 | `.claude/agents/orchi-*.md` | Rendered subagents |
-| `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml` | Issue forms and documentation check, with `--github`; reinstalling replaces unmodified files; edited ones are conflicts that need `--replace-orchi` |
+| `.claude/skills/impeccable/`, `.claude/agents/impeccable-*.md` | Impeccable at the version Orchi pins, installed by its own installer without hooks |
+| `.impeccable/config.json` | Impeccable's project settings; the installer turns telemetry off unless the file already sets it |
+| `.gitignore` | A managed section that ignores Impeccable's runtime files |
+| `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml`, `orchi-design.yml` | Issue forms, documentation check, and design check, with `--github`; reinstalling replaces unmodified files; edited ones are conflicts that need `--replace-orchi` |
 | PR template | Managed Summary, Verification, Merge risk, Documentation impact, and Handoff sections, with `--github` |
 | `.claude/.orchi-install.json` | Installation manifest: the installed version, options, and the managed files (with hashes) and sections that reinstalling and uninstalling rely on |
 

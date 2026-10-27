@@ -40,7 +40,7 @@ def test_fresh_install_preserves_user_files(tmp_path):
     assert installer.install(tmp_path)['status'] == 'installed'
     assert (tmp_path / 'CLAUDE.md').read_text().startswith('User rules\n\n<!-- orchi:begin -->')
     assert (tmp_path / 'AGENTS.md').read_text() == 'Other assistant rules'
-    assert sorted(p.name for p in (tmp_path / '.claude/skills').iterdir()) == sorted(installer.NAMES)
+    assert sorted(p.name for p in (tmp_path / '.claude/skills').glob('orchi*')) == sorted(installer.NAMES)
     assert installer.install(tmp_path)['status'] == 'unchanged'
     installer.install(tmp_path, uninstall=True)
     assert (tmp_path / 'CLAUDE.md').read_text() == 'User rules'
