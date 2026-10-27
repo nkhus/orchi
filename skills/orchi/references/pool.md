@@ -27,13 +27,15 @@ crew's name in claims and messages, whatever its title.
 | --- | --- | --- | --- |
 | Researcher | `orchi-explore` | One idea, with the user | The user confirms the shape, or declines |
 | Planner | `orchi-plan` | One request, Exploration, or `needs-planning` Issue | `planned` or `declined` |
+| Designer | `orchi-design` | One standalone `design` Epic, with the user | Its PR into main is merged |
 | Dev lead | `orchi-deliver` | One standalone Task, standalone Epic, or Initiative | Its PR into main is merged |
 
 A crew writes no code itself: a dev lead gives every change to a worker,
 including a review repair and a merge conflict. A crew edits Issues and PRs,
-creates, merges, and pushes branches, and a planner or researcher crew writes the
-planning documents its conversation with the user produces (an Initiative
-document, a research note). Where its role skill says to implement, fix, or
+creates, merges, and pushes branches, and a planner, researcher, or designer
+crew writes the planning documents its conversation with the user produces (an
+Initiative document, a research note, `PRODUCT.md`, a surface brief, an approved
+comp). Where its role skill says to implement, fix, or
 resolve something itself, a crew gives that to a worker instead. It may start
 read-only subagents (`orchi-scout`, `orchi-researcher`, `orchi-reviewer`) for
 retrieval, research, and review. Adding a role means adding its skill and a row
@@ -132,7 +134,7 @@ and sends `mode <mode>, autonomy <level>` to its busy crews when it changes.
 
 | | Interactive | Auto |
 | --- | --- | --- |
-| Who answers a crew's question | The user, in the crew's session | Orchi; the user still answers a researcher |
+| Who answers a crew's question | The user, in the crew's session | Orchi; the user still answers a researcher and a designer |
 | Autonomy level | Ask (default) or Decide | Auto |
 
 | Level | Planner and researcher crews | Dev lead crews and Orchi |
@@ -161,7 +163,8 @@ Orchi routes each request to a role:
 | --- | --- | --- |
 | An idea, a new project, or a strategic choice | Researcher | `orchi-explore` with the idea or `#<exploration>` |
 | A clear request, a fix, a `needs-planning` Issue, or a shaped Exploration | Planner | `orchi-plan` with the request or `#<n>` |
-| "Take #n" on a `delivery-ready` Issue | Dev lead | `orchi-deliver` with `#<n>` |
+| "Take #n" on a `delivery-ready` Epic labelled `design` | Designer | `orchi-design` with `#<n>` |
+| "Take #n" on another `delivery-ready` Issue | Dev lead | `orchi-deliver` with `#<n>` |
 
 Before giving a crew an Issue, Orchi claims it: `in-progress`, the assignee, and
 the work reference `Assigned to crew-<k> (<session id>) by <Orchi> on <date>`,
@@ -177,7 +180,7 @@ If the claim is not adopted by Orchi's first wake an hour or more after the
 assignment, or the crew's conversation is empty (the message was lost), Orchi
 sends the assignment again once, then removes the claim and tells the user.
 
-Orchi gives a dev lead crew only an open, unclaimed Issue labelled
+Orchi gives a dev lead or designer crew only an open, unclaimed Issue labelled
 `delivery-ready` that is also `ready` in `status.py`; for `check`, it confirms the
 blocker's result reached the target first. It takes such an Issue when the user
 names it, and by itself when the Issue says `Requested by: <Orchi's title>`,
@@ -213,7 +216,20 @@ auto mode a planner asks Orchi instead. It takes no other request, and:
   where it stopped and reports `<id> declined: parked`.
 
 Orchi tells the user about planned work they requested; work that says
-`Requested by: <Orchi's title>` it assigns to a dev lead crew by itself.
+`Requested by: <Orchi's title>` it assigns to a dev lead or designer crew by
+itself.
+
+## Designer crews
+
+A designer crew holds one standalone `design` Epic. It runs Impeccable's steps
+that need the user (`init`, `shape`, the direction round, and comp and asset
+approval) in its own session, asks the user directly in both modes, and reports
+`#<n> needs the user: <question>` to Orchi as well; an autonomy level never
+chooses a direction or approves a comp. It then builds the approved surfaces as a
+dev lead does, through its workers in `design` mode, and reports `#<n> PR ready`,
+`#<n> follow-up`, and `#<n> done` like one. A `design` Epic stays standalone, so
+an Initiative's dev lead never holds one: the Epic or Initiative that builds on
+it is blocked by it.
 
 ## Workers
 

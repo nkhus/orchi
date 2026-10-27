@@ -25,3 +25,17 @@ def test_ui_readiness_items_have_form_fields():
     for form in ("orchi-task.yml", "orchi-epic.yml"):
         text = (SKILLS / "orchi/assets/github/ISSUE_TEMPLATE" / form).read_text()
         assert "id: ui" in text and "label: UI design" in text
+
+
+def test_designer_crew_role_routing_and_mode_agree():
+    pool, entry, design = prose("orchi/references/pool.md"), prose("orchi-pm/SKILL.md"), prose("orchi-design/SKILL.md")
+    assert "| Designer | `orchi-design` | One standalone `design` Epic, with the user |" in pool
+    assert '"Take #n" on a `delivery-ready` Epic labelled `design` | Designer | `orchi-design`' in pool
+    assert "the user still answers a researcher and a designer" in pool
+    assert "an autonomy level never chooses a direction or approves a comp" in pool
+    assert "A `design` Epic stays standalone" in pool
+    assert "(researcher, planner, designer, dev lead)" in entry and "for a researcher or designer in any mode" in entry
+    assert "Only the user chooses a direction and approves a comp or a generated asset, at every autonomy level" in design
+    assert "you never pick for them" in design and "Continue with [orchi-deliver](../orchi-deliver/SKILL.md)" in design
+    assert "Ask the user directly in both modes" in design and "adopt Orchi's claim" in design
+    assert "asks for orchi-design by name" in design

@@ -10,13 +10,13 @@ npx --yes github:nkhus/orchi
 
 The current directory is the installation target; `--project /path/to/project` chooses another one.
 
-The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the entry skills `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-work`, and `orchi-pm` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, installs [Impeccable](#impeccable), and reports whether `git`, `gh`, `node`, and `npx` are available. It does not install or authenticate Claude Code or the GitHub CLI.
+The installer installs the `orchi` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the entry skills `orchi-explore`, `orchi-plan`, `orchi-design`, `orchi-deliver`, `orchi-work`, and `orchi-pm` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, installs [Impeccable](#impeccable), and reports whether `git`, `gh`, `node`, and `npx` are available. It does not install or authenticate Claude Code or the GitHub CLI.
 
 Requirements: Git, the GitHub CLI (`gh`) for Issue and PR work, Python 3.11 or newer for the bundled scripts, which use only the standard library, and Node.js 18.19 or newer with `npx` for Impeccable. Without Node.js the installer stops before changing anything. The npm wrapper also needs `uv`. Linux, macOS, and WSL are supported.
 
 ## Skills and instructions
 
-Each skill is installed as a directory in `.claude/skills/` (`orchi`, `orchi-explore`, `orchi-plan`, `orchi-deliver`, `orchi-work`, `orchi-pm`), where Claude Code discovers it. The skills move and clone with the repository.
+Each skill is installed as a directory in `.claude/skills/` (`orchi`, `orchi-explore`, `orchi-plan`, `orchi-design`, `orchi-deliver`, `orchi-work`, `orchi-pm`), where Claude Code discovers it. The skills move and clone with the repository.
 
 The installer appends an Orchi workflow section to the target root `CLAUDE.md`. Its rules route implementation through the Orchi skill, require research and agreement before tracking or changes, and keep merge and deployment within the user's authority. It never copies this repository's contributor `AGENTS.md` into another project, and it does not change an existing root `AGENTS.md`. When `CLAUDE.md` is a symlink to root `AGENTS.md`, the section goes into `AGENTS.md`, which Claude Code reads through the link.
 

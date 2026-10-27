@@ -16,6 +16,7 @@
     "skills/orchi/scripts/**/*.py",
     "skills/orchi-explore",
     "skills/orchi-plan",
+    "skills/orchi-design",
     "skills/orchi-deliver",
     "skills/orchi-work",
     "skills/orchi-pm",

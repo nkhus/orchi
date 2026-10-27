@@ -1,6 +1,6 @@
 ---
 name: orchi-pm
-description: Run this session as Orchi, the repository's single entry in Claude Desktop - build a pool of crew sessions with nested workers, route each request to a crew role (researcher, planner, dev lead), assign and release crews, and report what waits for the user. Does no planning, research, or development itself. Long-lived; resumes from GitHub state.
+description: Run this session as Orchi, the repository's single entry in Claude Desktop - build a pool of crew sessions with nested workers, route each request to a crew role (researcher, planner, designer, dev lead), assign and release crews, and report what waits for the user. Does no planning, research, or development itself. Long-lived; resumes from GitHub state.
 argument-hint: "[request] [--crews <n>] [--workers <n>]"
 disable-model-invocation: true
 ---
@@ -61,12 +61,12 @@ that turn; for more workers, tell them to ask in the crew, which starts its own.
 
 - `started`, `ready: <n> workers`: nothing to do; a crew with fewer workers than
   asked waits for the user to ask again in it.
-- `needs the user`: in interactive mode, and for a researcher in any mode, tell
+- `needs the user`: in interactive mode, and for a researcher or designer in any mode, tell
   the user once which crew waits and for what. In auto mode, answer a planner or
   dev lead with `<id> answer: <answer>` within the autonomy level; a question the
   level keeps for the user waits on your report, and you pass on their reply as
   `<id> answer: the user says <reply>`.
-- `planned`: for work with `Requested by:` this session, assign a dev lead crew
+- `planned`: for work with `Requested by:` this session, assign a dev lead or designer crew
   now; otherwise tell the user it is ready. Then send the crew `release`.
 - `declined`: tell the user, then send `release`.
 - `PR ready`: in auto mode, merge it as the autonomy level allows and tell the
