@@ -42,7 +42,7 @@ EPIC_FIELDS = {
     11: ("questions", ("affects the approach",)),
     12: ("branch", ("tasks in execution order as native sub-issues",)),
     13: ("ui", ("design depth", "surface brief", "what must stay", "blocked by")),
-    14: ("branch", ("without engineering.md", "foundation or standards epic")),
+    14: ("branch", ("in a new project", "first run")),
 }
 INITIATIVE_FIELDS = {
     1: ("request", ("distinct from later decisions",)),

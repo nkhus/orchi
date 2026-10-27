@@ -26,7 +26,7 @@ def test_delivery_steps_match_the_review_and_knowledge_references():
     assert "Delete the working folder in its own commit" in deliver
     assert "Core" not in deliver.replace("orchi-core", "")
     assert "apply or replace the branch ruleset as the" in deliver and "without asking" in deliver
-    assert "the delivering session (`orchi-deliver`) applies the ruleset and tells the user" in prose(
+    assert "the delivering session (`orchi-deliver`) applies or replaces the ruleset and tells the user" in prose(
         "orchi-core/references/standards.md")
 
 
@@ -74,7 +74,8 @@ def test_flows_do_not_stall_and_keep_user_only_questions():
     assert "the session it names has stopped" in deliver and "the session it names has stopped" in prose(
         "orchi-core/references/execution.md")
     assert "only `orchi-plan` closes the Exploration" in prose("orchi-standards/SKILL.md")
-    assert "it commits and pushes the installation to `main`" in prose("orchi-core/references/exploration.md")
+    assert "Orchi [prepares it](pool.md#prepare-the-repository) before any crew starts" in prose(
+        "orchi-core/references/exploration.md")
 
 
 def test_orchi_is_the_only_command_the_user_types():
@@ -106,7 +107,7 @@ def test_the_user_answers_only_product_questions_and_nothing_waits_needlessly():
     assert "appends `, waits for #<m>` to its work reference" in prose("orchi-core/references/pool.md")
     assert "when it says `waits for #<m>` and #<m> has merged, send that crew `#<m> merged`" in prose("orchi/SKILL.md")
     assert "an unconfirmed one is a `blocker`" in prose("orchi-core/references/review-delivery.md")
-    assert "report `#<n> waits for #<foundation>`" in prose("orchi-design/SKILL.md")
+    assert "report `#<n> waits for #<first run>`" in prose("orchi-design/SKILL.md")
     assert "for one outside the Initiative, report `#<n> waits for #<m>`" in deliver
     assert "make each Epic that builds on it blocked by it" in planning
     assert "confirmed: <yes, no change avoids it" in prose("orchi-core/roles/orchi-reviewer.md")
@@ -126,3 +127,39 @@ def test_no_session_hands_the_user_a_command_and_orchi_merges_on_their_yes():
     for name in ("orchi", "orchi-deliver", "orchi-plan", "orchi-design", "orchi-explore", "orchi-standards"):
         text = prose(f"{name}/SKILL.md")
         assert not re.search(r"(?<![Nn]ever )(ask|tell) the user to (run|merge|commit|push|open a terminal)", text), name
+
+
+def test_review_follows_risk_and_the_user_sees_what_changed():
+    deliver, review = prose("orchi-deliver/SKILL.md"), prose("orchi-core/references/review-delivery.md")
+    assert "A range that changes only tool configuration" in deliver
+    assert "in a proof of concept, only blockers: list each `major` in the PR with the resolution `follow-up`" in deliver
+    assert "In a proof of concept, a confirmed `major` is listed in the PR with the resolution `follow-up`" in review
+    assert "in a proof of concept, evidence from the running app" in review
+    assert "opening with what the user can now see or do" in deliver
+    assert "append `, see it at <local link>`" in deliver
+    assert "`#<n> PR ready: <url>[, see it at <local link>]`" in prose("orchi-core/references/pool.md")
+    assert "what they can now see or do (its Summary) and the crew's `see it at` link" in prose("orchi/SKILL.md")
+
+
+def test_review_findings_need_a_demonstrated_defect_and_the_recheck_is_final():
+    review, reviewer = prose("orchi-core/references/review-delivery.md"), prose("orchi-core/roles/orchi-reviewer.md")
+    assert "A `major` is a demonstrated defect that a user or the next change will hit" in review
+    assert "A review that finds nothing is an expected result" in review
+    assert "any regression the repair introduced; its verdict is final" in review
+    assert "Finding nothing is a valid review" in reviewer
+    assert "raise nothing new on code the repair did not change. Its verdict is final." in reviewer
+    assert "with no source or test file and no exception, needs no reviewer" in prose("orchi-deliver/SKILL.md")
+
+
+def test_the_first_run_is_findable_and_acceptance_waits_for_its_harness():
+    planning = prose("orchi-core/references/planning.md")
+    assert "its Issue says `First run of <product>.`" in planning and "`Builds wait for first run #<m>`" in planning
+    assert "resume an open Issue that says `First run of`" in prose("orchi-plan/SKILL.md")
+    for path in ("orchi-core/references/readiness.md", "orchi-core/roles/orchi-reviewer.md",
+                 "orchi-core/references/review-delivery.md", "orchi-core/assets/github/ISSUE_TEMPLATE/orchi-task.yml"):
+        assert "until the acceptance harness lands" in prose(path), path
+    assert "planning adds an Issue labelled `needs-planning`" in prose("orchi-core/references/standards.md")
+    deliver = prose("orchi-deliver/SKILL.md")
+    assert "from a detached checkout of the PR head" in deliver and "stop it on `#<n> rework`" in deliver
+    assert "before its `done`, answer it with `#<task> answer`" in deliver
+    assert "A worker's own clear after `done` is not retried." in prose("orchi-core/references/pool.md")

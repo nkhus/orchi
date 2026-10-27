@@ -60,9 +60,9 @@ question into the Epic, so a lost session loses nothing.
 
 ## 3. Plan the builds
 
-While the foundation Epic is open, report `#<n> waits for #<foundation>` as the
-pool reference's Messages says and wait; on `#<foundation> merged`, merge main
-into the Epic branch. Then add each approved surface's build as a Task (the
+While the first run the Epic's UI design field names is open, report `#<n> waits for #<first run>`
+as the pool reference's Messages says and wait; on `#<first run> merged`, merge
+main into the Epic branch, so the builds start from its stack and screen. Then add each approved surface's build as a Task (the
 `orchi-task.yml` form when present): the approved comp or the contract, the
 surface brief, `PRODUCT.md`, the `DESIGN.md` sections when one exists, states,
 breakpoints, themes, and accessibility level, with `orchi-designer` as the

@@ -63,14 +63,16 @@ def test_worker_modes_and_events_match():
         assert f"| `{mode}` | `{role}`" in work
     for event in ("question", "done", "blocked", "not ready"):
         assert f"`#<task> {event}" in pool and f"`#<task> {event}" in work
-    for event in ("rework", "answer"):
-        assert f"#<task> {event}" in pool and f"#<task> {event}" in work
-    assert "`#<task> rework`" in deliver and "never push" in work
+    assert "#<task> answer" in pool and "#<task> answer" in work
+    assert "#<task> rework" not in pool + work + deliver
+    assert "reopen its Task with what to change and give it to a free worker again" in deliver
+    assert "never push" in work
 
 
 def test_release_and_clearing_rules_agree():
     pool, work = prose("orchi-core/references/pool.md"), prose("orchi-work/SKILL.md")
-    assert "A worker keeps its context until the PR that contains its work is merged" in pool
+    assert "clears its conversation after each `done`" in pool and "A worker keeps its context" not in pool
+    assert "clear your own conversation with the host's tool as the last action of the turn" in work
     for text in (pool, work):
         assert "no uncommitted changes, no commits that are neither merged nor pushed" in text
         assert "`git switch --detach origin/<default>`" in text

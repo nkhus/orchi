@@ -147,9 +147,8 @@ that talks to them, and writers build only against what the user approved.
   designer splits them after the user approves each comp, so plan them at
   outcome level.
 - From scratch, plan the key surfaces as one design Epic, and the rest now as an
-  Initiative from the Exploration's shape. An Epic that needs no approved
-  surface (data, domain logic, integrations) waits only for the foundation; one
-  that builds on the designed surfaces is blocked by the design Epic and answers
+  Initiative from the Exploration's shape. An Epic that builds on the designed
+  surfaces is blocked by the design Epic and answers
   its UI fields `Deferred until #<design Epic>`, resolved from `PRODUCT.md`,
   `DESIGN.md`, the surface briefs, and the built surfaces, which are kept. When
   the rest is one Epic that builds on them, plan it instead as an Issue labelled
@@ -171,16 +170,25 @@ that talks to them, and writers build only against what the user approved.
 
 ## Engineering standards
 
-- A new project's first Epic is the foundation Epic that `orchi-standards`
-  plans; only it scaffolds the stack, and every Initiative, Epic, and Task that
-  writes product code is blocked by it. A design Epic is not: its steps with the user
-  start at once, and only its builds wait for the foundation. An existing
-  project without `ENGINEERING.md` gets a standards Epic the same way when the
-  user agrees to it.
+- A new project has no setup Epic. Its first Epic or Task, standalone, is its
+  first run, and its Issue says `First run of <product>.`: the thinnest slice
+  the user can open that does the product's core action end to end on seeded
+  data, through the real services the exploration's prototypes proved, on a
+  plain screen when the design comes later. It scaffolds the stack and adds the
+  core checks as the [standards](standards.md#new-project) say, and every
+  Initiative, Epic, and Task that writes product code is blocked by it. A design
+  Epic is not: its steps with the user start at once, and its builds wait for
+  the first run, which its UI design field names as `Builds wait for first run
+  #<m>`. For a project meant to last, also plan the
+  [hardening](standards.md#hardening) Issue; later, the first Task to need a
+  check that is not yet in `ENGINEERING.md` names adding it (its row, CI job,
+  and configuration) in its requirements. An existing project without
+  `ENGINEERING.md` gets a standards Epic, blocking nothing, only on request.
 - Never ask the user to choose a tool, threshold, or code layout: the
   [standards defaults](standards.md) decide.
 - State user-facing acceptance as what a user can see or do, and name the
-  acceptance test for each criterion.
+  acceptance test for each criterion (in a proof of concept, what the running
+  app shows instead).
 - With `ENGINEERING.md`, take each Task's checks from its Checks table and plan
   within its Architecture rules. A Task that needs an exception names it with its
   reason, as [gate integrity](standards.md#gate-integrity) says.
