@@ -99,9 +99,9 @@ whose yes Orchi carries out, never as a command for them to run: no GitHub remot
 with `gh repo create`); `gh` not authenticated (on their yes Orchi runs
 `gh auth login --web` in the background and gives them the one-time code and the
 link, so they only sign in in their browser); a file left out as a possible
-secret (commit it or keep it out); a diverged branch (Orchi says in plain words
-what differs, and on their yes the setup agent merges GitHub's branch in, or
-stops and reports a conflict); and the setup PR (Orchi merges it on their yes).
+secret (commit it or keep it out); a diverged branch (on their yes the setup
+agent merges GitHub's branch in, or reports a conflict); and the setup PR (Orchi
+merges it on their yes).
 Orchi builds the pool in the turn of that yes, once the repository is ready.
 
 ## Build the pool
@@ -179,14 +179,14 @@ its title, so the assignment states it.
 | From → to | When | Message |
 | --- | --- | --- |
 | Crew → Orchi | Started, waiting, planned, declined | `<id> started`, `<id> needs the user: <question>`, `<id> now <role>`, `<id> planned: #<n>[, #<m>]`, `<id> declined: <reason>` |
-| Crew → Orchi | Delivery | `#<n> PR ready: <url>`, `#<n> follow-up: #<m>`, `#<n> waits for #<m>`, `#<n> done: <url>` |
+| Crew → Orchi | Delivery | `#<n> PR ready: <url>[, see it at <local link>]`, `#<n> follow-up: #<m>`, `#<n> waits for #<m>`, `#<n> done: <url>` |
 | Crew → Orchi | Setup, takeover, release | `crew-<k> ready: <n> workers`, `crew-<k> refused: Orchi is <title> (<session id>)`, `crew-<k> released`, `crew-<k> not released: <reason>` |
 | Orchi → crew | Answer, delivery | `<id> answer: <answer>`, `#<n> rework: <what the user asked>`, `#<n> merged` |
 | Orchi → crew | Mode, takeover, release | `mode <interactive or auto>, autonomy <level>`, `Orchi is now <title> (<session id>)`, `release` |
 | Dashboard → Orchi | Setup | `dashboard ready: <url>` |
 | Orchi → dashboard | Mode, interval, restart | `mode <interactive or auto>, autonomy <level>`, `every <m> minutes`, `refresh` |
 | Worker → crew | Setup, task | `worker-<n> ready`, `#<task> question: <question>`, `#<task> done: <commit>` and the role's report, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
-| Crew → worker | Task | `#<task> rework: <what>`, `#<task> answer: <answer>` |
+| Crew → worker | Task | `#<task> answer: <answer>` |
 | Crew ↔ worker | Release | `release`; `worker-<n> released`, `worker-<n> not released: <reason>` |
 
 A crew whose work waits for an Issue it does not hold appends `, waits for #<m>`
@@ -339,8 +339,9 @@ by it.
 
 A crew gives each piece of work to a free worker. A worker is free when it holds
 no unfinished task of the crew: it has reported `done` on its last task and owes
-no answer or rework. A worker takes many tasks during one assignment and keeps
-their context, so the crew records each on its Issue as
+no answer. A worker takes many tasks during one assignment and clears its
+conversation after each `done`, so each starts from its message and its Issue;
+the crew records each on its Issue as
 `Task <task> on worker-<n> (<session id>), branch <branch>` and sends:
 
 `You are worker-<n> of <crew title>. Invoke the orchi-work skill with: <mode> #<task> --branch <branch> --base <base>. Report to <crew session id>.`
@@ -356,20 +357,19 @@ Git lets only one worktree check out a branch, so a session holds a branch only
 while it writes on it. A crew creates a branch without checking it out
 (`git branch <branch> origin/<base>`), checks out the Epic branch only to merge
 its workers' branches, and detaches afterwards. A writer detaches when it reports
-`done` and switches back for rework.
+`done`.
 
 A dev lead runs an Epic's Tasks in parallel only when they touch different
 files; each Task gets `task/<slug>` from the Epic branch. Before merging a
 worker's branch into the Epic branch, the dev lead checks that its commits sit on
-that branch above the expected base and that its reported checks pass. Rework on a Task
-goes to the worker that wrote it, after that worker's current task.
+that branch above the expected base and that its reported checks pass. Rework
+reopens its Task with each defect in its latest comment (path, scenario or
+violated rule, expected result) and goes to a free worker as a new task, in
+`fix` mode for a single defect, on the Epic branch or a new `task/<slug>` from it.
 
 ## Release
 
-A worker keeps its context until the PR that contains its work is merged, or its
-task is dropped, so rework reaches the session that has the context; meanwhile it
-takes the crew's next tasks. A worker that only answered questions keeps nothing
-that rework needs and may be released once answered. Then:
+A crew releases its workers when its own work is done. Then:
 
 1. The crew sends `release`. It sends no second `release` until the first is
    answered.
@@ -395,7 +395,8 @@ Orchi.
 A clear is refused for a session that is pinned, open on the user's screen,
 holding an unprocessed message or live work, or served over Remote Control. The
 clearing session retries on its next wake and tells its owner if the refusal
-persists; the user removes the cause. A cleared session keeps its title, parent,
+persists; the user removes the cause. A worker's own clear after `done` is not
+retried. A cleared session keeps its title, parent,
 folder, branch, and settings. Nobody archives or deletes a pool session.
 
 ## Dashboard

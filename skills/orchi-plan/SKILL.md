@@ -26,9 +26,11 @@ issue rules, which take precedence. This skill only fixes the order of steps.
   ask only what it leaves open ([hand off](../orchi-core/references/exploration.md#hand-off)).
   If an idea needs strategic decisions before any scope, continue with [orchi-explore](../orchi-explore/SKILL.md) in this session
   and report `<id> now researcher`.
-- In a new project (no product code and no `ENGINEERING.md`), first continue with
-  [orchi-standards](../orchi-standards/SKILL.md) in this session, then plan the
-  rest, blocked by its foundation Epic as [standards](../orchi-core/references/planning.md#engineering-standards) says.
+- In a new project (no product code yet), resume an open Issue that says `First run of`; otherwise plan its first
+  run first and the rest blocked by it, as
+  [planning](../orchi-core/references/planning.md#engineering-standards) says, with the stack from the Exploration's
+  Stack section or the [standards defaults](../orchi-core/references/standards.md#stack); ask only the product
+  constraints still missing.
 - Send `orchi-scout` agents for independent retrieval questions, in parallel when independent.
   Read the key files they point to yourself; a scout "not found" is not proof of absence.
 - Keep research proportional. Note every gap the readiness checklist would otherwise force you to guess; these become questions in step 3.

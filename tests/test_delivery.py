@@ -16,7 +16,7 @@ def test_writers_are_continued_instead_of_restarted():
     deliver, roles = prose("orchi-deliver/SKILL.md"), prose("orchi-core/roles/README.md")
     assert "## Continue a writer" in (SKILLS / "orchi-core/roles/README.md").read_text()
     assert "with `SendMessage` to the agent ID its start returned" in roles
-    assert deliver.count("(../orchi-core/roles/README.md#continue-a-writer)") == 3
+    assert deliver.count("(../orchi-core/roles/README.md#continue-a-writer)") == 2
     assert "restart that writer" not in deliver and "restarting its writer" not in deliver
     for writer in WRITERS:
         text = prose(f"orchi-core/roles/{writer}.md")

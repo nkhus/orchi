@@ -101,7 +101,7 @@ flowchart LR
 
 **Orchi routes; it never does the work itself.** Each request goes to a free crew, which takes a role, is renamed after its role and topic (for example `planner-csv-export`), and talks to you in its own session. Crews hand all repository work to their workers, and workers delegate to model-tiered subagents. When the work is done, everyone clears and returns to the pool.
 
-**Work moves forward on its own.** A researcher who finishes shaping an idea continues as its planner in the same session. A finished plan goes to a dev lead without you asking. The design Epic starts with you while the foundation is still being built; a merged foundation unblocks the rest, and a merged design Epic the parts that build on its surfaces. If a session stops, Orchi sends the same assignment again, and the new session picks up from Git and GitHub.
+**Work moves forward on its own.** A researcher who finishes shaping an idea continues as its planner in the same session. A finished plan goes to a dev lead without you asking. The design Epic starts with you while the first run is still being built; a merged first run unblocks the rest, and a merged design Epic the parts that build on its surfaces. If a session stops, Orchi sends the same assignment again, and the new session picks up from Git and GitHub.
 
 **The ceremony scales with the work:**
 
@@ -113,7 +113,7 @@ flowchart LR
 
 Titles carry their lineage: Initiative `[PAY] Card payments` → Epic `[PAY][TOKEN] Tokenize stored cards` → Task `[PAY][TOKEN] Add token column`.
 
-**New product from one conversation.** Tell Orchi what you want to build. A researcher asks only product questions: who uses it, where it runs, what data it holds, the budget, and whether it is a proof of concept or meant to last. It fills the stack from Orchi's defaults: strict TypeScript, or Python for data work. Then a small foundation Epic sets up the stack and the core checks while a design Epic gives the product its look with you, and the rest is planned at once and starts when the foundation merges. A project meant to last gets its remaining checks in a hardening Epic beside the product work.
+**New product from one conversation.** Tell Orchi what you want to build. A researcher asks only product questions: who uses it, where it runs, what data it holds, the budget, and whether it is a proof of concept or meant to last. It fills the stack from Orchi's defaults: strict TypeScript, or Python for data work, and first proves with a quick prototype anything the idea cannot work without, such as an outside service or model. The first thing built is the first run: the product's core action working end to end, which you can open and try, on the stack with only the core checks. A design Epic gives the product its look with you meanwhile, and the rest is planned at once and starts when the first run merges. Every other check arrives with the first change that needs it; a project meant to last gets the rest in a hardening Epic beside the product work.
 
 ## What stays yours
 
@@ -139,7 +139,7 @@ Orchi assumes agents write all the code and nobody reads it. Tools and one rigor
 - **Tests first.** Every new test is shown failing before the change, and every acceptance criterion gets an acceptance test.
 - **Standards enforced by CI.** `ENGINEERING.md` declares each check as a blocking CI job: format, lint, strict types, 90% coverage of changed lines, acceptance tests, accessibility (WCAG 2.2 AA), module boundaries, size limits, dead code, secrets, dependency and static security analysis, and licenses. An existing project gets an audit and one standards Epic.
 - **No quiet loopholes.** Writers check their own diffs, and the review checks the whole range, for weakened gates: a suppression, a loosened config, a skipped or deleted test, a CI step that no longer fails. Each one needs a recorded exception, and each exception reaches you in plain words.
-- **One full review, precise repairs.** Each Epic is reviewed for spec, scope creep, standards, and tests, plus [Impeccable](https://impeccable.style/)'s design audit when the UI changes. Blockers go back to the writer that holds the context and are rechecked. After two misses, the Task's boundary changes instead of being retried.
+- **One full review, precise repairs.** Each Epic is reviewed for spec, scope creep, standards, and tests, plus [Impeccable](https://impeccable.style/)'s design audit when the UI changes. Only demonstrated defects are repaired, a review that finds nothing is a valid result, and repairs are rechecked once. After two misses, the Task's boundary changes instead of being retried.
 - **Every PR explains itself.** It carries evidence for each criterion, every finding and its resolution, a merge risk (a one-way or two-way door, and the blast radius), its exceptions, and its documentation impact.
 - **Docs that never go stale.** `main` holds only how the product works now: a map in `docs/README.md` assigns code to its pages, and each page keeps only the decisions still in force. Research, options, and plans live in `docs/work/` on the work's branch, settled decisions move into the current pages, and the folder is deleted before the merge.
 - **It learns.** Each delivery proposes up to three lessons, each tied to something that happened and turned into a check, a form field, a coding standard, or a pointer. Nothing changes until you accept it.
@@ -156,7 +156,7 @@ Orchi is a set of Claude Code skills and subagents. Git and GitHub are its only 
 | `orchi` | You (`/orchi [request]`) | Makes a session Orchi: builds the pool, routes requests, assigns and releases crews, and tells you only about decisions, merges, and waiting questions |
 | `orchi-explore` | Researcher crew | Shapes an idea with you in an `Exploration` Issue and an `explore/<slug>` branch, then continues into planning |
 | `orchi-plan` | Planner crew | Proposes a scope, clarifies in rounds, shows the breakdown, creates ready Issues, and labels them `delivery-ready` |
-| `orchi-standards` | Planner crew | Derives the stack and checks from your product constraints: a foundation Epic, or an audit and a standards Epic |
+| `orchi-standards` | Planner crew | Audits an existing project's checks and plans a standards Epic, or plans hardening when a project becomes meant to last |
 | `orchi-design` | Designer crew | Runs a `design` Epic with you through Impeccable; builds go to workers |
 | `orchi-deliver` | Dev lead crew | Delivers a Task, Epic, or Initiative through workers, one review, and a PR; never merges into `main` itself |
 | `orchi-work` | Worker | Implements, fixes, or designs one Task, or answers one research question, as the matching subagent role |

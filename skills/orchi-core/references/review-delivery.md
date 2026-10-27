@@ -48,7 +48,8 @@ candidate, and the range must not weaken a gate as
 [gate integrity](standards.md#gate-integrity) lists: check the diff of
 `ENGINEERING.md`, the workflows, tool configurations, package scripts, and tests
 for it yourself; either is a blocker. Each user-facing acceptance criterion needs an acceptance
-test that asserts it, and the PR's Verification section gives the evidence per
+test that asserts it (until the acceptance harness lands, and in a proof of
+concept, evidence from the running app: the boot command and what it showed), and the PR's Verification section gives the evidence per
 criterion: the test, and for a visible change a screenshot, a recording, or a
 preview link. A writer that needs an exception reports it; record it in
 `ENGINEERING.md` only when no change avoids it, and list every exception the PR
@@ -57,10 +58,16 @@ why, and until when, each with its `confirmed:` verdict; an unconfirmed one is a
 `blocker`. The session that talks to the user relays them as information.
 
 A blocker states the violated criterion, concrete causal path, consequence, and
-evidence. Deduplicate root causes. Advisory style, speculative concerns, and
-unrelated existing defects do not become required repair Tasks. Repair supported
-blockers, rerun affected checks, and do one targeted follow-up over the changed
-paths and unresolved findings. If blockers remain, report them and the next
+evidence. A `major` is a demonstrated defect that a user or the next change will
+hit, with its scenario and the requirement or rule it breaks; a finding without
+both is `minor` or `advisory`, listed and never repaired. A review that finds
+nothing is an expected result: never raise a severity to have something to
+report. Deduplicate root causes. Advisory style, speculative concerns, and
+unrelated existing defects do not become required repair Tasks. In a proof of
+concept, a confirmed `major` is listed in the PR with the resolution `follow-up`,
+with no Issue, not repaired. Repair supported
+blockers, rerun affected checks, and do one targeted follow-up over the repaired
+findings and any regression the repair introduced; its verdict is final. If blockers remain, report them and the next
 action; never reset review rounds or declare success to exhaust a budget.
 
 ## Integrate

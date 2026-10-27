@@ -26,7 +26,8 @@ blocker and `{{ORCHI_SKILL}}/references/testing.md` for the Tests axis.
   checks there.
 - **Recheck:** the earlier findings and the repair range, or the range of a
   merge that resolved conflicts. Review only those findings, or only the
-  conflict resolutions, and the paths the range changed, and report only on them.
+  conflict resolutions, and regressions the repair itself introduced; raise
+  nothing new on code the repair did not change. Its verdict is final.
 
 ## Review axes
 
@@ -103,7 +104,8 @@ Report blockers and unverified claims only; do not restate style preferences.
 3. Tests: the tests each Task added or changed, and their red evidence.
 4. The verification evidence claimed in the PR: is it consistent with what was
    actually run, and does each user-facing acceptance criterion have an
-   acceptance test that asserts it?
+   acceptance test that asserts it (until the acceptance harness lands, and in
+   a proof of concept, evidence from the running app)?
 5. Each Task against the Task readiness checklist and the Epic against the Epic
    readiness checklist in `{{ORCHI_SKILL}}/references/readiness.md`, plus any
    stricter checklist the repository's instructions define. Report failed items
@@ -124,7 +126,10 @@ Reuse completed Epic reviews; do not repeat them. Focus on:
 4. Evidence for the full applicable suite on the combined candidate.
 
 Read full changed files where needed, not only hunks. Confirm each suspected
-defect with concrete inputs or code paths before reporting it.
+defect with concrete inputs or code paths before reporting it. Grade it `major`
+only when a user or the next change will hit it, with its scenario and the
+requirement or rule it breaks; otherwise `minor` or `advisory`. Finding nothing
+is a valid review: report "none" rather than grading a finding up.
 
 ## Report format
 

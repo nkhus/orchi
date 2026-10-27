@@ -39,7 +39,8 @@ standalone small fix.
 11. Gives observable acceptance mapped to the requirements, and the exact checks
     or commands that verify it, naming the seams where new tests go (when
     applicable). User-facing behavior is stated as what a user can see or do,
-    each with the acceptance test that checks it; in a project with
+    each with the acceptance test that checks it (until the acceptance harness
+    lands, and in a proof of concept, what the running app shows); in a project with
     `ENGINEERING.md`, the checks it runs come from there.
 12. States its documentation impact: the owning pages named by the project's
     documentation routing (the ownership map in `docs/README.md`, by default),
@@ -90,9 +91,9 @@ until the deferral is resolved.
     surface brief; at depth Epic, is itself the `design` Epic, naming the surfaces
     it designs and what must stay, or is blocked by the design Epic it builds on
     (when applicable).
-14. In a project without `ENGINEERING.md`, is blocked by the foundation or
-    standards Epic that [sets the standards](standards.md), or is that Epic; a
-    `design` Epic is not (when applicable).
+14. While the project's [first run](planning.md#engineering-standards) is
+    open, is blocked by it, or is that first run; a `design` Epic is not (when
+    applicable).
 
 ## Initiative readiness checklist
 

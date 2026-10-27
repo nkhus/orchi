@@ -37,7 +37,7 @@ user-wide one) and follow them as that role, with this session as the role:
 | Mode | Role | Input it needs |
 | --- | --- | --- |
 | `implement` | `orchi-implementer` | The Task, its parent Epic, the branch, this worktree |
-| `fix` | `orchi-fixer` | The same, or the defect from a `rework` message |
+| `fix` | `orchi-fixer` | The same, or the defect its reopened Task names |
 | `design` | `orchi-designer` (Task mode) | The same |
 | `research` | `orchi-researcher` | The question or option lens in the Issue or message |
 | `retrieve` | `orchi-scout` | The question in the message |
@@ -64,12 +64,13 @@ keep the role's full report as your final reply in this session:
   in `design` mode, with the paths of screenshots or produced assets the user
   should see; never use the question tool.
 
-After `done` in a writing mode, run `git switch --detach`, so that your crew or
-the next writer can check the branch out. Then end your turn and wait. On
-`#<task> answer` or `#<task> rework`, switch back to the task's branch and
-continue as the role's When continued section says: one more commit on the same
-branch, then report again. A new task message starts again at Load; you keep
-what you learned from earlier tasks.
+On `#<task> answer`, continue as the role's When continued section says, then
+report again. After `done`, in a writing mode run `git switch --detach`, so that
+your crew or the next writer can check the branch out; then, in every mode,
+clear your own conversation with the host's tool as the last action of the turn
+(once: a refused clear is not retried), so every task starts fresh from its
+message and its Issue; a task sent again for rework, on its
+reopened Task, starts at Load like any other.
 
 ## 4. Release
 

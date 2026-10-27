@@ -55,8 +55,8 @@ plan or code, from the fetched remote target; never reset another checkout. Do n
   independent entry points.
 - Update documentation with the code, in the same branch. Never present planned behavior as current behavior.
 - Show each new test failing before the change, and record checks, outcomes, and the candidate commit in the PR.
-  Review each standalone Task and each assembled Epic once, then repair demonstrated blockers with a targeted
-  follow-up.
+  Review each standalone Task and each assembled Epic once, unless it only configures tools, then repair
+  demonstrated blockers with a targeted follow-up.
 - Squash-merge. Close Epics, Initiatives, and standalone Tasks only after confirming the merge; close Epic Tasks as
   the execution reference says. Do not infer merge or deployment permission from permission to implement.
 - Where `ENGINEERING.md` exists, its checks are the code review: run them, and never weaken one without recording
@@ -84,7 +84,7 @@ Read only the reference needed for the current stage.
 ## Entry skills and subagents
 
 `orchi` is the entry the user types. Crews run `orchi-explore` (idea → Exploration), `orchi-plan` (request → ready
-Issues), `orchi-standards` (foundation or standards Epic), `orchi-design` (design Epic → PR), and `orchi-deliver`
+Issues), `orchi-standards` (standards audit or hardening), `orchi-design` (design Epic → PR), and `orchi-deliver`
 (Issue → PR); workers run `orchi-work`. They are hidden from the menu. Sessions may delegate to the subagents in
 [roles](roles/README.md): `orchi-scout` retrieves, `orchi-researcher` researches and designs options for an
 exploration, `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small, fully specified change (a

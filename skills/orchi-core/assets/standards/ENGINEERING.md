@@ -2,8 +2,8 @@
 
 <!-- Orchi template: the defaults for a TypeScript web app. Replace every <...>,
 drop rows that do not apply, and for Python take the Python column of the Orchi
-standards reference. The foundation leaves out the rows that reference's
-hardening Epic adds. Commit this file with the checks
+standards reference. Each row lands with the first change that needs it; a
+proof of concept keeps only the core rows. Commit this file with the checks
 it declares, never ahead of them. `standards.py` reads the Checks and Exceptions tables: keep their
 columns. -->
 

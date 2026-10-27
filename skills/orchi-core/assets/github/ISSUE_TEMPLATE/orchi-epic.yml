@@ -80,7 +80,7 @@ body:
     id: branch
     attributes:
       label: Branch and PR
-      description: The Epic branch and the PR target (the Initiative branch, or main for a standalone Epic). Record dependencies as native blocked-by relationships (in a project without ENGINEERING.md, on the foundation or standards Epic, except for a design Epic), and add the Tasks in execution order as native sub-issues.
+      description: The Epic branch and the PR target (the Initiative branch, or main for a standalone Epic). Record dependencies as native blocked-by relationships (in a new project, on its first run, except for a design Epic), and add the Tasks in execution order as native sub-issues.
     validations:
       required: true
   - type: textarea

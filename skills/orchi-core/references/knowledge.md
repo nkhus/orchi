@@ -63,7 +63,7 @@ with the work:
 2. Planning creates the Initiative or Epic branch from the exploration branch,
    so the folder carries on, renamed to `docs/work/<tag>-<slug>/` when the work
    gets a tag. When an exploration yields several top items (for a new product:
-   the foundation Epic, the design Epic, and the rest of the plan), the folder
+   the first run, the design Epic, and the rest of the plan), the folder
    goes to the item that carries the plan (the Initiative, or else the first in
    delivery order), and each other item's Issue carries the requirements,
    decisions, and fates that concern it, with links to the research and option

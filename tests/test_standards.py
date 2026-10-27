@@ -148,8 +148,9 @@ def test_standards_wording_agrees_across_planning_delivery_and_roles():
     planning, plan = prose('skills/orchi-core/references/planning.md'), prose('skills/orchi-plan/SKILL.md')
     assert "every Initiative, Epic, and Task that writes product code is blocked by it. A design Epic is not" in planning
     assert "Never ask the user to choose a tool, threshold, or code layout" in planning
-    assert "continue with [orchi-standards](../orchi-standards/SKILL.md) in this session" in plan
-    assert "is blocked by the foundation or standards Epic" in prose('skills/orchi-core/references/readiness.md')
+    assert "plan its first run first and the rest blocked by it" in plan
+    assert "While the project's [first run](planning.md#engineering-standards) is open, is blocked by it" in prose(
+        'skills/orchi-core/references/readiness.md')
     review = prose('skills/orchi-core/references/review-delivery.md')
     assert "the range must not weaken a gate as [gate integrity](standards.md#gate-integrity) lists" in review
     assert "in its Exceptions section in plain words" in review
@@ -165,13 +166,24 @@ def test_standards_wording_agrees_across_planning_delivery_and_roles():
     assert "| Planner | `orchi-standards` |" in prose('skills/orchi-core/references/pool.md')
 
 
-def test_a_new_project_starts_with_a_thin_foundation_and_hardens_later():
-    """Text, not behavior: the foundation is one Task, and the checks a lasting codebase needs come in parallel."""
+def test_a_new_project_starts_with_its_first_run_and_adds_checks_as_needed():
+    """Text, not behavior: no setup Epic; each check lands with the first change that needs it."""
     reference, skill = prose('skills/orchi-core/references/standards.md'), prose('skills/orchi-standards/SKILL.md')
-    assert "plans a foundation Epic with one Task" in reference and "## Hardening" in reference
-    assert "blocked by the foundation and blocking nothing" in reference
-    assert "A proof of concept gets only the foundation's checks" in reference
-    assert "its one Task is the reference's" in skill and "also write the [hardening]" in skill
+    assert "A new project has no setup Epic" in reference and "## Hardening" in reference
+    assert "in the first Task whose change needs it, as the `Lands with` column says" in reference
+    assert "| Check | TypeScript | Python | Blocking | Lands with |" in reference
+    assert "blocked by the first run, so a planner plans the hardening Epic once there is code to check" in reference
+    assert "A proof of concept gets only the core checks" in reference and "A proof of concept gets no ruleset" in reference
+    assert "only when its configuration is the project's own" in reference
+    assert "sets the standards: continue with [orchi-plan]" in skill
+    assert "foundation" not in " ".join(prose(p) for p in (
+        'skills/orchi-core/references/standards.md', 'skills/orchi-core/references/planning.md',
+        'skills/orchi-standards/SKILL.md', 'skills/orchi-plan/SKILL.md', 'skills/orchi-design/SKILL.md',
+        'skills/orchi-deliver/SKILL.md')).lower()
+    planning = prose('skills/orchi-core/references/planning.md')
+    assert "through the real services the exploration's prototypes proved" in planning
+    exploration = prose('skills/orchi-core/references/exploration.md')
+    assert "Build one that proves an assumption without asking" in exploration
     assert "Agents decide exceptions, never the user" in reference
     template = (ROOT / 'skills/orchi-core/assets/standards/ENGINEERING.md').read_text()
     for license_id in ('CC-BY-4.0', 'MPL-2.0', 'BlueOak-1.0.0'):

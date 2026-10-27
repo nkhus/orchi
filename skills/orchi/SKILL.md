@@ -70,10 +70,10 @@ another dashboard interval, send the dashboard `every <m> minutes`.
   tell the user it is ready. Then send the crew `release`.
 - `declined`: tell the user, then send `release`.
 - `PR ready`: in auto mode, merge it as the autonomy level allows and tell the user. Otherwise ask the user
-  whether to merge it, with the URL and its Merge risk in plain words; on their yes, confirm its checks pass
-  and merge it yourself. Either way, relay its Exceptions to the user in plain words, as
-  information. Pass requested changes on as `#<n> rework: <what>`. After a merge, yours or the user's, send
-  `#<n> merged`.
+  whether to merge it, with the URL, what they can now see or do (its Summary) and the crew's `see it at` link,
+  and its Merge risk in plain words; on their yes, confirm its checks pass and merge it yourself. Either way,
+  relay its Exceptions to the user in plain words, as information. Pass requested changes on as
+  `#<n> rework: <what>`. After a merge, yours or the user's, send `#<n> merged`.
 - `follow-up: #<m>`: assign a planner crew to it. `waits for #<m>`: nothing now; Reconcile step 2 answers it.
 - `done`: confirm the PR is merged and the Issue closed, then send `release`.
 - `crew-<k> released`: rename the crew `crew-<k>` now and give it nothing in this wake; at a later wake, send

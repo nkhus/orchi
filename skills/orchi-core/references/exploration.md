@@ -55,8 +55,10 @@ answer changes the destination or invalidates options.
    offering a menu. Done when the user has picked a direction.
 4. **Converge.** Resolve the chosen direction's decisions in rounds along their
    dependencies, as planning's clarify rules describe, and record each one at
-   once. When a question cannot be settled on paper (how a state model
-   behaves), offer a prototype. How screens should look is not settled here:
+   once. Before shaping, prove with a prototype each assumption the direction
+   cannot work without that nothing has shown yet (an external service or
+   model, access, data); offer one when a question cannot be settled on paper
+   (how a state model behaves). How screens should look is not settled here:
    it is a design Epic's work, on the real stack with Impeccable. Done when no
    open question affects the approach.
 5. **Shape.** Write the requirements and the Shape section. For a product with
@@ -76,8 +78,10 @@ answer changes the destination or invalidates options.
 
 ## Prototypes
 
-A prototype is throwaway code that answers one question. With the user's
-agreement, build it on a `prototype/<slug>` branch from main, mark it as a
+A prototype is throwaway code that answers one question. Build one that proves
+an assumption without asking, and tell the user its verdict in product terms;
+build any other with the user's agreement. Ask only for access the user alone
+can grant. Build it on a `prototype/<slug>` branch from main, mark it as a
 prototype in its name and first lines, make it run with one command, keep its
 state in memory, and skip tests and polish. Record the question and the verdict
 in the Issue with a link to the branch. Never merge the branch; the decision,
@@ -86,12 +90,11 @@ not the code, carries into planning.
 ## New projects
 
 Exploration needs a Git repository with a GitHub remote, because the Issue is
-its state. Orchi prepares it before any crew starts, as the pool reference's
-[Prepare the repository](pool.md#prepare-the-repository) says: it commits and
-pushes the installation to `main`, because branches, crews' worktrees, and CI
-start from it, and creates a remote repository only with the user's agreement.
-Planning a new project starts with `orchi-standards`, which plans the foundation
-Epic that the product code waits for.
+its state; Orchi [prepares it](pool.md#prepare-the-repository) before any crew
+starts.
+Planning a new project starts with its
+[first run](planning.md#engineering-standards), which the rest of the product
+code waits for.
 
 ## Hand off
 
