@@ -15,7 +15,7 @@ import re
 import tomllib
 
 ROLES_DIR = Path(__file__).resolve().parents[2] / "roles"
-ROLES_PATH = ".claude/skills/orchi/roles"
+ROLES_PATH = ".claude/skills/orchi-core/roles"
 PLACEHOLDER = "{{ORCHI_SKILL}}"
 PLACEHOLDER_PATTERN = re.compile(r"\{\{[A-Za-z0-9_]+\}\}")
 CLAUDE_DIR = ".claude/agents"

@@ -16,7 +16,7 @@ the entry skills with a `--report-to` flag.
 
 ## Instead
 
-The pool entry is the explicit-only skill `orchi-pm`. Crews run the ordinary
+The pool entry is the explicit-only skill `orchi`. Crews run the ordinary
 entry skills with `--report-to <Orchi>`, and workers run `orchi-work`.
 
 ## Decided in

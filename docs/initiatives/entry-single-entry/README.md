@@ -172,7 +172,9 @@ must not touch the same files; planning splits them that way.
 3. **Fix.** Orchi assigns a planner crew for one Task.
 4. **Running a plan.** Orchi assigns a dev lead crew to a `delivery-ready`
    Epic or Initiative. Research and design Epics go to researcher and designer
-   crews.
+   crews. A product with a user interface gets `PRODUCT.md` from research and
+   `DESIGN.md` from its first design Epic, as the [design track](design-track.md)
+   describes.
 5. **More planning during delivery.** A dev lead crew sends Orchi the request;
    Orchi assigns a planner crew.
 6. **More hands.** A crew uses all of its workers; it never creates sessions
@@ -202,6 +204,10 @@ must not touch the same files; planning splits them that way.
 | D16 | The maintainer migrates existing projects by hand. | 2026-10-26 |
 | D17 | Orchi and the whole pool run in bypass permissions mode, so that the auto mode classifier cannot deny setup or clearing. Pool sessions then run every tool without a prompt; role instructions and the crews' checks are the only guards. | 2026-10-26 |
 | D18 | Interactive mode uses the 0.16 autonomy levels Ask and Decide; auto mode uses Auto, with Orchi answering crews. At every level the user decides deployment, destructive and irreversible actions, access, and scope; a merge that deploys waits. | 0.16, 2026-10-14 |
+
+D19–D26 settle the design track: the designer crew, Impeccable as the only design
+engine, SmoothUI in the stack, and design depth. They are listed in
+[E4 Design track](design-track.md#decisions).
 
 ## Host facts this plan relies on
 
@@ -241,9 +247,11 @@ Observed in live runs on 2026-10-26, detailed in
 - R8. A dev lead crew runs Tasks in parallel on `task/*` branches, merges them into
   the Epic branch after checking each, and opens the PR.
 - R9. The Orchi installer always installs Impeccable at a pinned version without
-  hooks and fails before mutation when Node is missing; a designer crew runs
-  Impeccable's interactive steps with the user and never chooses a direction
-  alone.
+  hooks or telemetry and fails before mutation when Node is missing; a designer
+  crew runs Impeccable's interactive steps with the user and never chooses a
+  direction alone; the planner sets each piece of work's design depth; workers
+  build only against an approved direction. The [design track](design-track.md)
+  details the three paths.
 - R10. In auto mode crews ask Orchi, and Orchi answers within the limits the user
   set.
 
@@ -254,7 +262,7 @@ Observed in live runs on 2026-10-26, detailed in
 - Migrating existing projects such as Mirivis (D16).
 - A controller, state database, or approval receipts: GitHub stays the shared
   state, and the pool is visible in the sidebar.
-- Making Taste Skill or SmoothUI mandatory.
+- Taste Skill, which the design track removes (D21).
 
 ## Records this reopens
 
@@ -275,7 +283,7 @@ Observed in live runs on 2026-10-26, detailed in
 | E1 Pool | Orchi builds and assigns crews; crews create their nested workers on one click; clearing and release (R1, R2, R5) | none |
 | E2 Crew delegation | Crews run all work through their workers; workers ask only their crew; modes (R4, R10) | E1 supplies the pool |
 | E3 Research | Researcher crews and vision documents (R6) | E2 supplies delegation |
-| E4 Design | Impeccable always installed; designer crews (R9) | E2 supplies delegation |
+| E4 Design | Impeccable always installed; designer crews; design depth in planning; the three design paths ([design track](design-track.md), R9) | E2 supplies delegation |
 | E5 Planning and delivery | Planner and dev lead crews, typed plans, parallel `task/*` branches (R7, R8) | E2 supplies delegation |
 | E6 Board | Orchi's board of crews, waiting decisions, readiness, and merges (R3) | E1, E5 supply the state it shows |
 

@@ -12,7 +12,7 @@ and `/orchi-deliver` work on their own.
 
 | Session | Created by | In the sidebar | Talks to | Never |
 | --- | --- | --- | --- | --- |
-| Orchi (`/orchi-pm`) | the user | top level | the user; crews | Plans, researches, edits code, or merges outside the mode's limits |
+| Orchi (`/orchi`) | the user | top level | the user; crews | Plans, researches, edits code, or merges outside the mode's limits |
 | Crew | Orchi, when it builds the pool | top level, in the group `Orchi pool · <repo>` | Orchi; the user in interactive mode; its workers | Writes code itself, takes a second assignment, or starts sessions after setup |
 | Worker (`orchi-work`) | its crew, in the user's turn | nested under its crew | its crew only | Talks to the user, pushes, or opens PRs |
 
@@ -27,13 +27,15 @@ crew's name in claims and messages, whatever its title.
 | --- | --- | --- | --- |
 | Researcher | `orchi-explore` | One idea, with the user | The user confirms the shape, or declines |
 | Planner | `orchi-plan` | One request, Exploration, or `needs-planning` Issue | `planned` or `declined` |
+| Designer | `orchi-design` | One standalone `design` Epic, with the user | Its PR into main is merged |
 | Dev lead | `orchi-deliver` | One standalone Task, standalone Epic, or Initiative | Its PR into main is merged |
 
 A crew writes no code itself: a dev lead gives every change to a worker,
 including a review repair and a merge conflict. A crew edits Issues and PRs,
-creates, merges, and pushes branches, and a planner or researcher crew writes the
-planning documents its conversation with the user produces (an Initiative
-document, a research note). Where its role skill says to implement, fix, or
+creates, merges, and pushes branches, and a planner, researcher, or designer
+crew writes the planning documents its conversation with the user produces (an
+Initiative document, a research note, `PRODUCT.md`, a surface brief, an approved
+comp). Where its role skill says to implement, fix, or
 resolve something itself, a crew gives that to a worker instead. It may start
 read-only subagents (`orchi-scout`, `orchi-researcher`, `orchi-reviewer`) for
 retrieval, research, and review. Adding a role means adding its skill and a row
@@ -44,7 +46,7 @@ to this table.
 Orchi builds the pool in a turn the user started, because a session can start
 other sessions only then; it never starts sessions in a turn that a message or
 an event started. A message typed over Remote Control starts no session either,
-so the user runs `/orchi-pm`, clicks `Create workers`, and asks for more crews
+so the user runs `/orchi`, clicks `Create workers`, and asks for more crews
 in the desktop app.
 
 1. Orchi checks that it runs in bypass permissions mode, which the pool needs so
@@ -79,7 +81,7 @@ among the sessions it started.
 
 A pool has one Orchi: the session that started its crews (their
 `parentSessionId`), or the one they last accepted a takeover from. When
-`/orchi-pm` runs in another session, that session changes nothing while the
+`/orchi` runs in another session, that session changes nothing while the
 pool's Orchi exists and is not archived: it tells the user to continue there,
 with a link, and stops. When that Orchi is archived or gone, the new session
 takes the title of the former Orchi, so `Requested by:` lines still name it, and
@@ -125,14 +127,14 @@ receiver tells the user which session sent it instead of asking for a resend.
 ## Modes and autonomy
 
 The user sets the mode by telling Orchi; it applies to the whole pool and holds,
-through compaction, until the user changes it or runs `/orchi-pm` again, which
+through compaction, until the user changes it or runs `/orchi` again, which
 resets it to interactive at Ask. Orchi states it in every report, ends every
 assignment with `Mode: <mode>, autonomy: <level>, set by the user on <date>.`,
 and sends `mode <mode>, autonomy <level>` to its busy crews when it changes.
 
 | | Interactive | Auto |
 | --- | --- | --- |
-| Who answers a crew's question | The user, in the crew's session | Orchi; the user still answers a researcher |
+| Who answers a crew's question | The user, in the crew's session | Orchi; the user still answers a researcher and a designer |
 | Autonomy level | Ask (default) or Decide | Auto |
 
 | Level | Planner and researcher crews | Dev lead crews and Orchi |
@@ -161,7 +163,8 @@ Orchi routes each request to a role:
 | --- | --- | --- |
 | An idea, a new project, or a strategic choice | Researcher | `orchi-explore` with the idea or `#<exploration>` |
 | A clear request, a fix, a `needs-planning` Issue, or a shaped Exploration | Planner | `orchi-plan` with the request or `#<n>` |
-| "Take #n" on a `delivery-ready` Issue | Dev lead | `orchi-deliver` with `#<n>` |
+| "Take #n" on a `delivery-ready` Epic labelled `design` | Designer | `orchi-design` with `#<n>` |
+| "Take #n" on another `delivery-ready` Issue | Dev lead | `orchi-deliver` with `#<n>` |
 
 Before giving a crew an Issue, Orchi claims it: `in-progress`, the assignee, and
 the work reference `Assigned to crew-<k> (<session id>) by <Orchi> on <date>`,
@@ -177,7 +180,7 @@ If the claim is not adopted by Orchi's first wake an hour or more after the
 assignment, or the crew's conversation is empty (the message was lost), Orchi
 sends the assignment again once, then removes the claim and tells the user.
 
-Orchi gives a dev lead crew only an open, unclaimed Issue labelled
+Orchi gives a dev lead or designer crew only an open, unclaimed Issue labelled
 `delivery-ready` that is also `ready` in `status.py`; for `check`, it confirms the
 blocker's result reached the target first. It takes such an Issue when the user
 names it, and by itself when the Issue says `Requested by: <Orchi's title>`,
@@ -213,7 +216,20 @@ auto mode a planner asks Orchi instead. It takes no other request, and:
   where it stopped and reports `<id> declined: parked`.
 
 Orchi tells the user about planned work they requested; work that says
-`Requested by: <Orchi's title>` it assigns to a dev lead crew by itself.
+`Requested by: <Orchi's title>` it assigns to a dev lead or designer crew by
+itself.
+
+## Designer crews
+
+A designer crew holds one standalone `design` Epic. It runs Impeccable's steps
+that need the user (`init`, `shape`, the direction round, and comp and asset
+approval) in its own session, asks the user directly in both modes, and reports
+`#<n> needs the user: <question>` to Orchi as well; an autonomy level never
+chooses a direction or approves a comp. It then builds the approved surfaces as a
+dev lead does, through its workers in `design` mode, and reports `#<n> PR ready`,
+`#<n> follow-up`, and `#<n> done` like one. A `design` Epic stays standalone, so
+an Initiative's dev lead never holds one: the Epic or Initiative that builds on
+it is blocked by it.
 
 ## Workers
 

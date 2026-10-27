@@ -40,7 +40,7 @@ def test_fresh_install_preserves_user_files(tmp_path):
     assert installer.install(tmp_path)['status'] == 'installed'
     assert (tmp_path / 'CLAUDE.md').read_text().startswith('User rules\n\n<!-- orchi:begin -->')
     assert (tmp_path / 'AGENTS.md').read_text() == 'Other assistant rules'
-    assert sorted(p.name for p in (tmp_path / '.claude/skills').iterdir()) == sorted(installer.NAMES)
+    assert sorted(p.name for p in (tmp_path / '.claude/skills').glob('orchi*')) == sorted(installer.NAMES)
     assert installer.install(tmp_path)['status'] == 'unchanged'
     installer.install(tmp_path, uninstall=True)
     assert (tmp_path / 'CLAUDE.md').read_text() == 'User rules'
@@ -53,11 +53,11 @@ def test_dry_run_no_mutation(tmp_path):
 
 def test_modified_skill_refuses_silent_overwrite(tmp_path):
     installer.install(tmp_path)
-    skill = tmp_path / '.claude/skills/orchi/SKILL.md'; skill.write_text('User customizations')
+    skill = tmp_path / '.claude/skills/orchi-core/SKILL.md'; skill.write_text('User customizations')
     with pytest.raises(ValueError):
         installer.install(tmp_path)
     result = installer.install(tmp_path, replace=True)
-    assert (Path(result['backup']) / '.claude/skills/orchi/SKILL.md').read_text() == 'User customizations'
+    assert (Path(result['backup']) / '.claude/skills/orchi-core/SKILL.md').read_text() == 'User customizations'
 
 
 def test_unrelated_skills_are_preserved(tmp_path):
@@ -82,7 +82,7 @@ def test_installed_knowledge_tool_runs_without_source_checkout(tmp_path):
     installer.install(tmp_path)
     (tmp_path / 'pyproject.toml').write_text('[project]\nname="unrelated-app"\nrequires-python=">=3.99"\n')
     env = {k: v for k, v in os.environ.items() if k != 'PYTHONPATH'}
-    script = tmp_path / '.claude/skills/orchi/scripts/knowledge.py'
+    script = tmp_path / '.claude/skills/orchi-core/scripts/knowledge.py'
     result = subprocess.run([sys.executable, str(script), 'search', 'session'], cwd=tmp_path,
                             env=env, capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
@@ -94,7 +94,7 @@ def test_installed_knowledge_tool_runs_without_source_checkout(tmp_path):
 
 def test_copy_install_rollback_preserves_modified_skill(tmp_path, monkeypatch):
     installer.install(tmp_path)
-    target = tmp_path / '.claude/skills/orchi/SKILL.md'; target.write_text('User customization')
+    target = tmp_path / '.claude/skills/orchi-core/SKILL.md'; target.write_text('User customization')
     original_move = installer.shutil.move
     def fail_staged_move(source, destination):
         if '.orchi-stage-' in str(source): raise OSError('Injected staging failure')
@@ -114,7 +114,7 @@ def source_copy(tmp_path):
 
 
 @pytest.mark.parametrize('linking, target', [
-    ('skills/orchi/references/execution.md', 'skills/orchi/references/planning.md'),
+    ('skills/orchi-core/references/execution.md', 'skills/orchi-core/references/planning.md'),
     ('docs/testing.md', 'docs/installation.md'),
 ])
 def test_renamed_heading_breaks_validation(tmp_path, linking, target):
@@ -135,13 +135,13 @@ def test_renamed_heading_breaks_validation(tmp_path, linking, target):
 
 def test_installed_file_outside_npm_files_breaks_validation(tmp_path):
     validator, copy = source_copy(tmp_path)
-    new = copy / 'skills/orchi/templates/example.md'
+    new = copy / 'skills/orchi-core/templates/example.md'
     new.parent.mkdir()
     new.write_text('# Example\n', encoding='utf-8')
     report = validator.validate(copy)
-    assert 'Installed file missing from the npm "files" allowlist: skills/orchi/templates/example.md' in report['errors']
+    assert 'Installed file missing from the npm "files" allowlist: skills/orchi-core/templates/example.md' in report['errors']
     package = json.loads((copy / 'package.json').read_text())
-    package['files'].append('skills/orchi/templates')
+    package['files'].append('skills/orchi-core/templates')
     (copy / 'package.json').write_text(json.dumps(package, indent=2) + '\n')
     report = validator.validate(copy)
     assert report['ok'], report['errors']
@@ -150,10 +150,10 @@ def test_installed_file_outside_npm_files_breaks_validation(tmp_path):
 def test_npm_files_reject_stale_and_extra_entries(tmp_path):
     validator, copy = source_copy(tmp_path)
     package = json.loads((copy / 'package.json').read_text())
-    package['files'] += ['skills/orchi/missing', 'tests/**/*.py']
+    package['files'] += ['skills/orchi-core/missing', 'tests/**/*.py']
     (copy / 'package.json').write_text(json.dumps(package, indent=2) + '\n')
     errors = validator.validate(copy)['errors']
-    assert 'npm "files" entry matches no source file: skills/orchi/missing' in errors
+    assert 'npm "files" entry matches no source file: skills/orchi-core/missing' in errors
     assert 'npm "files" publishes a file the installer does not use: tests/test_packaging.py' in errors
 
 
@@ -170,5 +170,5 @@ def test_npm_pack_publishes_what_validation_expects():
 
 def test_repository_ci_is_not_an_installed_asset():
     from orchi_core import installation
-    assert installation.GITHUB_ASSETS == ROOT / 'skills/orchi/assets/github'
+    assert installation.GITHUB_ASSETS == ROOT / 'skills/orchi-core/assets/github'
     assert '.github/workflows/ci.yml' not in installation.github_files()

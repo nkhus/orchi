@@ -46,6 +46,13 @@ body:
       label: Shape
       description: The chosen direction, and candidate Epics as outcomes, each with the result or contract it supplies to the next (the dependency between Epics).
   - type: textarea
+    id: product
+    attributes:
+      label: Product
+      description: For a product with a user interface - the primary users and their situation, the purpose and the mechanism no competitor shares, positioning, platform, stack, constraints, brand commitments, evidence, and accessibility level, for Impeccable's init to record in PRODUCT.md. Leave empty otherwise.
+    validations:
+      required: false
+  - type: textarea
     id: questions
     attributes:
       label: Open questions

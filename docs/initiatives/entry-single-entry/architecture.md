@@ -38,7 +38,7 @@ New constraints:
 ```
                          ┌──────────────────────────────┐
               talks to   │            Orchi             │  top level, created by the user
-  User ─────────────────►│  entry · router · board      │  skill: /orchi-pm
+  User ─────────────────►│  entry · router · board      │  skill: /orchi
    │                     └──────┬───────────────▲───────┘
    │ talks to (interactive)     │ assign/release│ reports, requests
    ▼                            ▼               │
@@ -63,7 +63,7 @@ New constraints:
 
 ### 3.1 Orchi
 
-- **Created by** the user, who types `/orchi-pm` in a session of the repository.
+- **Created by** the user, who types `/orchi` in a session of the repository.
 - **Lifetime:** long-lived; only the user clears it.
 - **Does:** routes requests, builds and maintains the pool, assigns and releases
   crews, answers crews in auto mode, keeps the board, leads acceptance with a
@@ -74,7 +74,7 @@ New constraints:
   turn, typed in the desktop app: a message typed over Remote Control starts no
   session.
 - **One per pool:** the session that started the crews (their `parentSessionId`),
-  or the one they last accepted a takeover from. A second `/orchi-pm` changes
+  or the one they last accepted a takeover from. A second `/orchi` changes
   nothing while that Orchi exists and is not archived; it points the user to it.
   When that Orchi is archived or gone, the new session takes its title and sends
   each crew `Orchi is now <title> (<session id>)`, which a crew accepts only after
@@ -109,7 +109,7 @@ New constraints:
 | --- | --- | --- | --- | --- |
 | Researcher | `orchi-explore` | An idea, as a challenger, with the user | Local and web research, option design, vision documents | Committed vision documents and an Exploration Issue |
 | Planner | `orchi-plan` | One plan with the user | Retrieval, drafting Issue bodies | `delivery-ready` Task, Epic, or Initiative |
-| Designer | `orchi-design` (new) | Product context and direction with the user, through Impeccable | UI built against the approved direction | Approved direction, `PRODUCT.md`/`DESIGN.md`, design Tasks |
+| Designer | `orchi-design` (new) | One `design` Epic: product context, the direction round, and comp approval with the user, through Impeccable | UI built against the approved comp or direction contract | A merged PR with the built surfaces, surface briefs, and `DESIGN.md` |
 | Dev lead | `orchi-deliver` | One Epic, Initiative, or standalone Task | One Task each on `task/*` | A reviewed PR, merged per mode |
 
 A worker runs `orchi-work` (new), which carries the writer contracts that the
@@ -124,7 +124,7 @@ Adding a role means adding its skill and one row to the role table in
 | Skill | Today | Target |
 | --- | --- | --- |
 | `orchi` | Core workflow, references, roles, scripts | Unchanged in role: the workflow a single session follows, and the bundle that holds references, subagent roles, and scripts |
-| `orchi-pm` | — | The entry: `/orchi-pm` makes a session Orchi (`disable-model-invocation: true`) |
+| `orchi` | — | The entry: `/orchi` makes a session Orchi (`disable-model-invocation: true`) |
 | `orchi-explore` | Exploration with `--report-to` | Researcher crew role; adds challenger mode and vision documents |
 | `orchi-plan` | Planning with `--report-to` | Planner crew role; plans research and design Epics |
 | `orchi-deliver` | Delivery with subagent writers | Dev lead crew role; writers become workers |
@@ -137,7 +137,7 @@ clearing, modes). Scripts: `status.py` stays; `board.py` (new, read-only) builds
 the board.
 
 Crew and worker skills are model-invocable, because they are invoked from a
-message; the `orchi-pm` entry stays explicit-only, as the hubs were, because it
+message; the `orchi` entry stays explicit-only, as the hubs were, because it
 holds the authority to build the pool and to merge in auto mode. The entry is a
 skill of its own because `orchi` is the workflow that a single session invokes
 for any implementation request.
@@ -177,7 +177,7 @@ No other record exists. A lost conversation loses no work: claims, Issues, PR
 
 ### 6.1 Pool setup
 
-Runs in the user's first `/orchi-pm` turn, or when the user asks to enlarge the pool.
+Runs in the user's first `/orchi` turn, or when the user asks to enlarge the pool.
 
 1. Orchi checks that it runs in bypass permissions mode; if not, it asks the user
    to switch and stops.
@@ -316,12 +316,17 @@ is `delivery-ready`, Orchi gives it to a free dev lead crew by itself.
 
 ### 8.5 Design
 
+The [design track](design-track.md) holds the three paths (from scratch,
+changing a design, a feature with UI) and the design depth the planner sets.
+
 1. A `design` Epic goes to a designer crew.
-2. With the user, the designer runs Impeccable `init` (when `PRODUCT.md` is
-   missing), `shape`, and the direction choice, and records the brief and the
-   approved comp in the Issue.
-3. Its workers build against the approved direction; a worker that would need a
-   new direction stops with `blocked`, and the designer asks the user.
+2. With the user, the designer runs Impeccable `init` and `document` when
+   `PRODUCT.md` or `DESIGN.md` is missing, then `shape`, the direction round, and
+   comp approval, and records each direction contract in a surface brief.
+3. Its workers build against the approved comp or contract; a question from
+   Impeccable during a build reaches the designer as `#<task> question`, and a
+   worker that would need a new direction stops with `blocked`. The designer asks
+   the user in both modes.
 
 ## 9. Modes and autonomy
 
@@ -341,7 +346,7 @@ The user sets one mode at Orchi; Orchi passes it in every assignment.
 - Exploration stays a conversation with the user in both modes; in auto mode a
   greenfield idea waits for the user.
 - The mode holds through compaction and resets to interactive when the user runs
-  `/orchi-pm` again.
+  `/orchi` again.
 
 ## 10. Branches and worktrees
 
@@ -363,7 +368,7 @@ The user sets one mode at Orchi; Orchi passes it in every assignment.
 | --- | --- | --- |
 | A worker's work is merged or dropped | Its crew | After the worker reports `released` (§6.3) |
 | A crew's assignment is done | The crew itself | Last action of its turn, after its workers are cleared; Orchi renames it on its `released` reply |
-| Orchi | The user | `/clear`, then `/orchi-pm` |
+| Orchi | The user | `/clear`, then `/orchi` |
 
 - A clear is refused for a pinned session, one open on the user's screen, one with
   an unprocessed message or live work, or one that serves Remote Control. The
@@ -396,7 +401,7 @@ The user sets one mode at Orchi; Orchi passes it in every assignment.
 | A crew does not answer | Orchi, on its next wake | Check the session; tell the user which crew to open |
 | A clear is refused | The clearing session | Retry on the next wake; then tell the user the cause |
 | A crew's self-clear did not land | Orchi, at a later wake: a free crew's conversation is not empty | Send `release` again |
-| `/orchi-pm` runs in a second session | The new session, from the crews' `parentSessionId` | Point the user to the pool's Orchi and stop; take over only when it is archived or gone (§3.1) |
+| `/orchi` runs in a second session | The new session, from the crews' `parentSessionId` | Point the user to the pool's Orchi and stop; take over only when it is archived or gone (§3.1) |
 | No free crew | Orchi | Keep the request on the board; offer to enlarge the pool in the user's next turn |
 | A message is held | The sender | Tell the user which session and why |
 | The user types into a worker | The worker | Answer the user, then tell its crew what changed |
@@ -419,13 +424,19 @@ reports.
 
 ## 15. Design track
 
-- The installer always installs Impeccable at a pinned version, for Claude only,
-  without hooks, and fails before mutation when Node 18.19+ is missing.
+- The installer always installs Impeccable at a pinned version, in project
+  scope, for Claude only, without hooks and with telemetry off, and fails before
+  mutation when Node is missing. With `--github` a workflow runs
+  `impeccable detect` on changed UI files.
+- Impeccable is the only design engine; Taste Skill is not used. SmoothUI is a
+  stack default for React web projects, through the shadcn MCP server.
 - The designer crew runs Impeccable's interactive steps with the user. Workers use
   `context`, `craft-floor`, the focused commands, and `polish`, and stop with
   `blocked` instead of choosing a direction.
 - The dev lead's design audit uses `audit`, `detect`, and `critique` without its
   questions.
+- The planner sets design depth (none, brief, Epic), as the
+  [design track](design-track.md#design-depth) says.
 - `PRODUCT.md`, `DESIGN.md`, `.impeccable/design.json`, and `.impeccable/config.json`
   are committed; `.impeccable/build/`, `review/`, and `mocks/` are ignored except
   an approved comp.
@@ -449,7 +460,7 @@ reports.
   every role in `pool.md` has a skill and that message names agree across skills.
   These prove wording and scripts, not behavior.
 - **Live run before the next Epic starts,** on a disposable repository:
-  1. `/orchi-pm` builds the pool; five clicks create the workers.
+  1. `/orchi` builds the pool; five clicks create the workers.
   2. A greenfield idea reaches vision documents and a plan.
   3. A two-Task Epic runs in parallel to a merged PR, with one rework round.
   4. `/compact` in a crew and in a worker mid-task; the role is restored by

@@ -1,6 +1,6 @@
 {
   "name": "@nkhus/orchi",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "Install the Orchi development workflow skills and subagents for Claude Code.",
   "type": "module",
   "bin": {
@@ -9,16 +9,17 @@
   "files": [
     "bin/orchi.js",
     "tools/install.py",
-    "skills/orchi/SKILL.md",
-    "skills/orchi/assets",
-    "skills/orchi/references",
-    "skills/orchi/roles",
-    "skills/orchi/scripts/**/*.py",
+    "skills/orchi-core/SKILL.md",
+    "skills/orchi-core/assets",
+    "skills/orchi-core/references",
+    "skills/orchi-core/roles",
+    "skills/orchi-core/scripts/**/*.py",
     "skills/orchi-explore",
     "skills/orchi-plan",
+    "skills/orchi-design",
     "skills/orchi-deliver",
     "skills/orchi-work",
-    "skills/orchi-pm",
+    "skills/orchi",
     "README.md"
   ],
   "scripts": {

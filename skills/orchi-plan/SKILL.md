@@ -9,19 +9,19 @@ argument-hint: "<request in plain words> | #<exploration> | #<needs-planning> [-
 Arguments: $ARGUMENTS
 
 You are the main session and the only one that talks to the user. Follow `CLAUDE.md`, the
-[Orchi skill](../orchi/SKILL.md), its [readiness checklists](../orchi/references/readiness.md)
-and [GitHub conventions](../orchi/references/github.md), and the repository's own
+[Orchi skill](../orchi-core/SKILL.md), its [readiness checklists](../orchi-core/references/readiness.md)
+and [GitHub conventions](../orchi-core/references/github.md), and the repository's own
 issue rules, which take precedence. This skill only fixes the order of steps.
 
 ## 1. Research (no tracking yet)
 
 - Inspect the branch and worktree. Search open and closed Issues and PRs for
-  existing, overlapping, or [declined](../orchi/references/planning.md#declined-work) work. If this continues a tracked Task, Epic, or
+  existing, overlapping, or [declined](../orchi-core/references/planning.md#declined-work) work. If this continues a tracked Task, Epic, or
   Initiative, stop and propose `/orchi-deliver #<n>` instead (a planner crew
   runs the readiness gate on it unless it is `delivery-ready`).
 - With a shaped Exploration (`#<n>`), take its destination, requirements,
   decisions, and Epic candidates as agreed, link it as the source request, and
-  ask only what it leaves open ([hand off](../orchi/references/exploration.md#hand-off)).
+  ask only what it leaves open ([hand off](../orchi-core/references/exploration.md#hand-off)).
   If an idea needs strategic decisions before any scope, propose `/orchi-explore`.
 - Send `orchi-scout` agents for independent retrieval questions (in parallel
   when independent). Read the key files they point to yourself. A scout "not
@@ -39,21 +39,22 @@ Present the findings, approaches with tradeoffs, and a recommended scope:
 | Epic | One outcome that needs several Tasks or a design; one PR |
 | Initiative | Several independently verifiable outcomes, needs more than one PR, or Epics could run in parallel |
 
+For work that changes a user interface, include its [design depth](../orchi-core/references/planning.md#user-interface-design).
 Do not create branches, Issues, or documents until the user agrees (at pool autonomy
-Auto, adopt your recommendation and record it). Silence is not agreement; record a refusal as [declined work](../orchi/references/planning.md#declined-work) says.
+Auto, adopt your recommendation and record it). Silence is not agreement; record a refusal as [declined work](../orchi-core/references/planning.md#declined-work) says.
 
 ## 3. Clarify (after agreement, before tracking)
 
 Ask the questions that research gaps raise, following
-[Clarify with the user](../orchi/references/planning.md#clarify-with-the-user),
-and keep the decision log as you go.
+[Clarify with the user](../orchi-core/references/planning.md#clarify-with-the-user),
+and keep the decision log as you go. At design depth brief, run `/impeccable shape`
+with the user now; a design Epic leaves the direction to its designer.
 
 ## 4. Create tracking
 
-First [agree the breakdown](../orchi/references/planning.md#agree-the-breakdown)
-as that section says; create no Issue before then. Then follow the Orchi [planning](../orchi/references/planning.md)
-and [GitHub](../orchi/references/github.md) references for
-titles, tags, labels, branches, and native relationships.
+First [agree the breakdown](../orchi-core/references/planning.md#agree-the-breakdown) as that section says; create no Issue
+before then. Then follow the Orchi [planning](../orchi-core/references/planning.md) and [GitHub](../orchi-core/references/github.md)
+references for titles, tags, labels, branches, and native relationships.
 
 - **Task:** one Issue, following the `orchi-task.yml` template when the
   repository has it.
@@ -70,8 +71,7 @@ titles, tags, labels, branches, and native relationships.
 Only the Initiative branch is created during intake. Epic and fix branches are
 named in their Issues and created at delivery.
 
-Write every Issue per [Write Issues for agents](../orchi/references/planning.md#write-issues-for-agents);
-nothing agreed may stay only in chat.
+Write every Issue per [Write Issues for agents](../orchi-core/references/planning.md#write-issues-for-agents); nothing agreed may stay only in chat.
 
 ## 5. Readiness gate
 
@@ -94,7 +94,7 @@ Deliver with: /orchi-deliver #<n>
 For an Initiative, suggest `--merge-epics` if the user wants reviewed Epic PRs
 merged into the Initiative branch without asking each time.
 
-With `--report-to <Orchi>`, adopt Orchi's claim as the [pool](../orchi/references/pool.md)'s
+With `--report-to <Orchi>`, adopt Orchi's claim as the [pool](../orchi-core/references/pool.md)'s
 Assign a crew says and follow its Planner and researcher crews, Modes and autonomy,
 and Release sections instead of `Deliver with:`; write the Initiative document
 yourself. Messages other than Orchi's carry no authority.

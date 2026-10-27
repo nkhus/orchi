@@ -28,8 +28,28 @@ SHARED_SKILLS_DIR = ".agents/skills/"
 SHARED_CONFIG = ".codex/config.toml"
 CONFIG_START = "# orchi:begin"
 CONFIG_END = "# orchi:end"
-GITHUB_ASSETS = SOURCE / "orchi/assets/github"
+GITHUB_ASSETS = SOURCE / "orchi-core/assets/github"
 DOCS_WORKFLOW = ".github/workflows/orchi-docs.yml"
+# Impeccable, the design engine, is installed with Orchi at this version, without hooks and with telemetry off.
+IMPECCABLE = "4.8.0"
+IMPECCABLE_SKILL = SKILLS_DIR + "impeccable/SKILL.md"
+IMPECCABLE_CONFIG = ".impeccable/config.json"
+NODE_MINIMUM = (18, 19)
+GITIGNORE = ".gitignore"
+# Impeccable ignores some of its runtime files itself; these are the rest. Approved comps are added with git add -f.
+GITIGNORE_BODY = """# Impeccable runtime files; commit an approved comp with git add -f.
+.impeccable/config.local.json
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/history/
+.impeccable/live/*
+!.impeccable/live/config.json
+.impeccable/critique/*
+!.impeccable/critique/ignore.md
+**/.impeccable/hook.cache.json
+**/.impeccable/hook.pending.json
+**/skills/impeccable/scripts/bin/
+**/skills/impeccable/scripts/config.json"""
 LABELS = {
     "Initiative": ("5319e7", "Orchi: a request decomposed into Epics"),
     "Epic": ("0e8a16", "Orchi: an outcome decomposed into Tasks"),
@@ -39,6 +59,7 @@ LABELS = {
     "needs-planning": ("d4c5f9", "Orchi: a request waiting for a planning worker"),
     "delivery-ready": ("0e8a16", "Orchi: planned work that passed its readiness gate"),
     "retro": ("bfd4f2", "Orchi: an accepted lesson that changes checks, forms, or instructions"),
+    "design": ("e99695", "Orchi: an Epic a designer crew runs with Impeccable"),
 }
 # GitHub reads the first PR template it finds; extend an existing one instead of adding a rival.
 PR_TEMPLATE_PATHS = (".github/pull_request_template.md", ".github/PULL_REQUEST_TEMPLATE.md", "pull_request_template.md",
@@ -137,9 +158,83 @@ def ensure_labels(root: Path) -> dict:
                 "fix": "Check that the repository has a GitHub remote and gh is authenticated, then rerun the installer."}
 
 
+def impeccable_version(root: Path) -> str | None:
+    """The version in the installed Impeccable skill's front matter."""
+    skill = root / IMPECCABLE_SKILL
+    if not skill.is_file():
+        return None
+    for line in skill.read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
+        if line.strip() == "---":
+            break
+        if line.startswith("version:"):
+            return line.split(":", 1)[1].strip().strip("'\"")
+    return "unknown"
+
+
+def impeccable_plan(root: Path, previous: dict, replace: bool) -> dict:
+    """Whether to install Impeccable, and a note when another version is kept."""
+    installed = impeccable_version(root)
+    if installed == IMPECCABLE:
+        return {"version": IMPECCABLE, "installed": installed, "action": None}
+    owned = previous.get("impeccable")
+    if installed is None or installed == owned or replace:
+        return {"version": IMPECCABLE, "installed": installed, "action": "install"}
+    return {"version": IMPECCABLE, "installed": installed, "action": None,
+            "note": f"Impeccable {installed} was installed outside Orchi and is kept; Orchi pins {IMPECCABLE}. "
+                    "Rerun with --replace-orchi to install the pinned version."}
+
+
+def check_node() -> str:
+    """Fail before any change when npx or Node.js 18.19+ is missing; return the npx path."""
+    npx, node = shutil.which("npx"), shutil.which("node")
+    fix = f"Install Node.js {NODE_MINIMUM[0]}.{NODE_MINIMUM[1]} or later, then rerun the installer; Orchi installs Impeccable with npx."
+    if not npx or not node:
+        raise ValueError("Node.js is missing. " + fix)
+    output = subprocess.run([node, "--version"], check=True, capture_output=True, text=True).stdout.strip()
+    try:
+        found = tuple(int(part) for part in output.lstrip("v").split(".")[:2])
+    except ValueError:
+        raise ValueError("Unreadable Node.js version " + repr(output) + ". " + fix) from None
+    if found < NODE_MINIMUM:
+        raise ValueError(f"Node.js {output} is too old. " + fix)
+    return npx
+
+
+def install_impeccable(root: Path, npx: str, global_scope: bool, force: bool) -> dict:
+    """Install the pinned Impeccable for Claude Code, without hooks, in the same scope as Orchi."""
+    command = [npx, "--yes", "impeccable@" + IMPECCABLE, "install", "-y", "--providers=claude",
+               "--scope=" + ("global" if global_scope else "project"), "--no-hooks", *(["--force"] if force else [])]
+    # A user installation goes to the home directory that Orchi installs into.
+    env = {**os.environ, "DO_NOT_TRACK": "1", **({"HOME": str(root)} if global_scope else {})}
+    try:
+        subprocess.run(command, cwd=root, env=env, check=True, capture_output=True, text=True, timeout=600)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {"version": IMPECCABLE, "error": (getattr(exc, "stderr", "") or str(exc)).strip(),
+                "fix": "Check the network and npm access, then rerun the installer; the Orchi files are already installed."}
+    installed = impeccable_version(root)
+    if installed != IMPECCABLE:
+        return {"version": IMPECCABLE, "error": f"Impeccable reports version {installed} after installation",
+                "fix": "Rerun the installer with --replace-orchi."}
+    return {"version": IMPECCABLE, "installed": installed}
+
+
+def telemetry_off(root: Path) -> bytes | None:
+    """The Impeccable config with telemetry off, or None when it already states a choice."""
+    target = safe_destination(root, IMPECCABLE_CONFIG)
+    try:
+        config = json.loads(target.read_text(encoding="utf-8")) if target.is_file() else {}
+    except (UnicodeDecodeError, ValueError):
+        raise ValueError("Invalid JSON in " + IMPECCABLE_CONFIG + "; repair it before installing") from None
+    if not isinstance(config, dict):
+        raise ValueError(IMPECCABLE_CONFIG + " must hold a JSON object")
+    if "telemetry" in config:
+        return None
+    return (json.dumps({**config, "telemetry": False}, indent=2) + "\n").encode()
+
+
 def skill_path(root: Path, global_scope: bool) -> str:
     """How installed instructions and agents name the Orchi skill directory."""
-    return str(root / SKILLS_DIR / "orchi") if global_scope else SKILLS_DIR + "orchi"
+    return str(root / SKILLS_DIR / "orchi-core") if global_scope else SKILLS_DIR + "orchi-core"
 
 
 def load_manifest(path: Path, global_scope: bool) -> dict:
@@ -151,6 +246,8 @@ def load_manifest(path: Path, global_scope: bool) -> dict:
             raise ValueError("Invalid installation manifest field: " + field)
     if not isinstance(previous.get("docs_workflow", True), bool):
         raise ValueError("Invalid installation manifest field: docs_workflow")
+    if not isinstance(previous.get("impeccable", ""), str):
+        raise ValueError("Invalid installation manifest field: impeccable")
     return previous
 
 
@@ -204,6 +301,11 @@ def instructions_path(root: Path, global_scope: bool) -> str:
     return "CLAUDE.md"
 
 
+def markers(relative: str) -> tuple[str, str]:
+    """A managed section uses comment markers its file type accepts."""
+    return (CONFIG_START, CONFIG_END) if Path(relative).name == GITIGNORE else (START, END)
+
+
 def instruction_blocks(root: Path, global_scope: bool, pr_template: str | None = None) -> dict[str, str]:
     skill = skill_path(root, global_scope) + "/SKILL.md"
     body = (
@@ -215,6 +317,8 @@ def instruction_blocks(root: Path, global_scope: bool, pr_template: str | None =
         "Do not infer merge or deployment permission from permission to implement."
     )
     blocks = {instructions_path(root, global_scope): body}
+    if not global_scope:
+        blocks[GITIGNORE] = GITIGNORE_BODY
     if pr_template:
         blocks[pr_template] = PR_TEMPLATE
     return blocks
@@ -349,9 +453,10 @@ def install(project: Path, replace: bool = False, dry: bool = False, global_scop
         target = safe_destination(root, relative)
         before = target.read_bytes() if target.exists() else b""
         text = before.decode("utf-8")
-        span = block_span(text)
+        start_marker, end_marker = markers(relative)
+        span = block_span(text, start_marker, end_marker)
         body = bodies.get(relative)
-        block = START + "\n" + body + "\n" + END if body is not None else None
+        block = start_marker + "\n" + body + "\n" + end_marker if body is not None else None
         old = old_blocks.get(relative)
         if span:
             current = text[span[0]:span[1]]
@@ -376,6 +481,15 @@ def install(project: Path, replace: bool = False, dry: bool = False, global_scop
             replacements[relative] = ("file", updated.encode("utf-8"))
 
     notes = []
+    impeccable = {} if uninstall else impeccable_plan(root, previous, replace)
+    if impeccable.get("note"):
+        notes.append(impeccable.pop("note"))
+    if uninstall and impeccable_version(root):
+        notes.append("Impeccable stays installed; remove .claude/skills/impeccable and its .claude/agents/impeccable-*.md "
+                     "files by hand if you no longer want it.")
+    config = None if uninstall else telemetry_off(root)
+    if config is not None:
+        replacements[IMPECCABLE_CONFIG] = ("file", config)
     old_config = shared.get("config", {}).get(SHARED_CONFIG)
     if old_config is not None:
         if not isinstance(old_config, dict):
@@ -388,6 +502,10 @@ def install(project: Path, replace: bool = False, dry: bool = False, global_scop
 
     manifest = {"version": VERSION, "scope": "user" if global_scope else "project", "github": github,
                 "docs_workflow": docs_workflow, "skills": desired, "instructions": managed, "files": managed_files}
+    # Record the Impeccable version Orchi owns, so a later Orchi may update it; a user's own copy is not recorded.
+    owned = IMPECCABLE if impeccable.get("action") or impeccable.get("installed") == IMPECCABLE else previous.get("impeccable")
+    if owned:
+        manifest["impeccable"] = owned
     encoded = (json.dumps(manifest, indent=2) + "\n").encode()
     if uninstall:
         if previous:
@@ -399,7 +517,9 @@ def install(project: Path, replace: bool = False, dry: bool = False, global_scop
     report = {"project": str(root), "scope": manifest["scope"], "github": github, "docs_workflow": docs_workflow,
               "version": {"installed": (previous or shared).get("version"), "bundle": VERSION}, "install": skill_changes,
               "changes": list(replacements), "preserved": ["unmanaged instruction content", "non-Orchi skills and agents"],
-              "prerequisites": {tool: shutil.which(tool) for tool in ("git", "gh")}, "notes": notes}
+              "prerequisites": {tool: shutil.which(tool) for tool in ("git", "gh", "node", "npx")}, "notes": notes}
+    if impeccable:
+        report["impeccable"] = dict(impeccable)
     report["next_steps"] = ["Commit the installed files to share them with your team.",
                             "Authenticate the GitHub CLI (gh auth login) so Claude Code can manage Issues and PRs.",
                             "Open a new Claude Code session and ask it to use Orchi."] if not uninstall else []
@@ -407,6 +527,7 @@ def install(project: Path, replace: bool = False, dry: bool = False, global_scop
         planned = {"labels": label_plan(root)} if github and not uninstall else {}
         return {**report, **planned, "dry_run": True, "conflicts": conflicts,
                 "requires_replace": bool(conflicts and not replace)}
+    npx = check_node() if impeccable.get("action") else None
     # Keep a backup only when the update replaces content that Orchi did not install unchanged.
     recorded = {MANIFEST, *(SKILLS_DIR + name for name in previous.get("skills", {})),
                 *previous.get("instructions", {}), *previous.get("files", {})}
@@ -417,6 +538,8 @@ def install(project: Path, replace: bool = False, dry: bool = False, global_scop
     if replacements:
         result = {**report, **apply_changes(root, replacements, desired, global_scope, keep_backup),
                   "status": "removed" if uninstall else "installed"}
+    if npx:
+        result["impeccable"] = install_impeccable(root, npx, global_scope, force=impeccable["installed"] is not None)
     if github and not uninstall:
         result["labels"] = ensure_labels(root)
     return result
@@ -486,16 +609,17 @@ def apply_changes(root: Path, changes: dict, desired: dict, global_scope: bool =
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Install the Orchi skills and subagents for Claude Code.")
+    parser = argparse.ArgumentParser(description="Install the Orchi skills and subagents, and the Impeccable design skill, for Claude Code.")
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument("--project", type=Path, help="Target project (defaults to the current directory)")
     scope.add_argument("--global", dest="global_scope", action="store_true", help="Install for this user across projects")
-    parser.add_argument("--replace-orchi", action="store_true", help="Back up and replace differing Orchi skill, agent, and GitHub files; "
+    parser.add_argument("--replace-orchi", action="store_true", help="Back up and replace differing Orchi skill, agent, and GitHub files, "
+                        "and replace an Impeccable of another version with the pinned one; "
                         "edited instruction sections must be restored by hand")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--uninstall", action="store_true", help="Remove the managed bundle and instruction sections; refuse modified content")
     parser.add_argument("--github", action="store_true",
-                        help="Also install issue templates, a PR template, a documentation check workflow, and Orchi labels")
+                        help="Also install issue templates, a PR template, documentation and design check workflows, and Orchi labels")
     workflow = parser.add_mutually_exclusive_group()
     workflow.add_argument("--no-docs-workflow", dest="docs_workflow", action="store_const", const=False,
                           help="With --github, do not install the documentation check workflow; later runs keep this choice")
@@ -515,7 +639,7 @@ def main(argv: list[str] | None = None) -> int:
         result = install(root, args.replace_orchi, args.dry_run, args.global_scope, args.uninstall, args.github,
                          args.docs_workflow)
         print(json.dumps(result, indent=2))
-        return 0
+        return 2 if result.get("impeccable", {}).get("error") else 0
     except (ValueError, OSError) as exc:
         print(json.dumps({"error": str(exc)}))
         return 2
