@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
@@ -28,7 +29,7 @@ def test_each_scope(tmp_path, global_scope):
     assert "Orchi workflow" in instructions.read_text()
     assert not (tmp_path / "AGENTS.md").exists() and not (tmp_path / ".agents").exists()
     assert not (tmp_path / ".codex").exists() and not (tmp_path / ".github").exists()
-    skill = str(tmp_path.resolve() / ".claude/skills/orchi") if global_scope else ".claude/skills/orchi"
+    skill = str(tmp_path.resolve() / ".claude/skills/orchi-core") if global_scope else ".claude/skills/orchi-core"
     assert sorted(p.name for p in (tmp_path / ".claude/agents").glob("orchi-*")) == [name + ".md" for name in ROLES]
     for path in (tmp_path / ".claude/agents").glob("orchi-*.md"):
         text = path.read_text()
@@ -81,7 +82,7 @@ def test_edited_managed_section_is_not_silently_overwritten(tmp_path):
 
 def test_dry_run_reports_all_files_without_writes(tmp_path):
     result = installation.install(tmp_path, dry=True)
-    assert "CLAUDE.md" in result["changes"] and ".claude/skills/orchi" in result["changes"]
+    assert "CLAUDE.md" in result["changes"] and ".claude/skills/orchi-core" in result["changes"]
     assert ".claude/agents/orchi-scout.md" in result["changes"]
     assert not list(tmp_path.iterdir())
 
@@ -124,7 +125,7 @@ def test_unrecorded_repository_skill_needs_replace(tmp_path, name):
 
 def test_skill_path_that_is_a_file_is_refused(tmp_path):
     (tmp_path / ".claude/skills").mkdir(parents=True)
-    (tmp_path / ".claude/skills/orchi").write_text("not a skill")
+    (tmp_path / ".claude/skills/orchi-core").write_text("not a skill")
     with pytest.raises(ValueError, match="Expected a skill directory"):
         installation.install(tmp_path, replace=True)
 
@@ -144,7 +145,7 @@ def test_failure_after_instructions_rolls_back_all_changes(tmp_path, monkeypatch
 
 
 def run_installed_copy(root, *args):
-    script = root / ".claude/skills/orchi/scripts/orchi_install.py"
+    script = root / ".claude/skills/orchi-core/scripts/orchi_install.py"
     return subprocess.run([sys.executable, str(script), "--project", str(root), *args], capture_output=True, text=True,
                           cwd=root, env={key: value for key, value in os.environ.items() if key != "PYTHONPATH"})
 
@@ -160,27 +161,27 @@ def test_installed_copy_keeps_local_skill_edits_as_conflicts(tmp_path):
     installation.install(tmp_path)
     manifest_path = tmp_path / MANIFEST
     recorded = manifest_path.read_bytes()
-    skill = tmp_path / ".claude/skills/orchi/SKILL.md"
+    skill = tmp_path / ".claude/skills/orchi-core/SKILL.md"
     skill.write_text(skill.read_text() + "\nLocal rule\n")
     result = run_installed_copy(tmp_path)
-    assert result.returncode == 2 and "Existing Orchi content differs: orchi." in json.loads(result.stdout)["error"]
-    assert json.loads(run_installed_copy(tmp_path, "--dry-run").stdout)["conflicts"] == ["orchi"]
+    assert result.returncode == 2 and "Existing Orchi content differs: orchi-core." in json.loads(result.stdout)["error"]
+    assert json.loads(run_installed_copy(tmp_path, "--dry-run").stdout)["conflicts"] == ["orchi-core"]
     assert manifest_path.read_bytes() == recorded
     # The next upstream upgrade still sees the edit instead of overwriting it.
-    with pytest.raises(ValueError, match="differs: orchi"):
+    with pytest.raises(ValueError, match="differs: orchi-core"):
         installation.install(tmp_path)
     assert skill.read_text().endswith("Local rule\n")
 
 
 def test_installed_copy_replace_accepts_the_edited_skill(tmp_path):
     installation.install(tmp_path)
-    skill = tmp_path / ".claude/skills/orchi/SKILL.md"
+    skill = tmp_path / ".claude/skills/orchi-core/SKILL.md"
     skill.write_text(skill.read_text() + "\nLocal rule\n")
     result = run_installed_copy(tmp_path, "--replace-orchi")
     assert result.returncode == 0, result.stdout + result.stderr
     assert skill.read_text().endswith("Local rule\n")
     manifest = json.loads((tmp_path / MANIFEST).read_text())
-    assert manifest["skills"]["orchi"] == installation.inventory(tmp_path / ".claude/skills/orchi")
+    assert manifest["skills"]["orchi-core"] == installation.inventory(tmp_path / ".claude/skills/orchi-core")
 
 
 @pytest.mark.parametrize("argv", [["--agents", "claude"], ["--global"]])
@@ -192,7 +193,7 @@ def test_cli_rejects_removed_selection_and_mixed_scope_without_mutation(tmp_path
 
 def test_uninstall_refuses_locally_modified_runtime(tmp_path):
     installation.install(tmp_path)
-    (tmp_path / ".claude/skills/orchi/SKILL.md").write_text("Local customization")
+    (tmp_path / ".claude/skills/orchi-core/SKILL.md").write_text("Local customization")
     with pytest.raises(ValueError, match="Modified skill"):
         installation.install(tmp_path, uninstall=True)
     assert (tmp_path / "CLAUDE.md").exists()
@@ -236,7 +237,7 @@ def test_global_cli_uses_home_without_editing_current_project(tmp_path, monkeypa
     monkeypatch.chdir(project)
     assert installation.main(["--global"]) == 0
     assert not list(project.iterdir())
-    assert (home / ".claude/skills/orchi/SKILL.md").is_file()
+    assert (home / ".claude/skills/orchi-core/SKILL.md").is_file()
     assert json.loads((home / MANIFEST).read_text())["scope"] == "user"
 
 
@@ -452,10 +453,10 @@ def test_label_setup_reports_unavailable_github(tmp_path, monkeypatch):
 
 def test_dry_run_reports_conflicts_instead_of_failing(tmp_path):
     installation.install(tmp_path)
-    (tmp_path / ".claude/skills/orchi/SKILL.md").write_text("Local edit")
+    (tmp_path / ".claude/skills/orchi-core/SKILL.md").write_text("Local edit")
     result = installation.install(tmp_path, dry=True)
-    assert result["conflicts"] == ["orchi"] and result["requires_replace"] is True
-    assert (tmp_path / ".claude/skills/orchi/SKILL.md").read_text() == "Local edit"
+    assert result["conflicts"] == ["orchi-core"] and result["requires_replace"] is True
+    assert (tmp_path / ".claude/skills/orchi-core/SKILL.md").read_text() == "Local edit"
 
 
 def test_manifest_records_version_and_cli_reports_upgrade(tmp_path, capsys):
@@ -501,7 +502,7 @@ def test_preexisting_unmanaged_agent_file_is_a_conflict(tmp_path):
 def test_installed_agents_match_bundled_roles(tmp_path):
     installation.install(tmp_path)
     for role in roles.load_roles():
-        assert (tmp_path / ".claude/agents" / (role.name + ".md")).read_text() == roles.render_claude(role, ".claude/skills/orchi")
+        assert (tmp_path / ".claude/agents" / (role.name + ".md")).read_text() == roles.render_claude(role, ".claude/skills/orchi-core")
 
 
 def test_docs_workflow_opt_out_persists_and_can_be_reenabled(tmp_path, labels):
@@ -727,3 +728,20 @@ def test_design_workflow_pins_the_installed_impeccable():
     workflow = (installation.GITHUB_ASSETS / "workflows/orchi-design.yml").read_text()
     assert f"npx --yes impeccable@{installation.IMPECCABLE} detect --github" in workflow
     assert "design" in installation.LABELS
+
+
+def test_update_moves_the_core_skill_to_orchi_core_and_the_entry_to_orchi(tmp_path):
+    installation.install(tmp_path)
+    skills = tmp_path / ".claude/skills"
+    # Lay out the earlier names: the core skill at orchi/ and the pool entry at orchi-pm/.
+    shutil.move(str(skills / "orchi"), str(skills / "orchi-pm"))
+    shutil.move(str(skills / "orchi-core"), str(skills / "orchi"))
+    manifest = json.loads((tmp_path / MANIFEST).read_text())
+    manifest["skills"] = {path.name: installation.inventory(path) for path in skills.iterdir() if path.name != "impeccable"}
+    (tmp_path / MANIFEST).write_text(json.dumps(manifest))
+    result = installation.install(tmp_path)
+    assert result["status"] == "installed" and not result.get("backup")
+    assert (skills / "orchi/SKILL.md").read_text().startswith("---\nname: orchi\n")
+    assert (skills / "orchi-core/SKILL.md").read_text().startswith("---\nname: orchi-core\n")
+    assert not (skills / "orchi-pm").exists()
+    assert "`.claude/skills/orchi-core/SKILL.md`" in (tmp_path / "CLAUDE.md").read_text()

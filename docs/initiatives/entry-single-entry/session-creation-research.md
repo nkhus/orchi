@@ -127,7 +127,7 @@ Observed in the first full pool run (Orchi 0.18, a disposable repository):
   start sessions; the same request typed in the desktop app could.
 - A detached crew still reports its starter as `parentSessionId`, which
   identifies the pool's Orchi.
-- `/orchi-pm` in a second session adopted the existing pool without a word,
+- `/orchi` in a second session adopted the existing pool without a word,
   although the crews reported to the first Orchi.
 - A crew wrote a wrong session id for itself into a worker's brief and corrected
   it by message; reading the id from the host avoids the guess.

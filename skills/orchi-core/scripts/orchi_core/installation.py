@@ -28,7 +28,7 @@ SHARED_SKILLS_DIR = ".agents/skills/"
 SHARED_CONFIG = ".codex/config.toml"
 CONFIG_START = "# orchi:begin"
 CONFIG_END = "# orchi:end"
-GITHUB_ASSETS = SOURCE / "orchi/assets/github"
+GITHUB_ASSETS = SOURCE / "orchi-core/assets/github"
 DOCS_WORKFLOW = ".github/workflows/orchi-docs.yml"
 # Impeccable, the design engine, is installed with Orchi at this version, without hooks and with telemetry off.
 IMPECCABLE = "4.8.0"
@@ -234,7 +234,7 @@ def telemetry_off(root: Path) -> bytes | None:
 
 def skill_path(root: Path, global_scope: bool) -> str:
     """How installed instructions and agents name the Orchi skill directory."""
-    return str(root / SKILLS_DIR / "orchi") if global_scope else SKILLS_DIR + "orchi"
+    return str(root / SKILLS_DIR / "orchi-core") if global_scope else SKILLS_DIR + "orchi-core"
 
 
 def load_manifest(path: Path, global_scope: bool) -> dict:

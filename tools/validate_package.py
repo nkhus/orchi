@@ -10,16 +10,18 @@ import tomllib
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-deliver', 'orchi-work', 'orchi-pm')
+SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-deliver', 'orchi-work', 'orchi')
 # Only the workflow skill loads implicitly; the entry skills run when the user invokes them.
 # Skills a session may invoke itself: the entrypoint, and the worker skills a team hub asks for by message.
-IMPLICIT = {'orchi', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-deliver', 'orchi-work'}
+IMPLICIT = {'orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-deliver', 'orchi-work'}
+# Skills only a session invokes: hidden from the user's slash-command menu.
+HIDDEN = {'orchi-core', 'orchi-work'}
 IGNORED = {'__pycache__', '.pytest_cache', '.venv', '.git', 'reports', 'build', 'dist', 'node_modules'}
 # The npm package publishes the installed skills plus these wrapper files, and nothing else.
 WRAPPER_FILES = {'bin/orchi.js', 'tools/install.py'}
 PUBLISHED_EXTRAS = {'README.md'}
 SKILL_LINES = 100
-sys.path.insert(0, str(ROOT / 'skills/orchi/scripts'))
+sys.path.insert(0, str(ROOT / 'skills/orchi-core/scripts'))
 import knowledge  # noqa: E402  (the installed link/anchor lint, reused rather than reimplemented)
 
 
@@ -87,7 +89,7 @@ def validate_roles() -> tuple[list[str], int]:
         loaded = roles.load_roles()
     except (OSError, ValueError) as exc:
         return ['Role sources: ' + str(exc)], 0
-    skill = '/home/user/.claude/skills/orchi'
+    skill = '/home/user/.claude/skills/orchi-core'
     for role in loaded:
         body = roles.instructions(role, skill)
         if roles.PLACEHOLDER in body or skill not in body:
@@ -122,6 +124,8 @@ def validate(root: Path = ROOT) -> dict:
                 errors.append('Entrypoint must allow implicit use: ' + name)
             if name not in IMPLICIT and metadata.get('disable-model-invocation') is not True:
                 errors.append('Entry skill must be explicit-only: ' + name)
+            if (name in HIDDEN) != (metadata.get('user-invocable') is False):
+                errors.append('Skill menu visibility is wrong: ' + name)
             if (folder / 'agents').exists(): errors.append('Unexpected assistant interface metadata: ' + name)
         except (OSError, ValueError, KeyError, IndexError, TypeError) as exc: errors.append(name + ': ' + str(exc))
     for file in source_files:

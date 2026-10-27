@@ -12,7 +12,7 @@ and `/orchi-deliver` work on their own.
 
 | Session | Created by | In the sidebar | Talks to | Never |
 | --- | --- | --- | --- | --- |
-| Orchi (`/orchi-pm`) | the user | top level | the user; crews | Plans, researches, edits code, or merges outside the mode's limits |
+| Orchi (`/orchi`) | the user | top level | the user; crews | Plans, researches, edits code, or merges outside the mode's limits |
 | Crew | Orchi, when it builds the pool | top level, in the group `Orchi pool · <repo>` | Orchi; the user in interactive mode; its workers | Writes code itself, takes a second assignment, or starts sessions after setup |
 | Worker (`orchi-work`) | its crew, in the user's turn | nested under its crew | its crew only | Talks to the user, pushes, or opens PRs |
 
@@ -46,7 +46,7 @@ to this table.
 Orchi builds the pool in a turn the user started, because a session can start
 other sessions only then; it never starts sessions in a turn that a message or
 an event started. A message typed over Remote Control starts no session either,
-so the user runs `/orchi-pm`, clicks `Create workers`, and asks for more crews
+so the user runs `/orchi`, clicks `Create workers`, and asks for more crews
 in the desktop app.
 
 1. Orchi checks that it runs in bypass permissions mode, which the pool needs so
@@ -81,7 +81,7 @@ among the sessions it started.
 
 A pool has one Orchi: the session that started its crews (their
 `parentSessionId`), or the one they last accepted a takeover from. When
-`/orchi-pm` runs in another session, that session changes nothing while the
+`/orchi` runs in another session, that session changes nothing while the
 pool's Orchi exists and is not archived: it tells the user to continue there,
 with a link, and stops. When that Orchi is archived or gone, the new session
 takes the title of the former Orchi, so `Requested by:` lines still name it, and
@@ -127,7 +127,7 @@ receiver tells the user which session sent it instead of asking for a resend.
 ## Modes and autonomy
 
 The user sets the mode by telling Orchi; it applies to the whole pool and holds,
-through compaction, until the user changes it or runs `/orchi-pm` again, which
+through compaction, until the user changes it or runs `/orchi` again, which
 resets it to interactive at Ask. Orchi states it in every report, ends every
 assignment with `Mode: <mode>, autonomy: <level>, set by the user on <date>.`,
 and sends `mode <mode>, autonomy <level>` to its busy crews when it changes.
