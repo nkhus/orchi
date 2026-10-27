@@ -78,14 +78,15 @@ def test_flows_do_not_stall_and_keep_user_only_questions():
 def test_orchi_is_the_only_command_the_user_types():
     import re
     import yaml
-    for skill in ("orchi-explore", "orchi-plan", "orchi-standards", "orchi-design", "orchi-deliver", "orchi-work"):
+    for skill in ("orchi-explore", "orchi-plan", "orchi-standards", "orchi-design", "orchi-deliver", "orchi-work",
+                  "orchi-dashboard"):
         text = (SKILLS / skill / "SKILL.md").read_text()
         meta = yaml.safe_load(text.split("---", 2)[1])
         assert meta["user-invocable"] is False, skill
-        if skill != "orchi-work":
+        if skill not in {"orchi-work", "orchi-dashboard"}:
             assert "--report-to <Orchi session>" in meta["argument-hint"] and "[--report-to" not in meta["argument-hint"], skill
             assert "tell the user that work starts with `/orchi`, and stop" in prose(f"{skill}/SKILL.md"), skill
     for path in SKILLS.rglob("*"):
         if path.is_file() and path.suffix in {".md", ".yml", ".py"}:
-            assert not re.search(r"(?<![\w./-])/orchi-(explore|plan|standards|design|deliver|work)\b", path.read_text()), path
+            assert not re.search(r"(?<![\w./-])/orchi-(explore|plan|standards|design|deliver|work|dashboard)\b", path.read_text()), path
     assert "The user types only `/orchi`" in prose("orchi-core/SKILL.md")

@@ -16,7 +16,8 @@ def test_entry_is_typed_and_crew_and_worker_skills_can_be_invoked_by_message():
     assert "orchi" in agents.SKILLS
     assert "disable-model-invocation: true" in text and "../orchi-core/references/pool.md" in text
     assert "including after any compaction" in " ".join(text.split())
-    for name in ("orchi-explore", "orchi-plan", "orchi-design", "orchi-standards", "orchi-deliver", "orchi-work"):
+    for name in ("orchi-explore", "orchi-plan", "orchi-design", "orchi-standards", "orchi-deliver", "orchi-work",
+                 "orchi-dashboard"):
         text = (SKILLS / name / "SKILL.md").read_text()
         assert "disable-model-invocation" not in text
         assert f"asks for {name} by name" in text
@@ -148,3 +149,31 @@ def test_orchi_prepares_the_repository_without_asking_the_user_to_commit():
     assert "It never force-pushes, rewrites history, or changes branch protection." in pool
     assert "leaves out and reports any it finds instead of committing them" in pool
     assert "pool.md#prepare-the-repository" in prose("orchi-core/references/exploration.md")
+
+
+def test_the_dashboard_is_started_with_the_pool_and_only_reads():
+    import dashboard
+    pool, entry, skill = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-dashboard/SKILL.md")
+    template = (SKILLS / "orchi-dashboard/assets/dashboard.html").read_text()
+    assert "| Dashboard (`orchi-dashboard`) | Orchi, when it builds the pool |" in pool
+    assert "When the group has no dashboard, it also starts one" in pool and "## Dashboard" in pool
+    assert "Invoke the orchi-dashboard skill with: start --report-to <Orchi's session id>" in pool
+    assert "| Dashboard → Orchi | Setup | `dashboard ready: <url>` |" in pool
+    assert "to its busy crews and the dashboard when it changes" in pool
+    assert "When crews or the dashboard are missing" in entry and "`dashboard ready: <url>`" in entry
+    assert "send it `refresh`" in entry and "write nothing when nothing changed for the user" in entry
+    assert "send it to busy crews and the dashboard" in entry
+    # The page reads the document the skill writes, through the db capability it is published with.
+    assert 'db.doc("snapshot/current")' in template and "collection `snapshot`, doc `current`" in skill
+    assert 'capabilities` `{"db": {}}`' in skill and "<title>{{REPO}} pool</title>" in template
+    assert "its title, `<repo> pool`" in skill
+    assert "scripts/dashboard.py --crews <dir>/crews.json" in skill and "recurring: false" in skill
+    assert "never message a crew or worker, change Issues, PRs, branches, or repository files" in skill
+    assert "Invoke the orchi-dashboard skill with: refresh --page <url>" in skill
+    assert "on Sonnet at low effort" in pool and "general-purpose subagent on Haiku" in pool
+    assert "subagent with the model `haiku`" in skill and "Invoke the orchi-dashboard skill with: collect --page <url>" in skill
+    assert "Never rename a session, schedule a timer, or message anyone" in skill
+    document = {"updated": "2026-10-27T15:04:00+00:00", "crews": [], "pulls": [], "waiting": []}
+    assert dashboard.summary(document).startswith("📊 15:04 · ") and "`📊 <time> · <n> active" in pool
+    for script in ("http://", "<script src", "localStorage"):
+        assert script not in template

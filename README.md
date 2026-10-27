@@ -34,6 +34,8 @@ npx --yes github:nkhus/orchi --github
 
 That session becomes Orchi. You don't commit or push anything: it commits and pushes the installation to `main` first, because its sessions, branches, and CI start from there. Then it builds its pool: 5 crews, each in its own worktree. Click **`Create workers`** once in each crew, and each one starts 3 workers. That is the last setup step. From now on, just tell Orchi what you want.
 
+Orchi also starts a **dashboard** session on Sonnet at low effort, which answers your questions about the pool. Every 10 minutes a Haiku subagent refreshes its live page with the crews and what each holds, the progress of every Initiative and Epic, what waits for you, PRs and their checks, and the planning queue, and its sidebar title sums it up (`📊 15:04 · 3 active · 1 wait for you · 2 PRs`). Orchi sends you the page's link and otherwise tells you only what needs you.
+
 > **Needs** Git, an authenticated GitHub CLI (`gh`), Python 3.11+, Node.js 18.19+ with `npx`, and `uv`, on macOS, Linux, or WSL. The installer also installs [Impeccable](https://impeccable.style/), Orchi's design engine.
 
 <details>
@@ -157,6 +159,7 @@ Orchi is a set of Claude Code skills and subagents. Git and GitHub are its only 
 | `orchi-design` | Designer crew | Runs a `design` Epic with you through Impeccable; builds go to workers |
 | `orchi-deliver` | Dev lead crew | Delivers a Task, Epic, or Initiative through workers, one review, and a PR; never merges into `main` itself |
 | `orchi-work` | Worker | Implements, fixes, or designs one Task, or answers one research question, as the matching subagent role |
+| `orchi-dashboard` | Dashboard session | Refreshes the pool's live status page on a timer through a Haiku subagent and answers questions about it; reads only, changes nothing |
 | `orchi-core` | Every pool session | The workflow: scope, readiness, execution, testing, review, knowledge, standards, and the pool |
 
 </details>
@@ -184,7 +187,7 @@ Only the session that owns the work starts the writers (`orchi-implementer`, `or
 | --- | --- |
 | `.claude/skills/orchi/` | The `/orchi` entry |
 | `.claude/skills/orchi-core/` | The workflow, its references, and its scripts |
-| `.claude/skills/orchi-explore/`, `orchi-plan/`, `orchi-design/`, `orchi-standards/`, `orchi-deliver/`, `orchi-work/` | Role skills, hidden from the menu |
+| `.claude/skills/orchi-explore/`, `orchi-plan/`, `orchi-design/`, `orchi-standards/`, `orchi-deliver/`, `orchi-work/`, `orchi-dashboard/` | Role skills, hidden from the menu |
 | `.claude/agents/orchi-*.md` | The rendered subagents |
 | Root `CLAUDE.md` | A managed section that sends work to `/orchi` |
 | `.claude/skills/impeccable/`, `.claude/agents/impeccable-*.md` | Impeccable at the pinned version, without hooks |

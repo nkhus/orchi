@@ -1,6 +1,6 @@
 {
   "name": "@nkhus/orchi",
-  "version": "0.27.0",
+  "version": "0.28.0",
   "description": "Install the Orchi development workflow skills and subagents for Claude Code.",
   "type": "module",
   "bin": {
@@ -20,6 +20,7 @@
     "skills/orchi-standards",
     "skills/orchi-deliver",
     "skills/orchi-work",
+    "skills/orchi-dashboard",
     "skills/orchi",
     "README.md"
   ],

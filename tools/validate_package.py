@@ -10,12 +10,15 @@ import tomllib
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work', 'orchi')
+SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work',
+          'orchi-dashboard', 'orchi')
 # Only the workflow skill loads implicitly; the entry skills run when the user invokes them.
 # Skills a session may invoke itself: the entrypoint, and the worker skills a team hub asks for by message.
-IMPLICIT = {'orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work'}
+IMPLICIT = {'orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work',
+            'orchi-dashboard'}
 # The user types only /orchi; every other skill is invoked by a pool session and hidden from the menu.
-HIDDEN = {'orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work'}
+HIDDEN = {'orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work',
+          'orchi-dashboard'}
 IGNORED = {'__pycache__', '.pytest_cache', '.venv', '.git', 'reports', 'build', 'dist', 'node_modules'}
 # The npm package publishes the installed skills plus these wrapper files, and nothing else.
 WRAPPER_FILES = {'bin/orchi.js', 'tools/install.py'}
@@ -78,7 +81,9 @@ def third_party_imports(text: str) -> set[str]:
             modules.update(alias.name.split('.')[0] for alias in node.names)
         elif isinstance(node, ast.ImportFrom) and not node.level and node.module:
             modules.add(node.module.split('.')[0])
-    return modules - set(sys.stdlib_module_names) - {'orchi_core', '__future__'}
+    # Scripts may import each other: they are installed together in orchi-core/scripts.
+    bundled = {path.stem for path in (ROOT / 'skills/orchi-core/scripts').glob('*.py')}
+    return modules - set(sys.stdlib_module_names) - bundled - {'orchi_core', '__future__'}
 
 
 def validate_roles() -> tuple[list[str], int]:

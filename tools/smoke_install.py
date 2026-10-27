@@ -10,7 +10,8 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work', 'orchi')
+SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work',
+          'orchi-dashboard', 'orchi')
 ROLES = ('orchi-designer', 'orchi-fixer', 'orchi-implementer', 'orchi-researcher', 'orchi-reviewer', 'orchi-scout')
 
 
