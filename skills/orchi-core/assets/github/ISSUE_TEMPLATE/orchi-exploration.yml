@@ -5,7 +5,7 @@ labels: [Exploration]
 body:
   - type: markdown
     attributes:
-      value: "An exploration produces decisions, not code; Orchi's exploration reference defines its phases. Keep this body as the current map: put research findings in comments with their sources, and link prototype branches, which are never merged. When the user confirms the shape, plan it with /orchi-plan #<this issue>; planning takes these decisions as agreed, so write them for a planner who has not seen the exploration conversation."
+      value: "An exploration produces decisions, not code; Orchi's exploration reference defines its phases. Keep this body as the current map: write research findings and options as files in docs/work/<slug>/ on the explore/<slug> branch and link them here, and link prototype branches, which are never merged. When the user confirms the shape, plan it with /orchi-plan #<this issue>; planning takes these decisions as agreed, so write them for a planner who has not seen the exploration conversation."
   - type: textarea
     id: destination
     attributes:
@@ -36,12 +36,12 @@ body:
     id: options
     attributes:
       label: Options
-      description: Each direction considered - its shape, what it makes easy and hard, links to the research comments it rests on - and the verdict with its reason.
+      description: Each direction considered - its shape, what it makes easy and hard, links to the research files it rests on - and the verdict with its reason.
   - type: textarea
     id: decisions
     attributes:
       label: Decisions
-      description: Each decision - the question, the answer, who decided, the date, and the reason. Quote the user's answers faithfully. Mark a decision that is hard to reverse, surprising, and a real tradeoff as a decision record candidate.
+      description: Each decision with an id (D1, D2, ...) - the question, the answer, who decided, the date, the reason, and the area of the product it concerns. Quote the user's answers faithfully.
   - type: textarea
     id: requirements
     attributes:

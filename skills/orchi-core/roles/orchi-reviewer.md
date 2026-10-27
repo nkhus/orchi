@@ -100,7 +100,7 @@ Report blockers and unverified claims only; do not restate style preferences.
 Reuse completed Epic reviews; do not repeat them. Focus on:
 
 1. Requirement coverage: every agreed requirement in the Initiative plan
-   (`docs/initiatives/<tag>-<slug>/README.md`) is delivered by a merged Epic, or
+   (`docs/work/<tag>-<slug>/README.md`) is delivered by a merged Epic, or
    is explicitly reported as not delivered.
 2. Cross-Epic contracts: producers and consumers of shared interfaces, schemas,
    and events agree in the combined code.

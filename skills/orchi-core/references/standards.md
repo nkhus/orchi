@@ -145,7 +145,9 @@ plans a foundation Epic, which every other Epic of the project is blocked by.
 Its Tasks:
 
 1. Scaffold the stack, the boot command with seeded data, and `ENGINEERING.md`
-   with format, lint, types, and size checks in CI.
+   with format, lint, types, and size checks in CI, and the documentation map
+   with its first area and behavior pages from the
+   [templates](knowledge.md#current-documentation).
 2. Unit, coverage, and acceptance test harnesses, with one passing acceptance
    test of the empty app, and accessibility with a UI.
 3. Module boundaries and dead code.
@@ -183,7 +185,8 @@ in product terms: what becomes safer, and how much work it is.
 
 ## Drift
 
-With `--github`, the standards workflow runs `standards.py check` weekly and
-keeps one open Issue, labelled `needs-planning`, listing what drifted, such as
-an expired exception or a check that lost its job. Planning takes it like any
+With `--github`, the standards workflow runs `standards.py check` and
+`knowledge.py stale` weekly and keeps one open Issue, labelled
+`needs-planning`, listing what drifted, such as an expired exception, a check
+that lost its job, or a page older than its code. Planning takes it like any
 request; no session starts unattended.

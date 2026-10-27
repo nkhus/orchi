@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only Orchi Markdown search, exact reads, local-link validation, and PR documentation-impact checks."""
+"""Read-only Orchi Markdown search, exact reads, local-link validation, and documentation checks for PRs."""
 from __future__ import annotations
 
 import argparse
@@ -169,6 +169,106 @@ def impact(body: str) -> str | None:
     return None
 
 
+MAP = 'docs/README.md'
+WORK = 'docs/work/'
+PRODUCT = 'docs/product/'
+
+
+def impact_text(body: str) -> str:
+    """The Documentation impact section of a PR body, without comments; empty when missing."""
+    text = re.sub(r'<!--.*?-->', '', body.replace('\r\n', '\n'), flags=re.S)
+    match = re.search(r'^#{1,6}\s+Documentation impact\s*#*\s*$(.*?)(?=^#{1,6}\s|\Z)', text, re.M | re.S | re.I)
+    return match[1] if match else ''
+
+
+def table_rows(text: str, heading: str) -> list[dict[str, str]]:
+    """The first Markdown table under `## <heading>`, as rows keyed by header."""
+    section = re.search(rf'^## {re.escape(heading)}\s*$(.*?)(?=^## |\Z)', text, re.M | re.S)
+    lines = [line.strip() for line in (section[1] if section else '').splitlines() if line.strip().startswith('|')]
+    if len(lines) < 2:
+        return []
+    split = lambda line: [cell.strip().replace('`', '').strip() for cell in line.strip('|').split('|')]
+    header = split(lines[0])
+    return [dict(zip(header, split(line))) for line in lines[2:] if any(split(line))]
+
+
+def ownership(text: str) -> list[tuple[str, list[str]]]:
+    """The map's Ownership table: each code path pattern with the pages that describe it."""
+    return [(row.get('Code', ''), [page.strip() for page in row.get('Pages', '').split(',') if page.strip()])
+            for row in table_rows(text, 'Ownership') if row.get('Code')]
+
+
+def pattern(glob: str) -> re.Pattern:
+    """A path glob: `**` spans directories, `*` and `?` stay within one path segment."""
+    tokens = {'**/': '(?:[^/]+/)*', '**': '.*', '*': '[^/]*', '?': '[^/]'}
+    return re.compile(''.join(tokens.get(part, re.escape(part)) for part in re.split(r'(\*\*/|\*\*|\*|\?)', glob)))
+
+
+def read_map(root: Path) -> str | None:
+    path = root / MAP
+    return path.read_text(encoding='utf-8') if path.is_file() else None
+
+
+def stale_changes(root: Path, base: str, body: str) -> list[str]:
+    """Owned code a change touched while its pages stayed unchanged and unexplained."""
+    text = read_map(root)
+    if text is None:
+        return []
+    changed = set(git(root, 'diff', '--name-only', f'{base}...HEAD').split())
+    reason = impact_text(body)
+    errors = []
+    for glob, pages in ownership(text):
+        code = sorted(path for path in changed if pattern(glob).fullmatch(path) and path not in pages)
+        if code and not changed.intersection(pages) and not any(page in reason for page in pages):
+            errors.append(f'{", ".join(pages)}: {glob} changed ({code[0]}) without this documentation; update it, '
+                          'or name it in Documentation impact with the reason it still holds')
+    return errors
+
+
+def last_change(root: Path, *pathspec: str) -> int:
+    stamp = git(root, 'log', '-1', '--format=%ct', '--', *pathspec).strip()
+    return int(stamp) if stamp else 0
+
+
+def stale_pages(root: Path) -> list[str]:
+    """Pages whose owned code has a later commit than the page itself."""
+    text = read_map(root)
+    if text is None:
+        return []
+    errors = []
+    for glob, pages in ownership(text):
+        code = last_change(root, f':(glob){glob}')
+        for page in pages:
+            if not (root / page).is_file():
+                errors.append(f'{page}: listed in {MAP} but missing')
+            elif code > last_change(root, page):
+                errors.append(f'{page}: {glob} changed after this page did')
+    return errors
+
+
+def work_files(docs: Documents) -> list[str]:
+    return sorted(path for path in docs.paths if path.startswith(WORK))
+
+
+def behavior(docs: Documents) -> list[str]:
+    """Every acceptance test a behavior page names exists and contains its name."""
+    errors = []
+    for name in docs.names:
+        if not name.startswith(PRODUCT):
+            continue
+        for heading in re.findall(r'^## (.+?)\s*$', docs.read(name), re.M):
+            for row in table_rows(docs.read(name), heading):
+                test = row.get('Acceptance test', '')
+                if not test or test == '-':
+                    continue
+                path, _, title = test.partition('::')
+                if path not in docs.paths:
+                    errors.append(f'{name}: acceptance test file {path} does not exist')
+                elif title and title not in docs.read(path):
+                    errors.append(f'{name}: {path} has no test named {title!r}')
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', default='.')
@@ -185,19 +285,43 @@ def main() -> int:
     lint_command.add_argument('--since', metavar='REF', help='Fail only on errors that are not already present in REF')
     check = commands.add_parser('impact', help='Require a filled Documentation impact section in a PR body')
     check.add_argument('--body-file', help='File containing the PR body; default is the PR_BODY environment variable')
+    stale = commands.add_parser('stale', help=f'Pages from the {MAP} Ownership table whose code changed without them')
+    stale.add_argument('--since', metavar='REF', help='Check the changes since REF against the PR body; '
+                       'without it, list pages whose code has a later commit than the page')
+    stale.add_argument('--body-file', help='File containing the PR body; default is the PR_BODY environment variable')
+    commands.add_parser('work', help=f'Fail when working documents ({WORK}) are present')
+    commands.add_parser('behavior', help=f'Every acceptance test a page in {PRODUCT} names exists')
     args = parser.parse_args()
-    if args.command == 'impact':
+    body = ''
+    if args.command in {'impact', 'stale'}:
         body = Path(args.body_file).read_text(encoding='utf-8') if args.body_file else os.environ.get('PR_BODY', '')
+    if args.command == 'impact':
         error = impact(body)
         print(error or 'Documentation impact: recorded')
         return int(bool(error))
     try:
+        if args.command == 'stale':
+            root = Path(git(Path(args.repo), 'rev-parse', '--show-toplevel').strip())
+            if read_map(root) is None:
+                print(f'No {MAP}; nothing to check.')
+                return 0
+            errors = stale_changes(root, args.since, body) if args.since else stale_pages(root)
+            print('\n'.join(errors) or 'Documentation is current with its code')
+            return int(bool(errors))
         docs = Documents(Path(args.repo), args.ref, args.path)
         if args.command == 'get':
             content = docs.read(args.path)
             if args.sha256 and hashlib.sha256(content.encode()).hexdigest() != args.sha256:
                 raise ValueError('Content hash changed; repeat search in the intended snapshot')
             print(content, end='')
+        elif args.command in {'work', 'behavior'}:
+            errors = work_files(docs) if args.command == 'work' else behavior(docs)
+            if args.command == 'work' and errors:
+                errors = [f'{path}: working documents never reach this branch; move what is settled into the '
+                          'current documentation and delete the folder' for path in errors]
+            print('\n'.join(errors) or ('No working documents' if args.command == 'work' else
+                                         'Every named acceptance test exists'))
+            return int(bool(errors))
         elif args.command == 'search':
             if not 1 <= args.limit <= 100:
                 raise ValueError('limit must be between 1 and 100')

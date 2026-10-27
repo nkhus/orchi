@@ -31,7 +31,7 @@ re-ask agreed direction. If new evidence changes the outcome, approach, or scale
 | Request | Tracking | Branch and PR |
 | --- | --- | --- |
 | Question | None | None |
-| Idea that needs research and strategic decisions | Exploration Issue | None; throwaway `prototype/<slug>` branches only |
+| Idea that needs research and strategic decisions | Exploration Issue | `explore/<slug>` for its working documents; throwaway `prototype/<slug>` branches |
 | Small fix | Standalone Task | `fix/<slug>` from main, PR to main |
 | Outcome decomposed into Tasks | Epic → Tasks | One `epic/<tag>-<slug>` branch and PR to main |
 | Outcome decomposed into Epics | Initiative → Epics → Tasks | `initiative/<tag>-<slug>` from main; one `epic/<tag>-<epic-tag>-<slug>` PR per Epic into it; final PR to main |
@@ -73,7 +73,7 @@ Read only the reference needed for the current stage.
 | Plan, write, or review tests; diagnose a defect | [Testing](references/testing.md) |
 | Set, audit, or follow a project's engineering standards (`ENGINEERING.md`) | [Standards](references/standards.md) |
 | Review, integrate, and close | [Review and delivery](references/review-delivery.md) |
-| Update Core documentation or reconcile branches | [Knowledge](references/knowledge.md) |
+| Keep documentation and decisions current; working documents; reconcile branches | [Knowledge](references/knowledge.md) |
 | Create, relate, or close Issues; PR conventions | [GitHub conventions](references/github.md) |
 | Search or read documentation; validate links | [Retrieval](references/retrieval.md) |
 | Run Orchi, crews, and workers as a session pool | [Pool](references/pool.md) |
