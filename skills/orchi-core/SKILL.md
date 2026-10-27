@@ -6,27 +6,31 @@ user-invocable: false
 
 # Orchi
 
-Orchi is a development convention. Git stores code and documentation; GitHub
-Issues store ownership, hierarchy, dependencies, and status. There is no
-controller, state database, approval receipt, or mandatory command facade.
+Orchi is a development convention. Git stores code and documentation; GitHub Issues store ownership, hierarchy,
+dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade.
 
-The user types only `/orchi`: Orchi routes every request to a crew of its session pool, and crews give
-repository work to their workers. A session that is none of these answers questions and documentation lookups
-only; for anything to plan, build, or change it tells the user to bring it to Orchi with `/orchi`. Identify your
-role (Orchi, a crew, a worker, or a reader), inspect branch and worktree changes, read the relevant issue and PR,
-and resume existing work instead of duplicating it.
-Repository instructions (CLAUDE.md, AGENTS.md, scoped files) take precedence. Preserve the user's request, decisions, and edits.
+The user types only `/orchi`: Orchi routes every request to a crew of its session pool, and crews give repository
+work to their workers. A session that is none of these answers questions and documentation lookups only; for
+anything to plan, build, or change it tells the user to bring it to Orchi with `/orchi`. Identify your role (Orchi,
+a crew, a worker, or a reader), inspect branch and worktree changes, read the relevant issue and PR, and resume
+existing work instead of duplicating it. Repository instructions (CLAUDE.md, AGENTS.md, scoped files) take
+precedence. Preserve the user's request, decisions, and edits.
 
 ## Research, propose, agree
 
-Before choosing a delivery scope, read the relevant code, documentation, and issues. Scale research to
-uncertainty and ask focused questions when missing context would change the result ([clarify](references/planning.md#clarify-with-the-user)).
-Present findings, approaches with tradeoffs, and a recommended outcome and scope.
-An idea that needs strategic decisions before any scope is [explored](references/exploration.md) first.
+Before choosing a delivery scope, read the relevant code, documentation, and issues, scaled to uncertainty; ask
+focused questions when missing context would change the result ([clarify](references/planning.md#clarify-with-the-user)).
+Present findings and options in product terms with a recommended outcome and scope; an idea that needs strategic
+decisions first is [explored](references/exploration.md).
 
-Agree the direction with the user before creating branches, Issues, or changes. Exploring a problem is not
-agreement to an agent-chosen scope; silence is not agreement; a pool's [autonomy level](references/pool.md#modes-and-autonomy)
-can delegate it. Do not re-ask agreed direction. If new evidence changes the outcome, approach, or scale, explain and agree again.
+The user owns the concept, the vision, and the design; agents own everything technical. Ask the user about purpose,
+users, what they see and do, priorities, design directions, constraints only they know, and what needs their
+authority (merging into main, deploying, access, credentials, money). Decide the rest and record why; when it
+changes what the user gets, its cost, or its timing, ask about that consequence, never the mechanism.
+
+Agree the direction with the user before creating branches, Issues, or changes; exploring a problem or silence is
+not agreement, and a pool's [autonomy level](references/pool.md#modes-and-autonomy) can delegate it. Do not re-ask
+agreed direction; if new evidence changes the outcome or scale, explain and agree again.
 
 ## Scope
 
@@ -38,28 +42,25 @@ can delegate it. Do not re-ask agreed direction. If new evidence changes the out
 | Outcome decomposed into Tasks | Epic → Tasks | One `epic/<tag>-<slug>` branch and PR to main |
 | Outcome decomposed into Epics | Initiative → Epics → Tasks | `initiative/<tag>-<slug>` from main; one `epic/<tag>-<epic-tag>-<slug>` PR per Epic into it; final PR to main |
 
-Start titles with their Initiative and Epic tags, for example `[PAY][TOKEN] Add token
-column` ([titles and tags](references/github.md#titles-and-tags)); labels carry the type.
-Reuse a branch recorded in the issue. Create an Initiative branch after agreement, before
-its plan or code, from the fetched remote target; never reset another checkout. Do not create placeholder parents.
+Start titles with their Initiative and Epic tags, for example `[PAY][TOKEN] Add token column` ([titles and tags](references/github.md#titles-and-tags));
+labels carry the type. Reuse a branch recorded in the issue. Create an Initiative branch after agreement, before its
+plan or code, from the fetched remote target; never reset another checkout. Do not create placeholder parents.
 
 ## Core rules
 
-- Parallel work happens across independent Epics, each with its own owner, branch,
-  and worktree. Tasks within an Epic share its branch and PR and run in sequence,
-  except a pool dev lead's Tasks on different files (see the pool reference).
-- Claim before editing and never overwrite another owner's claim. Only ready
-  Epics and standalone Tasks are independent entry points.
-- Update documentation with the code, in the same branch. Never present planned
-  behavior as current behavior.
-- Show each new test failing before the change, and record checks, outcomes,
-  and the candidate commit in the PR. Review each standalone Task and each
-  assembled Epic once, then repair demonstrated blockers with a targeted follow-up.
-- Squash-merge. Close Epics, Initiatives, and standalone Tasks only after
-  confirming the merge; close Epic Tasks as the execution reference says. Do not infer merge
-  or deployment permission from permission to implement.
-- Where `ENGINEERING.md` exists, its checks are the code review: run them, and never weaken one
-  without recording an exception there ([standards](references/standards.md#gate-integrity)).
+- Parallel work happens across independent Epics, each with its own owner, branch, and worktree. Tasks within an
+  Epic share its branch and PR and run in sequence, except a pool dev lead's Tasks on different files (see the pool
+  reference).
+- Claim before editing and never overwrite another owner's claim. Only ready Epics and standalone Tasks are
+  independent entry points.
+- Update documentation with the code, in the same branch. Never present planned behavior as current behavior.
+- Show each new test failing before the change, and record checks, outcomes, and the candidate commit in the PR.
+  Review each standalone Task and each assembled Epic once, then repair demonstrated blockers with a targeted
+  follow-up.
+- Squash-merge. Close Epics, Initiatives, and standalone Tasks only after confirming the merge; close Epic Tasks as
+  the execution reference says. Do not infer merge or deployment permission from permission to implement.
+- Where `ENGINEERING.md` exists, its checks are the code review: run them, and never weaken one without recording
+  an exception there ([standards](references/standards.md#gate-integrity)).
 - If GitHub is unavailable, say so; never claim remote tracking or ownership that does not exist.
 
 ## Stage guidance
@@ -82,19 +83,18 @@ Read only the reference needed for the current stage.
 
 ## Entry skills and subagents
 
-`orchi` is the entry the user types. Crews run `orchi-explore` (idea → Exploration), `orchi-plan` (request →
-ready Issues), `orchi-standards` (foundation or standards Epic), `orchi-design` (design Epic → PR), and
-`orchi-deliver` (Issue → PR); workers run `orchi-work`. They are hidden from the menu. Sessions may delegate to the
-subagents in [roles](roles/README.md): `orchi-scout` retrieves, `orchi-researcher` researches and designs options for
-an exploration, `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small, fully specified change
-(a simple Task or a confirmed defect repair), `orchi-designer` executes one ready UI Task or audits a UI diff with
-Impeccable, and `orchi-reviewer` reviews.
-Subagents never talk to the user, change Issues, push, or merge; their reports are claims to verify.
-Delegation is optional; the readiness checklists are not.
+`orchi` is the entry the user types. Crews run `orchi-explore` (idea → Exploration), `orchi-plan` (request → ready
+Issues), `orchi-standards` (foundation or standards Epic), `orchi-design` (design Epic → PR), and `orchi-deliver`
+(Issue → PR); workers run `orchi-work`. They are hidden from the menu. Sessions may delegate to the subagents in
+[roles](roles/README.md): `orchi-scout` retrieves, `orchi-researcher` researches and designs options for an
+exploration, `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small, fully specified change (a
+simple Task or a confirmed defect repair), `orchi-designer` executes one ready UI Task or audits a UI diff with
+Impeccable, and `orchi-reviewer` reviews. Subagents never talk to the user, change Issues, push, or merge; their
+reports are claims to verify. Delegation is optional; the readiness checklists are not.
 
 ## Tools
 
-The scripts are read-only (Git, `gh`, Python standard library); run them from the repository
-root, using this skill's base directory in a user-wide install. `python3 .claude/skills/orchi-core/scripts/status.py`
-lists open Epics and standalone Tasks with owners, blockers, and readiness; `knowledge.py` searches
-documentation, reads exact snapshots, and checks local links; `standards.py` checks `ENGINEERING.md` against CI.
+The scripts are read-only (Git, `gh`, Python standard library); run them from the repository root, using this
+skill's base directory in a user-wide install. `python3 .claude/skills/orchi-core/scripts/status.py` lists open
+Epics and standalone Tasks with owners, blockers, and readiness; `knowledge.py` searches documentation, reads exact
+snapshots, and checks local links; `standards.py` checks `ENGINEERING.md` against CI.

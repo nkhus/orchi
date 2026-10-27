@@ -91,7 +91,7 @@ its state. Orchi prepares it before any crew starts, as the pool reference's
 pushes the installation to `main`, because branches, crews' worktrees, and CI
 start from it, and creates a remote repository only with the user's agreement.
 Planning a new project starts with `orchi-standards`, which plans the foundation
-Epic that every other Epic is blocked by.
+Epic that the product code waits for.
 
 ## Hand off
 

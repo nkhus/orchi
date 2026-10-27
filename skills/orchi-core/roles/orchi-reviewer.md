@@ -151,7 +151,7 @@ Acceptance coverage:
 - <exit criterion / Task acceptance / plan requirement> — established | limited | not established (<why>); evidence: <acceptance test or check>
 
 Exceptions:
-- <each ENGINEERING.md exception the range adds or changes, in plain words: what is waived, where, why, until when>
+- <each ENGINEERING.md exception the range adds or changes, in plain words: what is waived, where, why, until when>; confirmed: <yes, no change avoids it | no, and the change that would>
 
 Summary: <finding count per axis, and the worst finding in each axis>
 ```

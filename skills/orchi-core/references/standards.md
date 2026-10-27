@@ -9,16 +9,17 @@ repository's own instructions take precedence over these defaults.
 The user steers and agents write the code; nobody is expected to read it.
 
 1. **Tools are the code review.** Every rule a tool can check is a blocking
-   check from the first commit; prose rules cover only what no tool can check.
+   check from the commit that adds it; prose rules cover only what no tool can
+   check.
 2. **Defaults, not questions.** Orchi chooses the stack, tools, thresholds, and
    layout from this reference and records why. The user is asked about the
-   product and its constraints, never about tooling; they may override any
-   choice.
+   product and its constraints, never about anything technical; they may
+   override any choice.
 3. **Gates are not lowered quietly.** Lowering a threshold, disabling a rule,
    adding a suppression, skipping or deleting a test, or changing what a check
-   runs is a review blocker unless `ENGINEERING.md` records it as an exception,
-   and every exception reaches the user in plain language. Writers check their
-   own diffs for this, and the review checks it again; no script guesses at it.
+   runs is a review blocker unless `ENGINEERING.md` records it as an exception.
+   Writers check their own diffs for this, and the review checks it again; no
+   script guesses at it.
 4. **The user accepts behavior.** Acceptance criteria say what a user can see or
    do; each has an automated acceptance test, and the PR shows the evidence.
 5. **The repository is the memory.** A decision reached in a conversation goes
@@ -36,8 +37,8 @@ Epic:
 - the budget for hosting and paid services;
 - whether it is a disposable proof of concept or meant to last.
 
-A proof of concept keeps every blocking check and drops the weekly ones
-(mutation tests and the drift run) until the user says it is meant to last.
+A proof of concept gets only the foundation's checks; the hardening Epic
+follows when the user says it is meant to last.
 
 ## Stack
 
@@ -57,7 +58,9 @@ checks. Pin the runtime and package manager versions in the repository.
 
 Every check runs in a CI job named in the `CI job` column (related checks may
 share one, as lint and its limits do), and the blocking jobs are required by
-branch protection.
+branch protection. The foundation adds every check but module boundaries,
+dead code, dependencies, static analysis, licenses, and mutation tests, which
+[hardening](#hardening) adds.
 
 | Check | TypeScript | Python | Blocking |
 | --- | --- | --- | --- |
@@ -69,14 +72,14 @@ branch protection.
 | Acceptance tests | Playwright, one test per acceptance criterion | pytest, or Playwright for a UI | yes |
 | Accessibility | axe in the Playwright run, WCAG 2.2 AA | same | yes, with a UI |
 | UI quality | `impeccable detect` (the design workflow) | same | yes, with a UI |
-| Module boundaries | dependency-cruiser | import-linter | yes |
 | Size and complexity | ESLint `max-lines` 300, `max-lines-per-function` 50, `complexity` 10 | ruff `C90` 10, `PLR0915` 50 statements | yes |
-| Dead code | knip | vulture | yes |
 | Secrets | gitleaks | gitleaks | yes |
+| Declared checks run in CI | `standards.py check` (the standards workflow) | same | yes |
+| Module boundaries | dependency-cruiser | import-linter | yes |
+| Dead code | knip | vulture | yes |
 | Dependencies | `pnpm audit --audit-level high` | pip-audit, every known vulnerability | yes |
 | Static security analysis | Semgrep CE with `p/default`, or CodeQL where GitHub Code Security is available | same | yes, errors |
-| Licenses | license-checker-rseidelsohn `--onlyAllow` a permissive list | pip-licenses `--allow-only` the same list | yes |
-| Declared checks run in CI | `standards.py check` (the standards workflow) | same | yes |
+| Licenses | license-checker-rseidelsohn `--production --onlyAllow` the template's list | pip-licenses `--allow-only` the same list | yes |
 | Mutation tests | Stryker on files changed that week | mutmut on files changed that week | weekly |
 
 A custom lint rule's message says how to fix the violation: its reader is an
@@ -86,7 +89,8 @@ agent. Add a custom rule when review finds the same judgement twice, as the
 ## Architecture
 
 - Layers in one direction, by default `types → config → data → domain → api → ui`,
-  enforced by the module boundary check; a new module states its layer.
+  enforced by the review until hardening adds the module boundary check; a new
+  module states its layer.
 - Validate at every boundary (requests, files, environment, third-party
   responses); code inside a boundary trusts its types.
 - Structured logs, and one command that boots the app in a worktree with seeded
@@ -97,9 +101,12 @@ agent. Add a custom rule when review finds the same judgement twice, as the
 ## Repository
 
 - `ENGINEERING.md` at the root, beside `PRODUCT.md` and `DESIGN.md`.
-- Lockfiles committed; Dependabot grouped weekly; Conventional Commits.
+- Lockfiles committed; Conventional Commits; with hardening, Dependabot grouped
+  weekly.
 - A ruleset on the default branch: every blocking check required, pull requests
   required, linear history, no force push, no deletion.
+- CI runs on every pull request, whatever its base, so Epic PRs into an
+  Initiative branch are checked too.
 
 ## `ENGINEERING.md`
 
@@ -151,42 +158,47 @@ these; each is a blocker unless an exception in `ENGINEERING.md` covers it:
   without the behavior it covered being removed.
 
 Record an exception only for a reason the change cannot avoid, with the
-shortest expiry that fits; the Task that needs it names it, and its writer
-records it exactly as named. When an exception expires, the code it waived is
-fixed or the exception renewed with the user's agreement. Removing
-`ENGINEERING.md` needs the user's agreement, like any exception. The
-delivery review lists each exception the PR adds or changes in the PR's
-Exceptions section in plain words (what is waived, where, why, until when), and
-the session that talks to the user relays them; an exception is the one
-code-level decision the user sees.
+shortest expiry that fits. Agents decide exceptions, never the user: the writer
+records one its Task names and reports any other, which the dev lead decides,
+and the review confirms no change avoids it. When one expires, the dev lead
+fixes the code or renews it with a new reason. Removing `ENGINEERING.md` needs
+the user's agreement. The delivery review lists each exception the PR adds or
+changes in the PR's Exceptions section in plain words (what is waived, where,
+why, until when), and the session that talks to the user passes them on as
+information.
 
 ## New project
 
 `orchi-standards` derives the stack and checks from the product constraints and
-plans a foundation Epic, which every other Epic of the project is blocked by.
-Its Tasks:
-
-1. Scaffold the stack, the boot command with seeded data, and `ENGINEERING.md`
-   with format, lint, types, and size checks in CI, and the documentation map
-   with its first area and behavior pages from the
-   [templates](knowledge.md#current-documentation).
-2. Unit, coverage, and acceptance test harnesses, with one passing acceptance
-   test of the empty app, and accessibility with a UI.
-3. Module boundaries and dead code.
-4. Secrets, dependencies, static analysis, licenses, and Dependabot.
-5. The standards workflow, `standards.py check` passing, and, when the project
-   is meant to last, the weekly mutation test job.
+plans a foundation Epic with one Task: scaffold the stack and the boot command
+with seeded data; `ENGINEERING.md` with the foundation checks in CI, the
+standards workflow included; the unit, coverage, and acceptance harnesses with
+one passing acceptance test of the empty app; and the documentation map with its
+first area and behavior pages from the
+[templates](knowledge.md#current-documentation). It blocks the work that writes
+product code, as [planning](planning.md#engineering-standards) says.
 
 Its acceptance: CI passes on the empty project, and each blocking check fails
 on a planted violation. Show this by running each check's command locally
 against its planted violation and recording the command and its failing output
-in the PR; the planted violations are never committed. After its PR merges into main,
-the delivering session (`orchi-deliver`) asks the user once to apply the
-ruleset, at every autonomy level, and applies it on a yes:
+in the PR; the planted violations are never committed. After its PR merges into
+main, the delivering session (`orchi-deliver`) applies the ruleset and tells the
+user; when GitHub refuses, it tells them in one line what enforcing the checks
+needs:
 
 ```
 python3 <skill>/scripts/standards.py ruleset | gh api -X POST repos/{owner}/{repo}/rulesets --input -
 ```
+
+## Hardening
+
+For a project meant to last, `orchi-standards` also plans a hardening Epic,
+blocked by the foundation and blocking nothing, so a dev lead runs it beside the
+product work: one Task per group of hardening checks, with Dependabot, each fixing what its
+checks find on main; an open Initiative fixes the rest when it brings main in.
+After its merge the ruleset is replaced: `standards.py ruleset` piped to
+`gh api -X PUT repos/{owner}/{repo}/rulesets/<id> --input -`, with the id from
+`gh api repos/{owner}/{repo}/rulesets`.
 
 ## Audit
 
@@ -202,10 +214,7 @@ rules in `CLAUDE.md`, `AGENTS.md`, and scoped instruction files. Sort each rule:
 | Automate | A tool can check it; it becomes that tool's configuration |
 | Delete | A tool already enforces it, or it is no longer true |
 
-Then plan one standards Epic: its first Task writes `ENGINEERING.md` for what
-the project enforces today and applies the sorting; each later Task closes one
-gap to the defaults and updates `ENGINEERING.md` with it. Present it to the user
-in product terms: what becomes safer, and how much work it is.
+`orchi-standards` plans the standards Epic from the result.
 
 ## Drift
 

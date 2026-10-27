@@ -45,8 +45,9 @@ another dashboard interval, send the dashboard `every <m> minutes`.
 1. Read `python3 .claude/skills/orchi-core/scripts/status.py --json`,
    `gh issue list --label delivery-ready --state open`, the open PRs, and the pool's sessions.
 2. For each claim starting `Assigned to crew-`, check that the crew holds it and exists, and whether its PR was
-   merged (then send `#<n> merged`); handle a lapsed claim or a lost crew as the pool reference says. When the
-   dashboard's title shows a refresh older than three intervals, send it `refresh`.
+   merged (then send `#<n> merged`); when it says `waits for #<m>` and #<m> has merged, send that crew
+   `#<m> merged`. Handle a lapsed claim or a lost crew as the pool reference says. When the dashboard's title shows a refresh older than three intervals, send it
+   `refresh`.
 3. Handle each crew message per the next section.
 4. While a crew is free (dev lead and designer work needs one with workers), assign the queued requests, the
    `delivery-ready` Issues that qualify by themselves, and, to a planner, open `needs-planning` Issues that say
@@ -69,10 +70,11 @@ another dashboard interval, send the dashboard `every <m> minutes`.
   tell the user it is ready. Then send the crew `release`.
 - `declined`: tell the user, then send `release`.
 - `PR ready`: in auto mode, merge it as the autonomy level allows and tell the user. Otherwise tell the user
-  it waits for their merge, with the URL and its Merge risk, and merge only when they tell you to, after
-  confirming its checks pass. Either way, relay its Exceptions to the user in plain words. Pass requested
-  changes on as `#<n> rework: <what>`. After a merge, yours or the user's, send `#<n> merged`.
-- `follow-up: #<m>`: assign a planner crew to it.
+  it waits for their merge, with the URL and its Merge risk in plain words, and merge only when they tell you
+  to, after confirming its checks pass. Either way, relay its Exceptions to the user in plain words, as
+  information. Pass requested changes on as `#<n> rework: <what>`. After a merge, yours or the user's, send
+  `#<n> merged`.
+- `follow-up: #<m>`: assign a planner crew to it. `waits for #<m>`: nothing now; Reconcile step 2 answers it.
 - `done`: confirm the PR is merged and the Issue closed, then send `release`.
 - `crew-<k> released`: rename the crew `crew-<k>` now and give it nothing in this wake; at a later wake, send
   `release` once more if its conversation is not empty. `not released: <reason>`, `refused: <reason>`: tell

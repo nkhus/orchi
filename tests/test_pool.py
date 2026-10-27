@@ -46,7 +46,7 @@ def test_sessions_start_only_in_the_users_turn_and_the_pool_needs_bypass():
 def test_assignment_claim_and_crew_events_match():
     pool, entry, deliver = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-deliver/SKILL.md")
     assert "`Assigned to crew-<k> (<session id>) by <Orchi> on <date>`" in pool
-    assert "`Assigned to crew-<k> (<this session's id>) by <that Orchi>` is yours" in deliver
+    assert "A claim is yours when its work reference names this session (`Assigned to crew-<k> (<this session's id>) by <that Orchi>`)" in deliver
     assert "--report-to" in deliver
     for event in ("started", "PR ready", "needs the user", "follow-up", "done"):
         assert f"#<n> {event}" in deliver and f"`{event}" in entry

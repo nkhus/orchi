@@ -87,7 +87,7 @@ reviewed outcome rather than an intermediate commit. The PR body contains:
   migrations, deletions, public contracts, external side effects) or a two-way
   door (a revert undoes it), and the blast radius if it is wrong;
 - **Exceptions:** each `ENGINEERING.md` exception the PR adds or changes, in
-  plain words, or `None`
+  plain words, with the review's `confirmed:` verdict, or `None`
   ([gate integrity](standards.md#gate-integrity));
 - **Documentation impact:** pages updated, or why none change (required);
 - **Handoff:** filled only while work is interrupted, in the format from

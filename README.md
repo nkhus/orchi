@@ -100,7 +100,7 @@ flowchart LR
 
 **Orchi routes; it never does the work itself.** Each request goes to a free crew, which takes a role, is renamed after its role and topic (for example `planner-csv-export`), and talks to you in its own session. Crews hand all repository work to their workers, and workers delegate to model-tiered subagents. When the work is done, everyone clears and returns to the pool.
 
-**Work moves forward on its own.** A researcher who finishes shaping an idea continues as its planner in the same session. A finished plan goes to a dev lead without you asking. A merged foundation unblocks the design Epic, and a merged design Epic unblocks the rest. If a session stops, Orchi sends the same assignment again, and the new session picks up from Git and GitHub.
+**Work moves forward on its own.** A researcher who finishes shaping an idea continues as its planner in the same session. A finished plan goes to a dev lead without you asking. The design Epic starts with you while the foundation is still being built; a merged foundation unblocks the rest, and a merged design Epic the parts that build on its surfaces. If a session stops, Orchi sends the same assignment again, and the new session picks up from Git and GitHub.
 
 **The ceremony scales with the work:**
 
@@ -112,23 +112,23 @@ flowchart LR
 
 Titles carry their lineage: Initiative `[PAY] Card payments` → Epic `[PAY][TOKEN] Tokenize stored cards` → Task `[PAY][TOKEN] Add token column`.
 
-**New product from one conversation.** Tell Orchi what you want to build. A researcher asks only product questions: who uses it, where it runs, what data it holds, the budget, and whether it is a proof of concept or meant to last. It fills the stack from Orchi's defaults: strict TypeScript, or Python for data work. Then a foundation Epic sets up the stack and the blocking checks, a design Epic gives the product its look with you, and the rest is planned on top.
+**New product from one conversation.** Tell Orchi what you want to build. A researcher asks only product questions: who uses it, where it runs, what data it holds, the budget, and whether it is a proof of concept or meant to last. It fills the stack from Orchi's defaults: strict TypeScript, or Python for data work. Then a small foundation Epic sets up the stack and the core checks while a design Epic gives the product its look with you, and the rest is planned at once and starts when the foundation merges. A project meant to last gets its remaining checks in a hardening Epic beside the product work.
 
 ## What stays yours
 
-You decide outcomes; Orchi decides how. Every user-only decision is written into its Issue first, so nothing is lost if you are away.
+You work on the concept, the vision, and the design; Orchi decides everything technical and asks you only what it changes for you. Every user-only decision is written into its Issue first, so nothing is lost if you are away.
 
 | Always yours | Orchi and its crews handle |
 | --- | --- |
-| What to build, the scope, and the breakdown (at Ask) | Code, tests, branches, Issues, labels, and PRs |
+| What to build, the scope, and the order you see results in (at Ask) | Code, tests, branches, Issues, labels, PRs, and how work splits into them |
 | The direction of an exploration | Research, options, and recommendations |
 | Every design direction, comp, and generated asset | Building against what you approved |
-| Product constraints | The stack, tools, thresholds, and CI |
+| Product constraints | The stack, tools, thresholds, exceptions, and CI |
 | Merging into `main`, unless you turn on auto mode | Review, repairs, and rechecks |
-| Every exception to a check, and applying the branch ruleset | Proposing lessons after each delivery |
+| Hearing, in plain words, of every exception to a check | Deciding exceptions, applying the branch ruleset, and proposing lessons after each delivery |
 | Deploys, access, money, and destructive actions | Keeping the documentation current |
 
-**Modes.** Orchi starts interactive at autonomy Ask: crews ask you in their own sessions, and Orchi tells you once when a crew is waiting. Say `autonomy decide` to have crews show you each decision and carry on. Say `mode auto` to step away: Orchi answers planners and dev leads itself and merges a PR only when checks pass, no blocker or major finding is unresolved, every repair is rechecked, and the PR adds no exceptions. Researchers and designers still ask you. Say `mode interactive` to take back the questions.
+**Modes.** Orchi starts interactive at autonomy Ask: crews ask you in their own sessions, and Orchi tells you once when a crew is waiting. Say `autonomy decide` to have crews show you each decision and carry on. Say `mode auto` to step away: Orchi answers planners and dev leads itself and merges a PR only when checks pass, no blocker or major finding is unresolved, every repair is rechecked, and the review confirmed every exception the PR adds. Researchers and designers still ask you. Say `mode interactive` to take back the questions.
 
 ## The gates
 

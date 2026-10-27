@@ -91,8 +91,8 @@ until the deferral is resolved.
     it designs and what must stay, or is blocked by the design Epic it builds on
     (when applicable).
 14. In a project without `ENGINEERING.md`, is blocked by the foundation or
-    standards Epic that [sets the standards](standards.md), or is that Epic
-    (when applicable).
+    standards Epic that [sets the standards](standards.md), or is that Epic; a
+    `design` Epic is not (when applicable).
 
 ## Initiative readiness checklist
 

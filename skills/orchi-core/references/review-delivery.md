@@ -53,7 +53,8 @@ criterion: the test, and for a visible change a screenshot, a recording, or a
 preview link. A writer that needs an exception reports it; record it in
 `ENGINEERING.md` only when no change avoids it, and list every exception the PR
 adds or changes in its Exceptions section in plain words: what is waived, where,
-why, and until when. The session that talks to the user relays them.
+why, and until when, each with its `confirmed:` verdict; an unconfirmed one is a
+`blocker`. The session that talks to the user relays them as information.
 
 A blocker states the violated criterion, concrete causal path, consequence, and
 evidence. Deduplicate root causes. Advisory style, speculative concerns, and

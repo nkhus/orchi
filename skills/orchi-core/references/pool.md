@@ -175,7 +175,7 @@ its title, so the assignment states it.
 | From → to | When | Message |
 | --- | --- | --- |
 | Crew → Orchi | Started, waiting, planned, declined | `<id> started`, `<id> needs the user: <question>`, `<id> now <role>`, `<id> planned: #<n>[, #<m>]`, `<id> declined: <reason>` |
-| Crew → Orchi | Delivery | `#<n> PR ready: <url>`, `#<n> follow-up: #<m>`, `#<n> done: <url>` |
+| Crew → Orchi | Delivery | `#<n> PR ready: <url>`, `#<n> follow-up: #<m>`, `#<n> waits for #<m>`, `#<n> done: <url>` |
 | Crew → Orchi | Setup, takeover, release | `crew-<k> ready: <n> workers`, `crew-<k> refused: Orchi is <title> (<session id>)`, `crew-<k> released`, `crew-<k> not released: <reason>` |
 | Orchi → crew | Answer, delivery | `<id> answer: <answer>`, `#<n> rework: <what the user asked>`, `#<n> merged` |
 | Orchi → crew | Mode, takeover, release | `mode <interactive or auto>, autonomy <level>`, `Orchi is now <title> (<session id>)`, `release` |
@@ -184,6 +184,10 @@ its title, so the assignment states it.
 | Worker → crew | Setup, task | `worker-<n> ready`, `#<task> question: <question>`, `#<task> done: <commit>` and the role's report, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
 | Crew → worker | Task | `#<task> rework: <what>`, `#<task> answer: <answer>` |
 | Crew ↔ worker | Release | `release`; `worker-<n> released`, `worker-<n> not released: <reason>` |
+
+A crew whose work waits for an Issue it does not hold appends `, waits for #<m>`
+to its work reference and reports `#<n> waits for #<m>`; once #<m> has merged,
+Orchi's next wake sends it `#<m> merged`, and the crew removes the note.
 
 `<id>` is `#<n>` for a request that is an Issue, otherwise the short slug Orchi
 gave it in the assignment. In auto mode Orchi answers a crew's question within
@@ -212,15 +216,15 @@ when it changes.
 | Level | Planner and researcher crews | Dev lead crews and Orchi |
 | --- | --- | --- |
 | Ask | Agree the direction, scope, breakdown, and decisions as planning says | Stop for decisions the user has not delegated; the user merges into main |
-| Decide | Agree the direction; decide reversible choices (wording, names, defaults, formats, ordering, Task sequencing, implementation details) and the breakdown, show the plan, and proceed | Decide reversible choices within the agreed scope; the user merges into main |
-| Auto | A planner also adopts the recommended scope and approach among the researched options, and proceeds; a researcher still leaves the exploration's direction to the user | Also, Orchi merges a PR into main when its checks pass, its Verification section records no unresolved `blocker` or `major`, every repair is rechecked, and its Exceptions section says `None` |
+| Decide | Agree the direction; decide reversible choices (wording, names, defaults, ordering) and the breakdown, show the plan, and proceed | Decide reversible choices within the agreed scope; the user merges into main |
+| Auto | A planner also adopts the recommended scope and approach among the researched options, and proceeds; a researcher still leaves the exploration's direction to the user | Also, Orchi merges a PR into main when its checks pass, its Verification section records no unresolved `blocker` or `major`, every repair is rechecked, and the review confirmed each exception it adds or changes |
 
 At every level, ask the user before deploying; before anything destructive or
 irreversible; for access, credentials, or money; before changing the outcome or
 scope beyond the request; for what only the user knows (their needs, their
-users, acceptance thresholds); for checks the user asked to do by hand; to
-choose a design direction or approve a comp or a generated asset; to apply the
-branch ruleset; and before merging a PR that adds or changes an exception. A
+users, acceptance thresholds); for checks the user asked to do by hand; and to
+choose a design direction or approve a comp or a generated asset. Never ask a
+technical question ([Orchi skill](../SKILL.md#research-propose-agree)). A
 crew marks such a question `(user)` in `<id> needs the user:`, and Orchi never
 answers it. In
 auto mode these questions wait for the user on Orchi's report; the crew carries
@@ -312,8 +316,8 @@ Orchi tells the user about planned work they requested; work that says
 `Requested by: <Orchi's title>` it assigns to a dev lead or designer crew by
 itself. It also gives a planner, by itself, an open `needs-planning` Issue that
 says `Requested by: <Orchi's title>` once its blockers are closed, such as the
-rest of a new product's plan after its design Epic merges; other
-`needs-planning` Issues, such as the weekly drift Issue, wait for the user.
+rest of a small product after its design Epic merges; other `needs-planning` Issues, such as the weekly drift
+Issue, wait for the user.
 
 ## Designer crews
 
@@ -324,8 +328,8 @@ approval) in its own session, asks the user directly in both modes, and reports
 chooses a direction or approves a comp. It then builds the approved surfaces as a
 dev lead does, through its workers in `design` mode, and reports `#<n> PR ready`,
 `#<n> follow-up`, and `#<n> done` like one. A `design` Epic stays standalone, so
-an Initiative's dev lead never holds one: the Epic or Initiative that builds on
-it is blocked by it.
+an Initiative's dev lead never holds one: each Epic that builds on it is blocked
+by it.
 
 ## Workers
 
@@ -353,7 +357,7 @@ its workers' branches, and detaches afterwards. A writer detaches when it report
 A dev lead runs an Epic's Tasks in parallel only when they touch different
 files; each Task gets `task/<slug>` from the Epic branch. Before merging a
 worker's branch into the Epic branch, the dev lead checks that its commits sit on
-that branch above the expected base and that its checks pass. Rework on a Task
+that branch above the expected base and that its reported checks pass. Rework on a Task
 goes to the worker that wrote it, after that worker's current task.
 
 ## Release

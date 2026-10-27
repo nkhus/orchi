@@ -34,21 +34,19 @@ continues that agent with the answers.
   documentation, Issues, or an external source can answer: send scouts, and
   keep asking the questions that do not depend on what they find.
 - **Ask only what changes the result.** Ask when the answer changes
-  requirements, approach, scope, acceptance, or risk. Decide ordinary
-  implementation choices yourself and record them as decisions with a reason.
+  requirements, scope, acceptance, or risk, and only at the user's level, as
+  the [Orchi skill](../SKILL.md#research-propose-agree) says. Decide technical
+  choices yourself and record them as decisions with a reason.
 - **Ask once.** Before asking, read the decision log, the Issue, and its
   comments: never ask again what is decided, and never ask to confirm a step the
   agreed plan already covers. A question still waiting for an answer is not
   repeated; a later report says only who waits.
-- **Decide what the user delegated.** When the user agrees that the main session
-  may decide a class of questions itself — in this conversation or in the
-  repository's instructions — decide those questions instead of asking. Record
-  each such decision as made by the main session under that delegation, citing
-  it (who delegated, when, their words, and its limits), with the options
-  considered and the reason. Ask about anything outside the delegation; a
-  delegation never covers merge or deployment authority the user has not
-  granted separately. In a pool, the [autonomy level](pool.md#modes-and-autonomy) the
-  user set is such a delegation; cite it as that section says.
+- **Decide what the user delegated.** When the user lets the main session decide
+  a class of questions (in this conversation, the repository's instructions, or
+  a pool's [autonomy level](pool.md#modes-and-autonomy)), decide them instead of
+  asking, and record each with the delegation (who, when, their words, its
+  limits), the options, and the reason. A delegation never covers merge or
+  deployment authority the user has not granted separately.
 - **Make each question easy to answer.** Give one or two sentences of context,
   two to four concrete options with their consequences, and your recommendation
   first, worded so that "yes" accepts it; always allow a free answer. Use the assistant's structured question
@@ -130,8 +128,7 @@ the result means:
 Resolve questions that affect the approach before dependent implementation. A
 bounded investigation Task can answer a later technical unknown; it produces
 findings and a recommendation, not silently adopted product code. Discuss a
-material change of direction with the user; ordinary implementation choices
-within the agreed approach need no new approval.
+material change of direction with the user.
 
 ## User interface design
 
@@ -143,18 +140,21 @@ that talks to them, and writers build only against what the user approved.
 | --- | --- | --- |
 | None | The change stays within existing components and screens | Nothing more; a Task that is mainly UI goes to `orchi-designer`, which finishes with `polish`, and the review's design audit covers every UI range |
 | Brief | A new screen or feature inside an established visual world (`DESIGN.md` exists) | Run `/impeccable shape` with the user and record its result as the surface brief with a direction contract (`impeccable surface-brief write`) in `.impeccable/surfaces/`; run the direction round only when the composition stays materially open. Commit the brief on the work's branch, which planning creates now, and link it |
-| Epic | A new product, a redesign, or several screens whose composition is open | Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative, and make the Epic or Initiative that builds on it blocked by it |
+| Epic | A new product, a redesign, or several screens whose composition is open | Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative, and make each Epic that builds on it blocked by it |
 
 - A design Epic names the surfaces it designs, what must stay, and whether it
   replaces `DESIGN.md`. Its Tasks are the builds of the approved surfaces; the
   designer splits them after the user approves each comp, so plan them at
   outcome level.
-- From scratch, the design Epic for the key surfaces comes right after the
-  foundation Epic and builds on the stack it set up; the result is kept. Plan the rest of development as one Issue labelled
-  `needs-planning`, with `Requested by: <Orchi's title>` in a pool, blocked by
-  the design Epic, carrying the Exploration's requirements, decisions, and fates
-  it covers: when the design merges, a planner details it from those,
-  `PRODUCT.md`, `DESIGN.md`, the surface briefs, and the built surfaces.
+- From scratch, plan the key surfaces as one design Epic, and the rest now as an
+  Initiative from the Exploration's shape. An Epic that needs no approved
+  surface (data, domain logic, integrations) waits only for the foundation; one
+  that builds on the designed surfaces is blocked by the design Epic and answers
+  its UI fields `Deferred until #<design Epic>`, resolved from `PRODUCT.md`,
+  `DESIGN.md`, the surface briefs, and the built surfaces, which are kept. When
+  the rest is one Epic that builds on them, plan it instead as an Issue labelled
+  `needs-planning`, with `Requested by: <Orchi's title>`, blocked by the design
+  Epic, for a planner once the design merges.
 - Without `PRODUCT.md`, the design Epic starts with `/impeccable init`; for a
   redesign without `DESIGN.md`, with `/impeccable document`, so the incumbent
   look is recorded as evidence.
@@ -172,25 +172,25 @@ that talks to them, and writers build only against what the user approved.
 ## Engineering standards
 
 - A new project's first Epic is the foundation Epic that `orchi-standards`
-  plans; every other Epic and Task, the design Epic included, is blocked by it,
-  and only it scaffolds the stack. An existing project without `ENGINEERING.md`
-  gets a standards Epic the same way when the user agrees to it.
+  plans; only it scaffolds the stack, and every Initiative, Epic, and Task that
+  writes product code is blocked by it. A design Epic is not: its steps with the user
+  start at once, and only its builds wait for the foundation. An existing
+  project without `ENGINEERING.md` gets a standards Epic the same way when the
+  user agrees to it.
 - Never ask the user to choose a tool, threshold, or code layout: the
-  [standards defaults](standards.md) decide, and the decision log records the
-  choice with its reason. Ask only for the product constraints.
+  [standards defaults](standards.md) decide.
 - State user-facing acceptance as what a user can see or do, and name the
   acceptance test for each criterion.
 - With `ENGINEERING.md`, take each Task's checks from its Checks table and plan
   within its Architecture rules. A Task that needs an exception names it with its
-  reason, so the user hears of it before delivery.
+  reason, as [gate integrity](standards.md#gate-integrity) says.
 
 ## Tasks
 
 Derive sequential Tasks from the design. Each owns one reviewable result and
 carries its own context, requirements, solution vision, relevant decisions,
 acceptance, verification, sources, and constraints, so that its owner does not
-have to reconstruct them from the Epic. Name likely
-affected areas to orient the implementer, not as a permission list. Order Tasks by
+have to reconstruct them from the Epic. Order Tasks by
 real dependencies; native child order or brief ordering text is enough.
 
 Slice Tasks vertically: each is a narrow but complete path through the layers it
@@ -202,12 +202,13 @@ batches, then contract, so that checks stay green after every Task.
 
 ## Agree the breakdown
 
-Before creating Issues, show the user the proposed Epics or Tasks: for each, its
-title, what it delivers, and what blocks it. Ask whether the granularity is
-right, whether each blocker is real, and what to merge or split. Revise until
-the user agrees; a list is cheaper to change than Issues. When the breakdown is
-already known while the scope is proposed, agree both in one question. At pool
-autonomy Decide or Auto, show the breakdown and proceed.
+Before creating Issues, show the user the plan in product terms: what they can
+see or do after each piece, in delivery order. Ask whether that content and
+order serve them, and revise until they agree; a list is cheaper to change than
+Issues. The split into Tasks, Epics, and an Initiative and the blockers between
+them are yours. When the breakdown is already known while the scope is
+proposed, agree both in one question. At pool autonomy Decide or Auto, show the
+plan and proceed.
 
 Check every Task against the [Task readiness checklist](readiness.md#task-readiness-checklist)
 and every Epic against the [Epic readiness checklist](readiness.md#epic-readiness-checklist)
