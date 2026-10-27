@@ -15,19 +15,19 @@ issue rules, which take precedence. This skill only fixes the order of steps.
 
 ## 1. Research (no tracking yet)
 
-- Inspect the branch and worktree. Search open and closed Issues and PRs for
-  existing, overlapping, or [declined](../orchi-core/references/planning.md#declined-work) work. If this continues a tracked Task, Epic, or
-  Initiative, stop and propose `/orchi-deliver #<n>` instead (a planner crew
-  runs the readiness gate on it unless it is `delivery-ready`).
+- Inspect the branch and worktree. Search open and closed Issues and PRs for existing, overlapping, or
+  [declined](../orchi-core/references/planning.md#declined-work) work. If this continues a tracked Task, Epic, or Initiative, stop and
+  propose `/orchi-deliver #<n>` instead (a planner crew runs the readiness gate on it unless it is `delivery-ready`).
 - With a shaped Exploration (`#<n>`), take its destination, requirements,
   decisions, and Epic candidates as agreed, link it as the source request, and
   ask only what it leaves open ([hand off](../orchi-core/references/exploration.md#hand-off)).
   If an idea needs strategic decisions before any scope, propose `/orchi-explore`.
-- Send `orchi-scout` agents for independent retrieval questions (in parallel
-  when independent). Read the key files they point to yourself. A scout "not
-  found" is not proof of absence.
-- Keep research proportional. Note every gap the readiness checklist would
-  otherwise force you to guess; these become questions in step 3.
+- In a new project (no product code and no `ENGINEERING.md`), first continue with
+  [orchi-standards](../orchi-standards/SKILL.md) in this session, then plan the
+  rest blocked by its foundation Epic ([standards](../orchi-core/references/planning.md#engineering-standards)).
+- Send `orchi-scout` agents for independent retrieval questions, in parallel when independent.
+  Read the key files they point to yourself; a scout "not found" is not proof of absence.
+- Keep research proportional. Note every gap the readiness checklist would otherwise force you to guess; these become questions in step 3.
 
 ## 2. Propose scope
 

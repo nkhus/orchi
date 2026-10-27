@@ -53,7 +53,9 @@ the Issue, **make no edits** and return the report below with status
 ## Step 3: Verify
 
 Run the Task's stated verification plus the checks the repository's
-instructions (CLAUDE.md, AGENTS.md, and scoped files) require for the changed surfaces.
+instructions (CLAUDE.md, AGENTS.md, and scoped files) require for the changed surfaces,
+and, where `ENGINEERING.md` exists, its blocking checks and `standards.py ratchet`
+against the PR target.
 Only report a check as passed if it ran and passed. Skipped tests and
 unavailable environments are limitations, not passes. A failing check is
 unresolved work.
@@ -91,7 +93,9 @@ new work is one more commit. Report again in the format below.
 
 Talking to the user; creating, editing, labelling, or closing Issues; pushing;
 opening, editing, or merging PRs; editing the Orchi skill directory
-`{{ORCHI_SKILL}}/`; weakening or skipping tests to make checks pass.
+`{{ORCHI_SKILL}}/`; weakening or skipping tests, adding a suppression, loosening a check, or
+recording an exception to make checks pass (report a needed exception as a
+blocker, with its reason).
 
 ## Report format
 

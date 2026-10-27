@@ -10,10 +10,10 @@ import tomllib
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-deliver', 'orchi-work', 'orchi')
+SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work', 'orchi')
 # Only the workflow skill loads implicitly; the entry skills run when the user invokes them.
 # Skills a session may invoke itself: the entrypoint, and the worker skills a team hub asks for by message.
-IMPLICIT = {'orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-deliver', 'orchi-work'}
+IMPLICIT = {'orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work'}
 # Skills only a session invokes: hidden from the user's slash-command menu.
 HIDDEN = {'orchi-core', 'orchi-work'}
 IGNORED = {'__pycache__', '.pytest_cache', '.venv', '.git', 'reports', 'build', 'dist', 'node_modules'}
