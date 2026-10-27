@@ -111,10 +111,16 @@ def test_shipped_roles_have_agreed_models_and_nesting():
         assert ".github/AGENTS.md" not in role.body and "skills/orchi/" not in role.body.replace("{{ORCHI_SKILL}}", "")
 
 
-def test_designer_uses_installed_design_skills_without_installing_them():
+def test_designer_builds_with_impeccable_only_and_never_asks_the_user():
     designer = {role.name: role for role in roles.load_roles()}["orchi-designer"]
     prose = " ".join(designer.body.split())
-    for skill in ("Impeccable", "design-taste-frontend", "SmoothUI"):
-        assert skill in prose
-    assert "Never install or configure a design skill yourself." in prose
+    assert "Impeccable is the design engine" in prose and "SmoothUI" in prose
+    assert "Taste Skill" not in prose and "design-taste" not in prose
+    assert "Never install, update, or configure a design skill yourself" in prose
+    assert "never ask the question tool" in prose and "return `ESCALATE` (`decision`)" in prose
+    assert "Never run `init`, `shape`, `document`, the direction round (`concept-seed`), `live`, or `generate`" in prose
+    assert "impeccable build-phase start --comp <approved comp>" in prose and "`impeccable detect --json`" in prose
+    assert "`impeccable-finish-reviewer`" in prose
     assert "## Task mode" in designer.body and "## Audit mode" in designer.body
+    readme = " ".join((roles.ROLES_DIR / "README.md").read_text().split())
+    assert "Taste" not in readme and "one engine, [Impeccable]" in readme

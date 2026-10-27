@@ -86,8 +86,8 @@ subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
 `orchi-researcher` researches and designs options for an exploration,
 `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small,
 fully specified change (a simple Task or a confirmed defect repair),
-`orchi-designer` executes one ready UI Task or audits a UI diff with the
-installed design skills, and `orchi-reviewer` reviews.
+`orchi-designer` executes one ready UI Task or audits a UI diff with
+Impeccable, and `orchi-reviewer` reviews.
 Subagents never talk to the user, change Issues, push, or merge; their reports
 are claims to verify. Delegation is optional; the readiness checklists are not.
 

@@ -59,15 +59,22 @@ the work belongs to another role (a `size` escalation), or when the Task
 
 ## Design skills
 
-`orchi-designer` uses the design skills installed in the project or for the
-user, and works from the repository's own design system when none is. Orchi
-does not install them. These are the ones it knows:
+Orchi designs with one engine, [Impeccable](https://impeccable.style/), which
+its installer installs at a pinned version without hooks. Its steps split by
+who can take them:
 
-| Skill | Install | Provides |
-| --- | --- | --- |
-| [Impeccable](https://impeccable.style/) | `npx impeccable install` | `/impeccable` commands such as `audit`, `typeset`, `layout`, `colorize`, `animate`, `polish` |
-| [Taste Skill](https://www.tasteskill.dev/) | `npx skills add Leonxlnx/taste-skill` | `design-taste-frontend` and style variants against generic interfaces |
-| [SmoothUI](https://shadcnregistry.com/smoothui/skill) | `pnpm dlx shadcn@latest add "https://smoothui.dev/r/skill.json"` | Installing SmoothUI components, blocks, and themes; animation conventions (shadcn/ui projects) |
+| Steps | Who runs them |
+| --- | --- |
+| `init` (`PRODUCT.md`), `document`, `shape`, the direction round, and comp and asset approval | The session that talks to the user: the main session, or a researcher, planner, or designer crew |
+| Builds from an approved comp or a direction contract, the focused commands (`layout`, `typeset`, `colorize`, `animate`, `adapt`, `clarify`, `harden`), `polish`, the finish reviewer, and the documenter (`DESIGN.md`) | `orchi-designer` in Task mode |
+| `audit`, `critique`, and `detect` | `orchi-designer` in Audit mode, and the `--github` design workflow |
+
+`orchi-designer` never asks the user: what Impeccable would ask it returns as
+`ESCALATE`. [SmoothUI](https://smoothui.dev/), a library of animated React
+components, is a component source rather than a design skill: where
+`PRODUCT.md` or `DESIGN.md` names it (React with Tailwind CSS 4 and shadcn/ui),
+the designer adds its components through the shadcn CLI or MCP server and
+restyles them with the project's tokens.
 
 For a UI diff, the main session may also start `orchi-designer` in Audit mode
 next to `orchi-reviewer`; the designer reports design and accessibility

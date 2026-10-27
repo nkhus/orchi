@@ -56,7 +56,9 @@ keep the role's full report as your final reply in this session:
 - `#<task> not ready: <what is missing>` for the role's `NOT READY`;
 - `#<task> blocked: <reason>` for `BLOCKED` or `ESCALATE`, with the options and
   your recommendation;
-- `#<task> question: <question>` when you need a decision to go on.
+- `#<task> question: <question>` when you need a decision to go on, including
+  every answer, choice, or approval Impeccable asks for in `design` mode; never
+  use the question tool.
 
 After `done` in a writing mode, run `git switch --detach`, so that your crew or
 the next writer can check the branch out. Then end your turn and wait. On
