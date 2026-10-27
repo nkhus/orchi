@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work',
           'orchi-dashboard', 'orchi')
 ROLES = ('orchi-designer', 'orchi-fixer', 'orchi-implementer', 'orchi-researcher', 'orchi-reviewer', 'orchi-scout')
+# Fetched from GitHub at their pinned commits, or from the mirror ORCHI_DESIGN_GIT_BASE names (local mode inherits it).
+DESIGN_SKILLS = ('hallmark', 'prototype')
 
 
 def smoke(out: Path, installer: str, github: bool = False) -> dict:
@@ -71,6 +73,8 @@ def smoke(out: Path, installer: str, github: bool = False) -> dict:
                          '.github/ISSUE_TEMPLATE/orchi-epic.yml'):
             if not (project / relative).is_file():
                 raise RuntimeError('Missing GitHub setup file: ' + relative)
+        if (project / '.github/workflows/orchi-design.yml').exists():
+            raise RuntimeError('The retired design workflow was installed')
         template = (project / '.github/pull_request_template.md').read_text(encoding='utf-8')
         run([sys.executable, str(knowledge), 'impact'], {'PR_BODY': template}, expect=1)
         run([sys.executable, str(knowledge), 'impact'], {'PR_BODY': template.replace(
@@ -87,13 +91,13 @@ def smoke(out: Path, installer: str, github: bool = False) -> dict:
         found = sorted(path.name for path in folder.glob('orchi-*')) if folder.is_dir() else []
         if found != [name + '.md' for name in ROLES]:
             raise RuntimeError('Unexpected Orchi subagents in .claude/agents: ' + ', '.join(found))
-        skill = project / '.claude/skills/impeccable/SKILL.md'
-        if not skill.is_file() or 'version: 4.8.0' not in skill.read_text(encoding='utf-8'):
-            raise RuntimeError('Impeccable 4.8.0 was not installed')
-        if (project / '.claude/settings.local.json').exists():
-            raise RuntimeError('Impeccable was installed with hooks')
-        if json.loads((project / '.impeccable/config.json').read_text(encoding='utf-8')).get('telemetry') is not False:
-            raise RuntimeError('Impeccable telemetry was not turned off')
+        manifest = json.loads((project / '.claude/.orchi-install.json').read_text(encoding='utf-8'))
+        for name in DESIGN_SKILLS:
+            if not (project / '.claude/skills' / name / 'SKILL.md').is_file() or name not in manifest['skills']:
+                raise RuntimeError('Design skill was not installed and recorded: ' + name)
+        for unexpected in ('.claude/skills/impeccable', '.impeccable', '.claude/settings.local.json'):
+            if (project / unexpected).exists():
+                raise RuntimeError('Installation wrote a file Orchi no longer installs: ' + unexpected)
         for path in folder.glob('orchi-*.md'):
             if '{{' in path.read_text(encoding='utf-8'):
                 raise RuntimeError('Unexpanded placeholder in ' + str(path))
@@ -101,6 +105,7 @@ def smoke(out: Path, installer: str, github: bool = False) -> dict:
             if (project / unexpected).exists():
                 raise RuntimeError('Installation wrote outside Claude Code locations: ' + unexpected)
     result = {'ok': True, 'installer': installer, 'github': github, 'skills': len(SKILLS),
+              'design_skills': 0 if installer == 'skills' else len(DESIGN_SKILLS),
               'subagents': 0 if installer == 'skills' else len(ROLES),
               'preserved_files': len(preserved), 'live_model': False, 'out': str(out)}
     (out / 'smoke-report.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')

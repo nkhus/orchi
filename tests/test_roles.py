@@ -111,16 +111,17 @@ def test_shipped_roles_have_agreed_models_and_nesting():
         assert ".github/AGENTS.md" not in role.body and "skills/orchi-core/" not in role.body.replace("{{ORCHI_SKILL}}", "")
 
 
-def test_designer_builds_with_impeccable_only_and_never_asks_the_user():
+def test_designer_builds_with_the_project_engine_and_never_asks_the_user():
     designer = {role.name: role for role in roles.load_roles()}["orchi-designer"]
     prose = " ".join(designer.body.split())
-    assert "Impeccable is the design engine" in prose and "SmoothUI" in prose
-    assert "Taste Skill" not in prose and "design-taste" not in prose
+    assert "a project designs with the one its `DESIGN.md` names" in prose and "SmoothUI" in prose
+    assert "`/hallmark <prompt>`" in prose and "read its `SKILL.md` and `PICKER.md` and follow them yourself" in prose
+    assert "Impeccable" not in prose and "Taste Skill" not in prose
     assert "Never install, update, or configure a design skill yourself" in prose
-    assert "never ask the question tool" in prose and "return `ESCALATE` (`decision`)" in prose
-    assert "Never run `init`, `shape`, `document`, the direction round (`concept-seed`), `live`, or `generate`" in prose
-    assert "impeccable build-phase start --comp <approved comp>" in prose and "`impeccable detect --json`" in prose
-    assert "`impeccable-finish-reviewer`" in prose
-    assert "## Task mode" in designer.body and "## Audit mode" in designer.body
+    assert "never use the question tool" in prose and "return `ESCALATE` (`decision`)" in prose
+    assert "Never pick references, an engine, or a direction, and never write `PRODUCT.md` or `DESIGN.md`" in prose
+    for mode in ("## Variant mode", "## Task mode", "## Audit mode"):
+        assert mode in designer.body
     readme = " ".join((roles.ROLES_DIR / "README.md").read_text().split())
-    assert "Taste" not in readme and "one engine, [Impeccable]" in readme
+    assert "Taste" not in readme and "Impeccable" not in readme
+    assert "[Hallmark](https://github.com/Nutlope/hallmark)" in readme and "[prototype](https://github.com/emilkowalski/skills)" in readme

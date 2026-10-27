@@ -12,10 +12,10 @@ still in force.
 | [`README.md`](../README.md) | What Orchi is, how it works, and how to start |
 | [`docs/workflow.md`](workflow.md) | The core workflow: exploration, planning, delivery, review, subagent roles, Issue forms |
 | [`docs/pool.md`](pool.md) | The session pool: Orchi, crews, workers, messages, modes, clearing |
-| [`docs/design.md`](design.md) | User interface design with Impeccable: design depth, designer crews, the design audit |
+| [`docs/design.md`](design.md) | User interface design: the two design skills and the engine round, references, design depth, designer crews, the design audit |
 | [`docs/standards.md`](standards.md) | Engineering standards: `ENGINEERING.md`, the default stack and checks, gate integrity |
 | [`docs/context.md`](context.md) | Project context: current documentation, working documents, the ownership map and its checks |
-| [`docs/installation.md`](installation.md) | Installing, upgrading, and removing Orchi and Impeccable |
+| [`docs/installation.md`](installation.md) | Installing, upgrading, and removing Orchi and its design skills |
 | [`docs/testing.md`](testing.md) | Package validation, the test suite, the smoke test, and live checks |
 | [`docs/references.md`](references.md) | External standards and tools Orchi relies on |
 | [`docs/out-of-scope/`](out-of-scope/README.md) | Proposals Orchi does not adopt, and why |
@@ -45,7 +45,6 @@ still in force.
 | `skills/orchi-core/references/pool.md` | `docs/pool.md` | Pool |
 | `skills/orchi-design/**` | `docs/design.md` | Design |
 | `skills/orchi-core/roles/orchi-designer.md` | `docs/design.md` | Design |
-| `skills/orchi-core/assets/github/workflows/orchi-design.yml` | `docs/design.md` | Design |
 | `skills/orchi-standards/**` | `docs/standards.md` | Standards |
 | `skills/orchi-core/references/standards.md` | `docs/standards.md` | Standards |
 | `skills/orchi-core/scripts/standards.py` | `docs/standards.md` | Standards |

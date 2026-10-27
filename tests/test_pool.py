@@ -151,7 +151,7 @@ def test_orchi_prepares_the_repository_without_asking_the_user_to_commit():
         "## Autonomous development")
     for label in ("Exploration", "needs-planning", "delivery-ready", "design"):
         assert label in installation.LABELS and f"`{label}`" in pool
-    assert ".claude/worktrees/\n" in installation.GITIGNORE_BODY and "`.claude/worktrees/` is ignored" in pool
+    assert ".claude/worktrees/" in installation.GITIGNORE_BODY.splitlines() and "`.claude/worktrees/` is ignored" in pool
     assert "It never force-pushes, rewrites history, or changes branch protection." in pool
     assert "leaves out and reports any it finds instead of committing them" in pool
     assert "pool.md#prepare-the-repository" in prose("orchi-core/references/exploration.md")

@@ -11,7 +11,8 @@ The sources below describe external standards and tools used by Orchi. Orchi's o
 | [Claude Code skills](https://code.claude.com/docs/en/skills) | Skill discovery and invocation |
 | [Claude Code subagents](https://code.claude.com/docs/en/sub-agents) | Subagent definitions, models, and nesting |
 | [Claude Code memory](https://code.claude.com/docs/en/memory) | `CLAUDE.md` instruction discovery |
-| [Impeccable](https://impeccable.style/) | The design engine Orchi installs and `orchi-designer` uses |
+| [Hallmark](https://github.com/Nutlope/hallmark) | One of the two design skills Orchi installs; strongest on pages that are read |
+| [prototype](https://github.com/emilkowalski/skills) (Emil Kowalski) | One of the two design skills Orchi installs; builds divergent variants behind a picker, strongest on screens that are worked in |
 | [SmoothUI](https://smoothui.dev/) | Animated React components a project's stack may name; added through the shadcn CLI or MCP server |
 | [OpenAI: Harness engineering](https://openai.com/index/harness-engineering/) | An agent-first codebase: rules enforced by structural tests and lint rules, the repository as the agents' memory, recurring cleanup of drift |
 | [GitHub rulesets](https://docs.github.com/en/rest/repos/rules) | The ruleset `standards.py ruleset` prints for required checks |

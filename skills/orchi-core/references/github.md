@@ -11,7 +11,7 @@ Orchi uses the type labels `Initiative`, `Epic`, and `Task`; `in-progress` for
 claims; `Exploration` for explorations; `design` for an Epic a designer runs;
 and `needs-planning`, `delivery-ready`, and `retro` for hand-offs. A project
 installed with `--github` already has them, plus issue templates, a PR template,
-and the documentation, design, and standards check workflows. Otherwise, create missing labels deliberately
+and the documentation and standards check workflows. Otherwise, create missing labels deliberately
 with a stable description; do not invent variants.
 
 ## Titles and tags

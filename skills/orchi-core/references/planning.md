@@ -133,13 +133,15 @@ material change of direction with the user.
 ## User interface design
 
 Work that changes a user interface gets a design depth in its Epic or Task. The
-design engine is Impeccable; the steps that need the user run in the session
-that talks to them, and writers build only against what the user approved.
+project's design engine, Hallmark or prototype, is the one `DESIGN.md` names;
+a project without `DESIGN.md` picks it in its first design Epic. The steps that
+need the user run in the session that talks to them, and writers build only
+against what the user approved.
 
 | Depth | When | Planning does |
 | --- | --- | --- |
-| None | The change stays within existing components and screens | Nothing more; a Task that is mainly UI goes to `orchi-designer`, which finishes with `polish`, and the review's design audit covers every UI range |
-| Brief | A new screen or feature inside an established visual world (`DESIGN.md` exists) | Run `/impeccable shape` with the user and record its result as the surface brief with a direction contract (`impeccable surface-brief write`) in `.impeccable/surfaces/`; run the direction round only when the composition stays materially open. Commit the brief on the work's branch, which planning creates now, and link it |
+| None | The change stays within existing components and screens | Nothing more; a Task that is mainly UI goes to `orchi-designer`, which builds inside `DESIGN.md` with the engine's craft rules, and the review's design audit covers every UI range |
+| Brief | A new screen or feature inside an established visual world (`DESIGN.md` exists) | Ask the user whether to add references to `docs/design/references/`, agree the surface brief with them, and record it in `docs/design/surfaces/<surface>.md`; when the composition stays materially open, run a direction round (three variants from `orchi-designer` in Variant mode with the project's engine) and commit the chosen variant as the approved comp. Commit the brief on the work's branch, which planning creates now, and link it |
 | Epic | A new product, a redesign, or several screens whose composition is open | Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative, and make each Epic that builds on it blocked by it |
 
 - A design Epic names the surfaces it designs, what must stay, and whether it
@@ -154,19 +156,21 @@ that talks to them, and writers build only against what the user approved.
   the rest is one Epic that builds on them, plan it instead as an Issue labelled
   `needs-planning`, with `Requested by: <Orchi's title>`, blocked by the design
   Epic, for a planner once the design merges.
-- Without `PRODUCT.md`, the design Epic starts with `/impeccable init`; for a
-  redesign without `DESIGN.md`, with `/impeccable document`, so the incumbent
-  look is recorded as evidence.
+- Without `PRODUCT.md`, the design Epic starts by writing it with the user; for
+  a redesign without `DESIGN.md`, by recording the incumbent look in it as
+  evidence. Every design Epic then agrees references with the user, and one
+  without `DESIGN.md`, or one that replaces it, runs the engine round, in which
+  the user picks the project's engine from variants both skills built.
 - Every Task that builds UI links the `DESIGN.md` sections, surface brief, and
   approved comp it builds against, and names its states, breakpoints, themes,
   and accessibility level. A brief that turns out to need a new world or a
   redesign is raised to a design Epic, and the user is told why. A UI Task that
   reaches delivery without the brief its depth needs goes back to a planner as a
   `needs-planning` follow-up.
-- Only the user chooses a direction and approves a comp or a generated asset,
-  at every autonomy level. The session running `shape` answers the questions
-  `PRODUCT.md`, `DESIGN.md`, or the Issues already settle itself; the rest go to
-  the user.
+- Only the user names references, chooses the engine and a direction, and
+  approves a comp or a generated asset, at every autonomy level. The session
+  writing a brief answers the questions `PRODUCT.md`, `DESIGN.md`, or the Issues
+  already settle itself; the rest go to the user.
 
 ## Engineering standards
 

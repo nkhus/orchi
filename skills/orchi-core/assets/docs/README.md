@@ -13,8 +13,9 @@ while it is under way, in `docs/work/` on its branch.
 | --- | --- |
 | `ENGINEERING.md` | Stack, commands, checks, architecture rules, exceptions |
 | `PRODUCT.md` | Who the product is for and what it must be |
-| `DESIGN.md` | The visual system |
-| `.impeccable/surfaces/` | Each surface's brief and approved comp |
+| `DESIGN.md` | The design engine and the visual system |
+| `docs/design/references/` | The products and sites the design takes after, with screenshots |
+| `docs/design/surfaces/` | Each surface's brief and approved comp |
 | `docs/product/<feature>.md` | What a user can see and do now, with the acceptance test for each criterion |
 | `docs/<area>/README.md` | How an area is built, its contracts, and the decisions in force |
 

@@ -55,9 +55,8 @@ so on every `/orchi` Orchi first checks, read-only, that:
 - the default branch has a commit and GitHub has it;
 - the installation is committed and pushed: `git status --porcelain` lists none
   of its paths, which are the manifest `.claude/.orchi-install.json`, the paths
-  it names (each skill as `.claude/skills/<name>/`, its files, and its
-  instruction files), and Impeccable's `.claude/skills/impeccable/` and
-  `.impeccable/config.json`;
+  it names (each skill as `.claude/skills/<name>/`, the design skills
+  included, its files, and its instruction files);
 - the labels the pool uses exist (`Exploration`, `needs-planning`,
   `delivery-ready`, `design`);
 - `.claude/worktrees/` is ignored (`git check-ignore -q .claude/worktrees/x`).
@@ -356,11 +355,12 @@ Issue, wait for the user.
 
 ## Designer crews
 
-A designer crew holds one standalone `design` Epic. It runs Impeccable's steps
-that need the user (`init`, `shape`, the direction round, and comp and asset
-approval) in its own session, asks the user directly in both modes, and reports
-`#<n> needs the user: <question>` to Orchi as well; an autonomy level never
-chooses a direction or approves a comp. It then builds the approved surfaces as a
+A designer crew holds one standalone `design` Epic. It runs the steps that need
+the user (`PRODUCT.md`, references, the engine and direction rounds, and comp
+and asset approval) in its own session, with `orchi-designer` subagents in
+Variant mode building the variants, asks the user directly in both modes, and
+reports `#<n> needs the user: <question>` to Orchi as well; an autonomy level
+never names references, chooses the engine or a direction, or approves a comp. It then builds the approved surfaces as a
 dev lead does, through its workers in `design` mode or, without workers,
 `orchi-designer` subagents in Task mode, and reports `#<n> PR ready`,
 `#<n> follow-up`, and `#<n> done` like one. A `design` Epic stays standalone, so

@@ -79,7 +79,6 @@ configuration is the project's own (a custom rule, a boundary table).
 | Coverage | `>= 90%` of changed lines; the project floor only rises | coverage.py, same rule | yes | hardening |
 | Acceptance tests | Playwright, one test per acceptance criterion | pytest, or Playwright for a UI | yes | hardening |
 | Accessibility | axe in the Playwright run, WCAG 2.2 AA | same | yes | hardening |
-| UI quality | `impeccable detect` (the design workflow) | same | yes | the first UI |
 | Module boundaries | dependency-cruiser | import-linter | yes | a second layer |
 | Dead code | knip | vulture | yes | hardening |
 | Dependencies | `pnpm audit --audit-level high` | pip-audit, every known vulnerability | yes | hardening |

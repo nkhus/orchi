@@ -50,7 +50,6 @@ sensitivity; budget; proof of concept or meant to last. Link the Exploration.>
 | Coverage of changed lines | Vitest coverage, diff-cover | `pnpm coverage:changed` | test | vitest.config.ts | >= 90 | yes |
 | Acceptance | Playwright | `pnpm test:acceptance` | acceptance | playwright.config.ts | - | yes |
 | Accessibility | axe in Playwright, WCAG 2.2 AA | `pnpm test:acceptance` | acceptance | playwright.config.ts | - | yes |
-| UI quality | Impeccable | `npx --yes impeccable@4.8.0 detect` | design | - | - | yes |
 | Module boundaries | dependency-cruiser | `pnpm boundaries` | boundaries | .dependency-cruiser.cjs | - | yes |
 | Dead code | knip | `pnpm knip` | dead-code | knip.json | - | yes |
 | Secrets | gitleaks | `gitleaks git` | secrets | - | - | yes |

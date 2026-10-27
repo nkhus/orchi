@@ -18,7 +18,7 @@ allowed.
 | [`orchi-implementer`](orchi-implementer.md) | opus / medium | one commit per run |
 | [`orchi-fixer`](orchi-fixer.md) | sonnet / medium | one commit per run (Task or repair) |
 | [`orchi-reviewer`](orchi-reviewer.md) | opus / high | nothing |
-| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task run; nothing in Audit mode |
+| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task run; variant files outside the repository in Variant mode; nothing in Audit mode |
 
 ## Choosing a writer
 
@@ -62,28 +62,29 @@ the work belongs to another role (a `size` escalation), or when the Task
 
 ## Design skills
 
-Orchi designs with one engine, [Impeccable](https://impeccable.style/), which
-its installer installs at a pinned version without hooks. Its steps split by
-who can take them:
+Orchi's installer installs two design skills at pinned commits:
+[Hallmark](https://github.com/Nutlope/hallmark), strongest on pages that are
+read, and Emil Kowalski's [prototype](https://github.com/emilkowalski/skills),
+strongest on screens that are worked in. A project designs with one of them,
+its design engine: the user picks it in the project's first design Epic, from
+variants both skills built independently, and `DESIGN.md` records it. The
+steps split by who can take them:
 
 | Steps | Who runs them |
 | --- | --- |
-| `init` (`PRODUCT.md`), `document` (`DESIGN.md`), `shape`, the direction round, and comp and asset approval | The session that talks to the user: the main session, or a researcher, planner, or designer crew |
-| Builds from an approved comp or a direction contract, the focused commands (`layout`, `typeset`, `colorize`, `animate`, `adapt`, `clarify`, `harden`), `polish`, the finish reviewer, and producing an asset for the user's approval | `orchi-designer` in Task mode |
-| `audit`, `critique`, and `detect` | `orchi-designer` in Audit mode, and the `--github` design workflow |
+| `PRODUCT.md`, references, surface briefs, the engine and direction rounds, comp and asset approval, `DESIGN.md` | The session that talks to the user: the main session, or a planner or designer crew |
+| Variants for a round | `orchi-designer` in Variant mode |
+| Builds from an approved comp, and UI Tasks at depth none | `orchi-designer` in Task mode |
+| The design audit, with Hallmark's `audit` and `sloplint` in a Hallmark project | `orchi-designer` in Audit mode |
 
-`orchi-designer` never asks the user: what Impeccable would ask it returns as
+prototype is marked for the user's invocation only, so `orchi-designer` reads
+its `SKILL.md` and follows it instead of starting it with the Skill tool.
+`orchi-designer` never asks the user: what a skill would ask it returns as
 `ESCALATE`. [SmoothUI](https://smoothui.dev/), a library of animated React
 components, is a component source rather than a design skill: where
 `PRODUCT.md` or `DESIGN.md` names it (React with Tailwind CSS 4 and shadcn/ui),
 the designer adds its components through the shadcn CLI or MCP server and
 restyles them with the project's tokens.
-
-Impeccable's installer also adds its own subagents. `orchi-designer` starts
-`impeccable-finish-reviewer` and `impeccable-asset-producer` where Impeccable's
-references call for them; `impeccable-documenter` serves `document`, which runs
-with the user; `impeccable-manual-edit-applier` serves Impeccable's live mode,
-which Orchi does not run, so nothing starts it.
 
 For a UI diff, the main session may also start `orchi-designer` in Audit mode
 next to `orchi-reviewer`; the designer reports design and accessibility

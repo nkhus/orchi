@@ -1,49 +1,79 @@
-"""Shared fixtures: a fake Node.js and npx, so installations never reach npm."""
+"""Shared fixtures: local Git repositories that stand in for the design skills' GitHub repositories."""
 import os
-import shutil
 from pathlib import Path
+import subprocess
 
 import pytest
 
-# Answers `node --version` and passes everything else, such as npm's own scripts, to the real node.
-FAKE_NODE = """#!/bin/sh
-if [ "$#" = 1 ] && [ "$1" = "--version" ]; then echo "${FAKE_NODE_VERSION:-v22.18.0}"; exit 0; fi
-[ -n "$REAL_NODE" ] && exec "$REAL_NODE" "$@"
-exit 127
-"""
+from orchi_core import installation
 
-# Emulates `npx --yes impeccable@<version> install ...`: writes the skill and one agent into the current
-# directory (Orchi runs it from the installation root) and logs the arguments.
-FAKE_NPX = """#!/bin/sh
-echo "$@" >> "$FAKE_NPX_LOG"
-[ -n "$FAKE_NPX_FAIL" ] && { echo "$FAKE_NPX_FAIL" >&2; exit 1; }
-version=""
-for arg in "$@"; do
-  case "$arg" in impeccable@*) version="${arg#impeccable@}" ;; esac
-done
-mkdir -p .claude/skills/impeccable .claude/agents
-printf -- '---\\nname: impeccable\\nversion: %s\\n---\\nFake Impeccable\\n' "$version" > .claude/skills/impeccable/SKILL.md
-printf -- '---\\nname: impeccable-documenter\\n---\\n' > .claude/agents/impeccable-documenter.md
-"""
+# Each fake repository holds its skill at the published path, plus a file outside it that must not be installed.
+# Every version is one commit; tests pin the first and may move the pin to a later one.
+DESIGN_TREES = {
+    "hallmark": [
+        {"skills/hallmark/SKILL.md": "---\nname: hallmark\ndescription: Fake Hallmark\nversion: 2.0.0\n---\nFake\n",
+         "skills/hallmark/references/craft.md": "# Craft\n", "README.md": "Repository readme\n"},
+        {"skills/hallmark/SKILL.md": "---\nname: hallmark\ndescription: Fake Hallmark\nversion: 2.1.0\n---\nFake\n",
+         "skills/hallmark/references/craft.md": "# Craft, revised\n", "README.md": "Repository readme\n"},
+    ],
+    "prototype": [
+        {"skills/prototype/SKILL.md": "---\nname: prototype\ndescription: Fake prototype\n"
+                                      "disable-model-invocation: true\n---\nFake\n",
+         "skills/prototype/PICKER.md": "# Picker\n", "skills/other/README.md": "Another folder\n"},
+    ],
+}
+GIT_ENV = {"GIT_AUTHOR_NAME": "Test", "GIT_AUTHOR_EMAIL": "test@example.com", "GIT_COMMITTER_NAME": "Test",
+           "GIT_COMMITTER_EMAIL": "test@example.com", "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+
+
+def git(*args, cwd):
+    return subprocess.run(["git", *args], cwd=cwd, env={**os.environ, **GIT_ENV}, check=True, capture_output=True,
+                          text=True).stdout.strip()
+
+
+@pytest.fixture(scope="session")
+def design_repos(tmp_path_factory):
+    """Bare repositories at <base>/<repo> for each design skill; returns the base URL and each skill's commits."""
+    base = tmp_path_factory.mktemp("design-git")
+    commits = {}
+    for name, versions in DESIGN_TREES.items():
+        work = tmp_path_factory.mktemp("design-work-" + name)
+        git("init", "-q", "-b", "main", cwd=work)
+        commits[name] = []
+        for files in versions:
+            for relative, text in files.items():
+                (work / relative).parent.mkdir(parents=True, exist_ok=True)
+                (work / relative).write_text(text)
+            git("add", "-A", cwd=work)
+            git("commit", "-q", "-m", "version", cwd=work)
+            commits[name].append(git("rev-parse", "HEAD", cwd=work))
+        bare = base / installation.DESIGN_SKILLS[name]["repo"]
+        bare.parent.mkdir(parents=True, exist_ok=True)
+        git("clone", "-q", "--bare", str(work), str(bare), cwd=base)
+    return {"base": base.as_uri() + "/", "commits": commits, "trees": DESIGN_TREES}
 
 
 @pytest.fixture(autouse=True)
-def fake_node(tmp_path_factory, monkeypatch):
-    """Put a fake node and npx first on PATH; the returned log lists each npx call."""
-    bin_dir = tmp_path_factory.mktemp("fake-bin")
-    for name, script in (("node", FAKE_NODE), ("npx", FAKE_NPX)):
-        path = bin_dir / name
-        path.write_text(script)
-        path.chmod(0o755)
-    monkeypatch.setenv("REAL_NODE", shutil.which("node") or "")
-    log = bin_dir / "npx.log"
-    log.touch()
-    monkeypatch.setenv("PATH", str(bin_dir) + os.pathsep + os.environ.get("PATH", ""))
-    monkeypatch.setenv("FAKE_NPX_LOG", str(log))
-    monkeypatch.delenv("FAKE_NPX_FAIL", raising=False)
-    monkeypatch.delenv("FAKE_NODE_VERSION", raising=False)
-    return log
+def design_skills(design_repos, monkeypatch):
+    """Point every installation at the local repositories, with each skill pinned to its first commit."""
+    monkeypatch.setenv(installation.DESIGN_GIT_BASE_ENV, design_repos["base"])
+    monkeypatch.setattr(installation, "DESIGN_SKILLS", {
+        name: {**spec, "commit": design_repos["commits"][name][0]} for name, spec in installation.DESIGN_SKILLS.items()})
+    return design_repos
 
 
-def npx_calls(log: Path) -> list[str]:
-    return [line for line in log.read_text().splitlines() if line]
+def pin(monkeypatch, name, commit):
+    """Move one design skill's pin, as a later Orchi release would."""
+    monkeypatch.setattr(installation, "DESIGN_SKILLS", {
+        **installation.DESIGN_SKILLS, name: {**installation.DESIGN_SKILLS[name], "commit": commit}})
+
+
+def expected_tree(name, version=0):
+    """The files a design skill version installs, relative to its skill directory."""
+    prefix = installation.DESIGN_SKILLS[name]["path"] + "/"
+    return {relative[len(prefix):]: text for relative, text in DESIGN_TREES[name][version].items()
+            if relative.startswith(prefix)}
+
+
+def tree(folder: Path) -> dict:
+    return {path.relative_to(folder).as_posix(): path.read_text() for path in sorted(folder.rglob("*")) if path.is_file()}

@@ -27,7 +27,7 @@ links survive when the branch moves on and the folder is later deleted.
 | Decisions | The decision log ([clarify](planning.md#clarify-with-the-user)), each decision with an id (D1, D2, ...) and the area of the product it concerns |
 | Requirements | Numbered requirements (R1, R2, ...) of the chosen direction, each observable at completion |
 | Shape | The chosen direction, and candidate Epics as outcomes with the result or contract each supplies to the next |
-| Product | For a product with a user interface: the product truth Impeccable's `init` records in `PRODUCT.md` (see Shape) |
+| Product | For a product with a user interface: the product truth the first design Epic records in `PRODUCT.md`, and the references the user names (see Shape) |
 | Open questions | What is still open, with what each question blocks; questions you can only sense so far are listed as such |
 
 ## Phases
@@ -59,16 +59,18 @@ answer changes the destination or invalidates options.
    cannot work without that nothing has shown yet (an external service or
    model, access, data); offer one when a question cannot be settled on paper
    (how a state model behaves). How screens should look is not settled here:
-   it is a design Epic's work, on the real stack with Impeccable. Done when no
+   it is a design Epic's work, on the real stack with the project's design
+   engine. Done when no
    open question affects the approach.
 5. **Shape.** Write the requirements and the Shape section. For a product with
-   a user interface, also fill the Product section with what Impeccable's
-   `init` asks: the primary users and their situation, the purpose and the
+   a user interface, also fill the Product section: the primary users and
+   their situation, the purpose and the
    mechanism no competitor shares, positioning, platform, stack (from the Stack
    section), constraints, brand
    commitments, evidence, and the accessibility level (WCAG 2.2 AA unless the
-   user says otherwise; do not ask). The first design Epic's
-   `init` writes `PRODUCT.md` from it and asks only what is missing. For a new
+   user says otherwise; do not ask), and the products or sites the user
+   names as references, with what to take from each. The first design Epic
+   writes `PRODUCT.md` from it and asks only what is missing. For a new
    product, fill the Stack section from the
    [standards defaults](standards.md#stack) and state it once; never ask the user
    to choose a tool. Then read
