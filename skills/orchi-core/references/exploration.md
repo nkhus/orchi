@@ -86,11 +86,12 @@ not the code, carries into planning.
 ## New projects
 
 Exploration needs a Git repository with a GitHub remote, because the Issue is
-its state. If none exists, offer to create one (`git init`, `gh repo create`)
-and to install Orchi there with `--github` before framing, then commit and push
-the installation to `main`, because branches, crews' worktrees, and CI start
-from it; creating a remote repository needs the user's agreement. Planning a new project starts with `orchi-standards`,
-which plans the foundation Epic that every other Epic is blocked by.
+its state. Orchi prepares it before any crew starts, as the pool reference's
+[Prepare the repository](pool.md#prepare-the-repository) says: it commits and
+pushes the installation to `main`, because branches, crews' worktrees, and CI
+start from it, and creates a remote repository only with the user's agreement.
+Planning a new project starts with `orchi-standards`, which plans the foundation
+Epic that every other Epic is blocked by.
 
 ## Hand off
 

@@ -650,7 +650,8 @@ def test_impeccable_is_installed_pinned_without_hooks_and_telemetry(tmp_path, fa
                             "--scope=project", "--no-hooks"]
     assert json.loads((tmp_path / ".impeccable/config.json").read_text()) == {"telemetry": False}
     ignore = (tmp_path / ".gitignore").read_text()
-    assert ignore.startswith("# orchi:begin\n") and ".impeccable/mocks/" in ignore and "**/skills/impeccable/scripts/bin/" in ignore
+    assert ignore.startswith("# orchi:begin\n") and ".claude/worktrees/\n" in ignore
+    assert ".impeccable/mocks/" in ignore and "**/skills/impeccable/scripts/bin/" in ignore
     assert json.loads((tmp_path / MANIFEST).read_text())["impeccable"] == installation.IMPECCABLE
     assert installation.install(tmp_path)["status"] == "unchanged" and len(npx_calls(fake_node)) == 1
     installation.install(tmp_path, uninstall=True)

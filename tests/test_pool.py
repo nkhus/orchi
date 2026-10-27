@@ -134,3 +134,17 @@ def test_one_orchi_own_ids_and_rename_on_release():
     assert "Orchi renames the crew `crew-<k>` on the reply" in pool
     assert "rename the crew `crew-<k>` now" in entry and "once its conversation is empty" not in entry
     assert "typed over Remote Control starts no session" in pool
+
+
+def test_orchi_prepares_the_repository_without_asking_the_user_to_commit():
+    pool, entry = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md")
+    assert entry.index("Prepare the repository as the pool reference's") < entry.index("build the pool as the pool")
+    assert "Never ask the user to commit, push, or create labels" in entry
+    assert "Edit files or commit, except through the setup agent of Prepare the repository" in entry
+    assert pool.index("## Prepare the repository") < pool.index("## Build the pool")
+    for label in ("Exploration", "needs-planning", "delivery-ready", "design"):
+        assert label in installation.LABELS and f"`{label}`" in pool
+    assert ".claude/worktrees/\n" in installation.GITIGNORE_BODY and "`.claude/worktrees/` is ignored" in pool
+    assert "It never force-pushes, rewrites history, or changes branch protection." in pool
+    assert "leaves out and reports any it finds instead of committing them" in pool
+    assert "pool.md#prepare-the-repository" in prose("orchi-core/references/exploration.md")

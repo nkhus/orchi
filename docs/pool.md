@@ -9,8 +9,8 @@ GitHub holds every fact it relies on, and any session can restart and catch up.
 
 | Part | Defined in |
 | --- | --- |
-| The entry: building the pool, routing, assigning, answering in auto mode | `skills/orchi/SKILL.md` |
-| Sessions, roles, messages, modes, workers, release, and clearing | `skills/orchi-core/references/pool.md` |
+| The entry: preparing the repository, building the pool, routing, assigning, answering in auto mode | `skills/orchi/SKILL.md` |
+| Repository setup, sessions, roles, messages, modes, workers, release, and clearing | `skills/orchi-core/references/pool.md` |
 | A worker's task in a mode (`implement`, `fix`, `design`, `research`, `retrieve`) | `skills/orchi-work/SKILL.md` |
 | Crew roles | `orchi-explore` (researcher), `orchi-plan` and `orchi-standards` (planner), `orchi-design` (designer), `orchi-deliver` (dev lead) |
 
@@ -39,6 +39,7 @@ delete it when it no longer holds.
 
 | Decision | Reason | Rejected | Since |
 | --- | --- | --- | --- |
+| Orchi prepares the repository itself on every `/orchi`: a general-purpose setup agent commits and pushes the installation (in a new repository, every file not ignored), creates missing labels, and ignores `.claude/worktrees/`; it checks for secrets first, never force-pushes, and opens a PR only when branch protection refuses the push. The user is asked only to create a GitHub repository, run `gh auth login`, judge a possible secret, resolve a diverged default branch, or merge that PR | The user types only `/orchi`; in a live run Orchi stopped on an empty repository and asked the user to commit and push, because its only rule was never to commit | Leaving the commit and push to the user; Orchi committing in its own context, which keeps Orchi a router that edits nothing | [#53](https://github.com/nkhus/orchi/pull/53) |
 | At every level the user chooses design directions, approves comps and generated assets, decides the branch ruleset, and approves any PR that adds an exception; a crew marks such a question `(user)` and Orchi never answers it; at Auto a researcher still leaves the exploration's direction to the user | These are the decisions the agent-first premise keeps with the user, and an autonomy level must not reach them | Leaving them to each skill's own wording | [#49](https://github.com/nkhus/orchi/pull/49) |
 | The pool has no liveness check between wakes: on each wake Orchi checks that crews holding claims exist and whether their PRs merged, reassigns a lost crew's claim, and gives dev lead and designer work only to crews that reported workers | No session starts unattended, so a scheduler is out; checking state on every wake is enough to recover | A periodic wake for Orchi | [#49](https://github.com/nkhus/orchi/pull/49) |
 | An accepted takeover stands: crews report to the new Orchi whatever their assignment says, and a crew that lost it from context repeats the host check | A takeover held only in conversation left busy crews reporting to the old Orchi | Recording the current Orchi in GitHub | [#49](https://github.com/nkhus/orchi/pull/49) |

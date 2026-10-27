@@ -72,7 +72,7 @@ def test_flows_do_not_stall_and_keep_user_only_questions():
     assert "the session it names has stopped" in deliver and "the session it names has stopped" in prose(
         "orchi-core/references/execution.md")
     assert "only `orchi-plan` closes the Exploration" in prose("orchi-standards/SKILL.md")
-    assert "then commit and push the installation to `main`" in prose("orchi-core/references/exploration.md")
+    assert "it commits and pushes the installation to `main`" in prose("orchi-core/references/exploration.md")
 
 
 def test_orchi_is_the_only_command_the_user_types():

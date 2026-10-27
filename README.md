@@ -44,7 +44,7 @@ To upgrade, rerun the same `npx` command; unmodified managed files update in pla
 
 </details>
 
-Commit and push the installation to `main`: Orchi's sessions, branches, and CI start from it.
+You do not need to commit or push it: the first `/orchi` commits and pushes the installation to `main`, which Orchi's sessions, branches, and CI start from.
 
 ### 2. Start Orchi
 
