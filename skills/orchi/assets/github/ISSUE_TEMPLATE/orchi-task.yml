@@ -42,6 +42,13 @@ body:
     validations:
       required: true
   - type: textarea
+    id: ui
+    attributes:
+      label: UI design
+      description: For a Task that changes a user interface - the design depth (none, brief, or Epic), the DESIGN.md sections it follows, the surface brief with its direction contract and the approved comp it builds against, and the states, breakpoints, themes, and accessibility level it covers. Write "No user interface change" otherwise.
+    validations:
+      required: false
+  - type: textarea
     id: decisions
     attributes:
       label: Decisions
