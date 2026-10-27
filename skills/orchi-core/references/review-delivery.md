@@ -10,7 +10,10 @@ existing evidence and does not launch another test campaign.
 Every PR needs a filled `Documentation impact` section in its body: either the
 owning pages updated, or a short reason why no documentation changes. A missing,
 empty, or placeholder section is a blocker. Check that the listed pages actually
-describe the changed behavior, and that `knowledge.py lint` passes on the candidate.
+describe the changed behavior, and that `knowledge.py lint`, `stale --since` the
+target, and `behavior` pass on the candidate. A PR into main carries no working
+documents: `knowledge.py work` must pass
+([move into current documentation](knowledge.md#move-into-current-documentation)).
 
 ## Review
 
@@ -61,6 +64,8 @@ inspect compatibility, and rerun affected checks. Serialize merges into a shared
 target, rechecking when another Epic has landed since validation. Squash the Epic
 PR into its Initiative branch, or into main for a standalone Epic.
 
+Before an Epic merges into its Initiative branch, move what it settled from the
+working folder into the current documentation, as the knowledge reference says.
 Confirm the merge, confirm its Tasks are completed, then close the Epic and clear
 `in-progress`. A closed issue alone does not prove merged implementation. Closing
 keywords only work for the default branch; close issues explicitly after merging
@@ -68,7 +73,8 @@ into an Initiative branch. Branch dependent Epics from the updated integration
 branch.
 
 At final Initiative integration, reconcile with current main, including code and
-Core documentation, and check agreed requirement coverage. Run the full applicable
+current documentation, move the rest of the working folder there and delete it,
+and check agreed requirement coverage. Run the full applicable
 suite on the combined candidate. Review cross-Epic integration and reconciliation,
 reusing completed Epic reviews instead of restarting them. Revalidate any repair.
 Squash the final PR into main within the user's publication authority, confirm the

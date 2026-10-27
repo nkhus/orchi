@@ -319,6 +319,7 @@ def instruction_blocks(root: Path, global_scope: bool, pr_template: str | None =
         "Track work in Git branches and GitHub Issues; resume from the existing issue, branch, and PR instead of duplicating work.\n"
         "For documentation-only questions, use its retrieval guidance without creating tracking.\n"
         "Where `ENGINEERING.md` exists, follow it and run its checks; never weaken a check without recording an exception there.\n"
+        "`docs/README.md`, when present, maps the current documentation; working documents live in `docs/work/` on branches and never reach main.\n"
         "Do not infer merge or deployment permission from permission to implement."
     )
     blocks = {instructions_path(root, global_scope): body}

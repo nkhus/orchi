@@ -34,8 +34,8 @@ crew's name in claims and messages, whatever its title.
 A crew writes no code itself: a dev lead gives every change to a worker,
 including a review repair and a merge conflict. A crew edits Issues and PRs,
 creates, merges, and pushes branches, and a planner, researcher, or designer
-crew writes the planning documents its conversation with the user produces (an
-Initiative document, a research note, `PRODUCT.md`, a surface brief, an approved
+crew writes the planning documents its conversation with the user produces (the
+working folder's research, option, and plan files, `PRODUCT.md`, a surface brief, an approved
 comp). Where its role skill says to implement, fix, or
 resolve something itself, a crew gives that to a worker instead. It may start
 read-only subagents (`orchi-scout`, `orchi-researcher`, `orchi-reviewer`) for

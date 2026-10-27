@@ -87,7 +87,7 @@ body:
     id: docs
     attributes:
       label: Documentation impact
-      description: Owning pages to update (per the project's documentation routing), or why no documentation changes.
+      description: Owning pages to update (per the project's documentation routing - the ownership map in docs/README.md by default), including a behavior page for a change a user can see, or why no documentation changes.
     validations:
       required: true
   - type: textarea

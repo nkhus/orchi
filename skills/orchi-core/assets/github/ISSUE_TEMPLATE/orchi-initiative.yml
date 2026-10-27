@@ -52,6 +52,6 @@ body:
     id: plan
     attributes:
       label: Plan
-      description: Link to docs/initiatives/<tag>-<slug>/README.md on the initiative/<tag>-<slug> branch.
+      description: Link to the working folder's plan, docs/work/<tag>-<slug>/README.md, on the initiative/<tag>-<slug> branch.
     validations:
       required: true

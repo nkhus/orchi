@@ -51,7 +51,7 @@ INITIATIVE_FIELDS = {
     4: ("decisions", ("who decided", "quote the user's answers")),
     5: ("epics", ("delivers each requirement", "dependency between epics")),
     6: ("completion", ("integration branch", "final verification")),
-    7: ("plan", ("docs/initiatives/",)),
+    7: ("plan", ("docs/work/",)),
 }
 
 def load(name):
