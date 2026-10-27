@@ -398,15 +398,19 @@ the work with its progress, what waits for the user, PRs and their checks, the
 planning queue, and recent merges. It reads GitHub and the host's session list,
 writes only to its own page, and changes nothing else.
 
-Orchi starts it with the crews, in the user's turn, at the cheapest model the
-host offers (Haiku), without a worktree, titled `dashboard`, filed into the
-group and detached to the top level, with this brief:
+Orchi starts it with the crews, in the user's turn, on Sonnet at low effort
+(set with the host's effort tool when the start cannot), without a worktree,
+titled `dashboard`, filed into the group and detached to the top level, with
+this brief:
 
 `You are the dashboard of the Orchi pool; Orchi is <Orchi's title> (<session id>). Invoke the orchi-dashboard skill with: start --report-to <Orchi's session id> --every 10 --mode "<mode>, <level>".`
 
-The dashboard publishes its page from the template in its skill, refreshes it
-on a one-shot timer it schedules again at each refresh (every 10 minutes unless
-the user tells Orchi another interval), renames itself to a one-line summary
+The dashboard publishes its page from the template in its skill and refreshes
+it on a one-shot timer it schedules again at each refresh (every 10 minutes
+unless the user tells Orchi another interval). Each refresh runs in a
+general-purpose subagent on Haiku, which reads the sessions and GitHub and
+writes the page, so the session's own conversation stays short for the user's
+questions. The session renames itself to the subagent's one-line summary
 (`📊 <time> · <n> active · <n> wait for you · <n> PRs`), and sends Orchi
 `dashboard ready: <url>` once. Orchi gives the user the link in its next report,
 and again when asked about status.

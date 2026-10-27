@@ -167,9 +167,12 @@ def test_the_dashboard_is_started_with_the_pool_and_only_reads():
     assert 'db.doc("snapshot/current")' in template and "collection `snapshot`, doc `current`" in skill
     assert 'capabilities` `{"db": {}}`' in skill and "<title>{{REPO}} pool</title>" in template
     assert "its title, `<repo> pool`" in skill
-    assert "scripts/dashboard.py --crews <crews.json>" in skill and "recurring: false" in skill
-    assert "Never message a crew or worker, change Issues, PRs, branches, or repository files" in skill
+    assert "scripts/dashboard.py --crews <dir>/crews.json" in skill and "recurring: false" in skill
+    assert "never message a crew or worker, change Issues, PRs, branches, or repository files" in skill
     assert "Invoke the orchi-dashboard skill with: refresh --page <url>" in skill
+    assert "on Sonnet at low effort" in pool and "general-purpose subagent on Haiku" in pool
+    assert "subagent with the model `haiku`" in skill and "Invoke the orchi-dashboard skill with: collect --page <url>" in skill
+    assert "Never rename a session, schedule a timer, or message anyone" in skill
     document = {"updated": "2026-10-27T15:04:00+00:00", "crews": [], "pulls": [], "waiting": []}
     assert dashboard.summary(document).startswith("📊 15:04 · ") and "`📊 <time> · <n> active" in pool
     for script in ("http://", "<script src", "localStorage"):
