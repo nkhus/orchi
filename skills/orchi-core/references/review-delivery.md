@@ -27,12 +27,11 @@ regressions, and agreement between code and documentation. Report actual coverag
 and limitations; do not infer a clean result from the author's summary.
 
 When the range changes a user interface, start `orchi-designer` in Audit mode on
-it beside the reviewer: Impeccable's `audit`, `critique`, and `detect` against
-the Issues' design requirements, `DESIGN.md`, the surface briefs, and
-accessibility. Treat its confirmed findings like review findings; a finding
-without a requirement, a design-system rule, or an accessibility standard behind
-it is taste, not a defect. With `--github`, the design workflow runs `detect` on
-the PR as well.
+it beside the reviewer: against the Issues' design requirements, `DESIGN.md`,
+the surface briefs and approved comps, and accessibility, with Hallmark's
+`audit` and `sloplint` in a Hallmark project. Treat its confirmed findings like
+review findings; a finding without a requirement, a design-system rule, or an
+accessibility standard behind it is taste, not a defect.
 
 Keep three axes apart, so that a pass on one cannot hide a failure on another:
 **Spec** (the Issues' requirements, acceptance, and scenarios, including scope

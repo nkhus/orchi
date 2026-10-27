@@ -15,8 +15,11 @@ def test_planning_sets_design_depth_and_only_the_user_chooses_a_direction():
         assert depth in planning
     assert "Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative" in planning
     assert "`Deferred until #<design Epic>`" in planning and "blocked by the design Epic" in planning
-    assert "Only the user chooses a direction and approves a comp or a generated asset, at every autonomy level." in planning
-    assert "planning.md#user-interface-design" in plan and "run `/impeccable shape` with the user now" in plan
+    assert "Only the user names references, chooses the engine and a direction, and approves a comp or a generated asset, at every autonomy level." in planning
+    assert "the one `DESIGN.md` names; a project without `DESIGN.md` picks it in its first design Epic" in planning
+    assert "planning.md#user-interface-design" in plan
+    assert "agree the references and the surface brief with the user now" in plan
+    assert "a design Epic leaves references, the engine, and the direction to its designer" in plan
 
 
 def test_ui_readiness_items_have_form_fields():
@@ -32,22 +35,23 @@ def test_designer_crew_role_routing_and_mode_agree():
     assert "| Designer | `orchi-design` | One standalone `design` Epic, with the user |" in pool
     assert '"Take #n" on a `delivery-ready` Epic labelled `design` | Designer | `orchi-design`' in pool
     assert "the user still answers a researcher and a designer" in pool
-    assert "an autonomy level never chooses a direction or approves a comp" in pool
+    assert "an autonomy level never names references, chooses the engine or a direction, or approves a comp" in pool
     assert "A `design` Epic stays standalone" in pool
     assert "(researcher, planner, designer, dev lead)" in entry and "for a researcher or designer, and for a question marked `(user)`" in entry
-    assert "Only the user chooses a direction and approves a comp or a generated asset, at every autonomy level" in design
-    assert "you never pick for them" in design and "Continue with [orchi-deliver](../orchi-deliver/SKILL.md)" in design
+    assert "Only the user names references, chooses the engine and a direction, and approves a comp or a generated asset, at every autonomy level" in design
+    assert "Continue with [orchi-deliver](../orchi-deliver/SKILL.md)" in design
     assert "Ask the user directly in both modes" in design and "Adopt Orchi's claim" in design
     assert "asks for orchi-design by name" in design
 
 
-def test_exploration_records_product_truth_for_init():
+def test_exploration_records_product_truth_and_references():
     exploration, design = prose("orchi-core/references/exploration.md"), prose("orchi-design/SKILL.md")
     assert "| Product | For a product with a user interface" in exploration
-    assert "The first design Epic's `init` writes `PRODUCT.md` from it and asks only what is missing." in exploration
+    assert "the products or sites the user names as references" in exploration
+    assert "The first design Epic writes `PRODUCT.md` from it and asks only what is missing." in exploration
     assert "How screens should look is not settled here" in exploration
     assert "id: product" in (SKILLS / "orchi-core/assets/github/ISSUE_TEMPLATE/orchi-exploration.yml").read_text()
-    assert "starting from the Product section of the Exploration" in design
+    assert "write it with the user from the Product section of the Exploration" in design
 
 
 def test_delivery_routes_ui_tasks_to_the_designer_and_audits_ui_changes():
@@ -63,15 +67,32 @@ def test_design_outputs_that_bind_later_work_pass_the_user():
     designer, readme = prose("orchi-core/roles/orchi-designer.md"), " ".join((SKILLS / "orchi-core/roles/README.md").read_text().split())
     design, planning = prose("orchi-design/SKILL.md"), prose("orchi-core/references/planning.md")
     assert "Never write or replace `DESIGN.md`" in designer
-    assert "commit a produced asset only when the Issue links that asset as approved" in designer
-    assert "fix every primary finding, because the design workflow fails on one" in designer
+    assert "Commit a generated asset only when the Issue links that asset as approved" in designer
     assert "the `DESIGN.md` sections it follows when `DESIGN.md` exists" in designer
     assert "**Recheck (Audit mode):**" in designer
-    assert "write or replace `DESIGN.md` from the built surfaces with the user (`/impeccable document`)" in design
-    assert "`git add -f` for both" in design
-    assert "`impeccable-documenter` serves `document`, which runs with the user" in readme
+    assert "write or replace `DESIGN.md` from the built surfaces with the user and commit it" in design
+    assert "`Design engine: <Hallmark | prototype>`" in design
+    assert "| `PRODUCT.md`, references, surface briefs, the engine and direction rounds, comp and asset approval, `DESIGN.md` | The session that talks to the user" in readme
     assert "Commit the brief on the work's branch, which planning creates now" in planning
-    assert "In auto mode, Orchi may answer `shape` questions" not in planning
+    assert "impeccable" not in planning.lower()
     assert "the branch of work at design depth brief" in prose("orchi-plan/SKILL.md")
     assert "for a `decision` `ESCALATE`" in prose("orchi-work/SKILL.md")
-    assert "surface briefs and approved comps in `.impeccable/surfaces/`" in prose("orchi-core/references/knowledge.md")
+    assert "surface briefs and approved comps in `docs/design/surfaces/`" in prose("orchi-core/references/knowledge.md")
+
+
+def test_first_design_epic_runs_both_engines_and_the_user_picks_one():
+    design, designer = prose("orchi-design/SKILL.md"), prose("orchi-core/roles/orchi-designer.md")
+    assert "start two `orchi-designer` subagents in Variant mode at once, one per engine" in design
+    assert "without saying which engine made which until they have chosen" in design
+    assert "The variant the user picks sets the design engine for the project" in design
+    assert "propose three to five of your own that fit the product" in design
+    assert "`docs/design/references/`" in design and "`docs/design/surfaces/<surface>/`" in design
+    assert "## Variant mode" in designer and "Name no favourite: the user chooses." in designer
+    assert "build one variant on each of the three dealt themes" in designer
+    assert "follow its workflow for a project without a stack (Phases 1 to 5)" in designer
+
+
+def test_no_skill_or_reference_still_names_impeccable():
+    for path in sorted(SKILLS.rglob("*")):
+        if path.is_file() and path.suffix in {".md", ".yml", ".html"} and "scripts" not in path.parts:
+            assert "impeccable" not in path.read_text().lower(), path

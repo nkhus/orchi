@@ -128,13 +128,14 @@ def test_main_exits_one_on_findings_and_prints_them(repo, capsys):
     assert 'configuration file is not committed' in capsys.readouterr().out
 
 
-def test_template_declares_valid_checks_and_the_installed_impeccable():
-    from orchi_core import installation
+def test_template_declares_valid_checks_and_no_design_check():
     text = (ROOT / 'skills/orchi-core/assets/standards/ENGINEERING.md').read_text()
     rows = standards.checks(text)
     assert rows and all(row['Blocking'] in standards.BLOCKING for row in rows)
     assert all(row['Threshold'] == '-' or standards.THRESHOLD.match(row['Threshold']) for row in rows)
-    assert f"impeccable@{installation.IMPECCABLE} detect" in text
+    # The design audit happens in review, not in CI.
+    assert 'design' not in {row['CI job'] for row in rows} and 'impeccable' not in text.lower()
+    assert 'UI quality' not in (ROOT / 'skills/orchi-core/references/standards.md').read_text()
     assert standards.exceptions(text) == []
 
 

@@ -8,7 +8,7 @@ Two kinds of documents, with opposite rules:
 
 | | Current documentation | Working documents |
 | --- | --- | --- |
-| Where | Normal paths, mapped in `docs/README.md`: area pages, product behavior pages, `ENGINEERING.md`, `PRODUCT.md`, `DESIGN.md`, surface briefs and approved comps in `.impeccable/surfaces/` | `docs/work/<tag>-<slug>/` on the work's branch only |
+| Where | Normal paths, mapped in `docs/README.md`: area pages, product behavior pages, `ENGINEERING.md`, `PRODUCT.md`, `DESIGN.md`, references in `docs/design/references/`, surface briefs and approved comps in `docs/design/surfaces/` | `docs/work/<tag>-<slug>/` on the work's branch only |
 | Changes | With the code, in the same branch | As often as the work needs |
 | Holds | How the product behaves and is built now, and the decisions in force | Research findings, options, the decision log, the plan |
 | Ends | Never; what is replaced is deleted | Deleted before the merge into main |
@@ -27,7 +27,7 @@ implements, never by the work that produced them:
 
 - `docs/<area>/README.md` ([template](../assets/docs/area.md)): how the area is
   built, its contracts and limits, and its Decisions section;
-- `.impeccable/surfaces/`: each surface's brief and approved comp, updated, or
+- `docs/design/surfaces/`: each surface's brief and approved comp, updated, or
   replaced through a new brief, when the surface changes, so later work builds
   against the surface as it is;
 - `docs/product/<feature>.md` ([template](../assets/docs/product.md)): what a

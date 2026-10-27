@@ -52,7 +52,7 @@ Auto, adopt your recommendation and record it). Silence is not agreement; record
 
 Ask the questions that research gaps raise, following [Clarify with the user](../orchi-core/references/planning.md#clarify-with-the-user),
 and keep the decision log as you go. Give each Exploration decision its [fate](../orchi-core/references/planning.md#initiative).
-At design depth brief, run `/impeccable shape` with the user now; a design Epic leaves the direction to its designer.
+At design depth brief, agree the references and the surface brief with the user now, and run the direction round when the composition stays open; a design Epic leaves references, the engine, and the direction to its designer.
 
 ## 4. Create tracking
 

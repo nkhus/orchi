@@ -52,11 +52,11 @@ def test_research_answers_reach_the_crew_in_full():
 def test_references_agree_on_branches_labels_pr_sections_and_readiness():
     github = prose("orchi-core/references/github.md")
     for phrase in ("`design` for an Epic a designer runs", "`explore/card-payments`", "`task/<slug>` from the Epic branch",
-                   "`prototype/<slug>`, never merged", "**Exceptions:**", "documentation, design, and standards check workflows"):
+                   "`prototype/<slug>`, never merged", "**Exceptions:**", "documentation and standards check workflows"):
         assert phrase in github, phrase
     assert "branches that merge into the Epic branch" in prose("orchi-core/references/execution.md")
     assert "items 1–11, 13, and 14 of the Epic readiness checklist" in prose("orchi-design/SKILL.md")
-    assert "`impeccable-manual-edit-applier` serves Impeccable's live mode" in prose("orchi-core/roles/README.md")
+    assert "reads its `SKILL.md` and follows it instead of starting it with the Skill tool" in prose("orchi-core/roles/README.md")
 
 
 def test_flows_do_not_stall_and_keep_user_only_questions():

@@ -15,6 +15,7 @@ installed.
 | [Session identity mechanisms](session-identity-mechanisms.md) | The owner re-sends the assignment |
 | [Archiving or deleting sessions](session-lifecycle.md) | Crews started on demand are archived when done; pool crews are cleared and reused |
 | [Per-axis sub-reviewers](per-axis-sub-reviewers.md) | One reviewer keeps the axes in separate sections |
+| [Impeccable as the design engine](impeccable-design-engine.md) | Hallmark or prototype, picked per project in its first design Epic |
 
 ## Add a record
 

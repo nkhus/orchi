@@ -88,8 +88,8 @@ Issues), `orchi-standards` (standards audit or hardening), `orchi-design` (desig
 (Issue → PR); workers run `orchi-work`. They are hidden from the menu. Sessions may delegate to the subagents in
 [roles](roles/README.md): `orchi-scout` retrieves, `orchi-researcher` researches and designs options for an
 exploration, `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small, fully specified change (a
-simple Task or a confirmed defect repair), `orchi-designer` executes one ready UI Task or audits a UI diff with
-Impeccable, and `orchi-reviewer` reviews. Subagents never talk to the user, change Issues, push, or merge; their
+simple Task or a confirmed defect repair), `orchi-designer` builds variants for a design round, executes one ready UI
+Task, or audits a UI diff with the project's design engine, and `orchi-reviewer` reviews. Subagents never talk to the user, change Issues, push, or merge; their
 reports are claims to verify. Delegation is optional; the readiness checklists are not.
 
 ## Tools

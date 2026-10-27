@@ -50,8 +50,8 @@ standalone small fix.
     bounded investigation Task, first.
 14. For a Task that changes a user interface, states its
     [design depth](planning.md#user-interface-design) and links the `DESIGN.md`
-    sections it follows; at depth brief or Epic, also the surface brief with its
-    direction contract and, for a build from a comp, the approved comp; and names
+    sections it follows; at depth brief or Epic, also the surface brief and, when
+    a direction round chose one, the approved comp; and names
     the states, breakpoints, themes, and accessibility level it covers (when
     applicable).
 

@@ -24,7 +24,7 @@ and only the decisions that are yours come back to you.
 npx --yes github:nkhus/orchi --github
 ```
 
-`--github` adds the Issue forms, the PR template, the documentation, design, and standards checks, and Orchi's labels. If you leave it out, the first `/orchi` adds them, because the pool needs the labels.
+`--github` adds the Issue forms, the PR template, the documentation and standards checks, and Orchi's labels. If you leave it out, the first `/orchi` adds them, because the pool needs the labels.
 
 **2. Start Orchi.** In Claude Desktop, open a session in the repository, switch it to **bypass permissions mode**, and type:
 
@@ -36,7 +36,7 @@ That session becomes Orchi. You don't commit or push anything: it commits and pu
 
 Orchi also starts a **dashboard** session on Sonnet at low effort, which answers your questions about the pool. Every 10 minutes a Haiku subagent refreshes its live page with the crews and what each holds, the progress of every Initiative and Epic, what waits for you, PRs and their checks, and the planning queue, and its sidebar title sums it up (`📊 15:04 · 3 active · 1 wait for you · 2 PRs`). Orchi sends you the page's link and otherwise tells you only what needs you.
 
-> **Needs** Git, an authenticated GitHub CLI (`gh`), Python 3.11+, Node.js 18.19+ with `npx`, and `uv`, on macOS, Linux, or WSL. The installer also installs [Impeccable](https://impeccable.style/), Orchi's design engine.
+> **Needs** Git, an authenticated GitHub CLI (`gh`), Python 3.11+, and `uv`, on macOS, Linux, or WSL, and network access to GitHub: the installer also installs two design skills, [Hallmark](https://github.com/Nutlope/hallmark) and Emil Kowalski's [prototype](https://github.com/emilkowalski/skills), at pinned commits. Hallmark's own scripts use Node.js 18+ when it is there.
 
 <details>
 <summary><strong>Install for all projects, preview, upgrade, or remove</strong></summary>
@@ -48,10 +48,10 @@ npx --yes github:nkhus/orchi --global
 | Option | Effect |
 | --- | --- |
 | `--project <path>` | Install into another directory instead of the current one |
-| `--github` | Also add Issue forms, a PR template, the documentation, design, and standards check workflows, and Orchi labels (project scope) |
+| `--github` | Also add Issue forms, a PR template, the documentation and standards check workflows, and Orchi labels (project scope) |
 | `--no-docs-workflow` | With `--github`, skip the documentation check workflow; `--docs-workflow` restores it |
 | `--dry-run` | Show planned file changes, conflicts, and the labels `--github` would create, without writing |
-| `--replace-orchi` | Back up and replace locally edited Orchi files, and replace an Impeccable of another version with the pinned one |
+| `--replace-orchi` | Back up and replace locally edited Orchi files and design skills |
 | `--version` | Show the installed and bundled versions and the upgrade command |
 | `--uninstall` | Remove the complete managed Orchi installation at the selected scope |
 
@@ -89,7 +89,7 @@ flowchart LR
     U(["You"]) -->|"/orchi + plain words"| O{{"Orchi"}}
     O -->|idea| R["Researcher crew<br/>frames, researches, compares options"]
     O -->|request or fix| P["Planner crew<br/>agrees scope, writes ready Issues"]
-    O -->|design Epic| D["Designer crew<br/>directions and comps with you"]
+    O -->|design Epic| D["Designer crew<br/>references, variants, and comps with you"]
     O -->|ready work| L["Dev lead crew<br/>branch, workers, review, PR"]
     R -->|shape agreed| P
     P -->|delivery-ready| L
@@ -123,7 +123,7 @@ You work on the concept, the vision, and the design; Orchi decides everything te
 | --- | --- |
 | What to build, the scope, and the order you see results in (at Ask) | Code, tests, branches, Issues, labels, PRs, and how work splits into them |
 | The direction of an exploration | Research, options, and recommendations |
-| Every design direction, comp, and generated asset | Building against what you approved |
+| Design references, the design engine, every direction, comp, and generated asset | Variants to choose from, and building against what you approved |
 | Product constraints | The stack, tools, thresholds, exceptions, and CI |
 | A yes to each merge into `main`, unless you turn on auto mode | Review, repairs, rechecks, and the merge itself |
 | Hearing, in plain words, of every exception to a check | Deciding exceptions, applying the branch ruleset, and proposing lessons after each delivery |
@@ -139,7 +139,7 @@ Orchi assumes agents write all the code and nobody reads it. Tools and one rigor
 - **Tests first.** Every new test is shown failing before the change, and every acceptance criterion gets an acceptance test.
 - **Standards enforced by CI.** `ENGINEERING.md` declares each check as a blocking CI job: format, lint, strict types, 90% coverage of changed lines, acceptance tests, accessibility (WCAG 2.2 AA), module boundaries, size limits, dead code, secrets, dependency and static security analysis, and licenses. An existing project gets an audit and one standards Epic.
 - **No quiet loopholes.** Writers check their own diffs, and the review checks the whole range, for weakened gates: a suppression, a loosened config, a skipped or deleted test, a CI step that no longer fails. Each one needs a recorded exception, and each exception reaches you in plain words.
-- **One full review, precise repairs.** Each Epic is reviewed for spec, scope creep, standards, and tests, plus [Impeccable](https://impeccable.style/)'s design audit when the UI changes. Only demonstrated defects are repaired, a review that finds nothing is a valid result, and repairs are rechecked once. After two misses, the Task's boundary changes instead of being retried.
+- **One full review, precise repairs.** Each Epic is reviewed for spec, scope creep, standards, and tests, plus a design audit against `DESIGN.md`, the approved comps, and accessibility when the UI changes. Only demonstrated defects are repaired, a review that finds nothing is a valid result, and repairs are rechecked once. After two misses, the Task's boundary changes instead of being retried.
 - **Every PR explains itself.** It carries evidence for each criterion, every finding and its resolution, a merge risk (a one-way or two-way door, and the blast radius), its exceptions, and its documentation impact.
 - **Docs that never go stale.** `main` holds only how the product works now: a map in `docs/README.md` assigns code to its pages, and each page keeps only the decisions still in force. Research, options, and plans live in `docs/work/` on the work's branch, settled decisions move into the current pages, and the folder is deleted before the merge.
 - **It learns.** Each delivery proposes up to three lessons, each tied to something that happened and turned into a check, a form field, a coding standard, or a pointer. Nothing changes until you accept it.
@@ -157,7 +157,7 @@ Orchi is a set of Claude Code skills and subagents. Git and GitHub are its only 
 | `orchi-explore` | Researcher crew | Shapes an idea with you in an `Exploration` Issue and an `explore/<slug>` branch, then continues into planning |
 | `orchi-plan` | Planner crew | Proposes a scope, clarifies in rounds, shows the breakdown, creates ready Issues, and labels them `delivery-ready` |
 | `orchi-standards` | Planner crew | Audits an existing project's checks and plans a standards Epic, or plans hardening when a project becomes meant to last |
-| `orchi-design` | Designer crew | Runs a `design` Epic with you through Impeccable; builds go to writer subagents or workers |
+| `orchi-design` | Designer crew | Runs a `design` Epic with you: references, the engine round between Hallmark and prototype in a project's first design Epic, a direction round and an approved comp per surface; builds go to writer subagents or workers |
 | `orchi-deliver` | Dev lead crew | Delivers a Task, Epic, or Initiative through writer subagents or workers, one review, and a PR; never merges into `main` itself |
 | `orchi-work` | Worker | Implements, fixes, or designs one Task, or answers one research question, as the matching subagent role |
 | `orchi-dashboard` | Dashboard session | Refreshes the pool's live status page on a timer through a Haiku subagent and answers questions about it; reads only, changes nothing |
@@ -175,7 +175,7 @@ Orchi is a set of Claude Code skills and subagents. Git and GitHub are its only 
 | `orchi-implementer` | opus / medium | one commit per run | Runs the Task readiness gate, then implements and verifies one Task |
 | `orchi-fixer` | sonnet / medium | one commit per run | Makes one small, fully specified change or a confirmed repair, and escalates anything larger |
 | `orchi-reviewer` | opus / high | nothing | Reviews a Task, an assembled Epic, or a final Initiative candidate |
-| `orchi-designer` | opus / medium | one commit per UI Task; nothing when auditing | Builds one UI Task against the approved comp or direction, or audits a UI diff, with Impeccable |
+| `orchi-designer` | opus / medium | one commit per UI Task; variant files when building variants; nothing when auditing | Builds variants for a design round, builds one UI Task against the approved comp, or audits a UI diff, with the project's design engine |
 
 Only the session that owns the work starts the writers (`orchi-implementer`, `orchi-fixer`, `orchi-designer`). Nested agents never talk to you, change Issues, push, or merge. See [subagent roles](skills/orchi-core/roles/README.md).
 
@@ -191,10 +191,9 @@ Only the session that owns the work starts the writers (`orchi-implementer`, `or
 | `.claude/skills/orchi-explore/`, `orchi-plan/`, `orchi-design/`, `orchi-standards/`, `orchi-deliver/`, `orchi-work/`, `orchi-dashboard/` | Role skills, hidden from the menu |
 | `.claude/agents/orchi-*.md` | The rendered subagents |
 | Root `CLAUDE.md` | A managed section that sends work to `/orchi` |
-| `.claude/skills/impeccable/`, `.claude/agents/impeccable-*.md` | Impeccable at the pinned version, without hooks |
-| `.impeccable/config.json` | Impeccable's settings; telemetry is off unless the file already sets it |
-| `.gitignore` | A managed section that ignores Impeccable's runtime files |
-| `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml`, `orchi-design.yml`, `orchi-standards.yml` | Issue forms and the documentation, design, and standards checks, with `--github` |
+| `.claude/skills/hallmark/`, `.claude/skills/prototype/` | The two design skills at pinned commits; a project designs with the one it picks |
+| `.gitignore` | A managed section that ignores the pool's worktrees |
+| `.github/ISSUE_TEMPLATE/orchi-*.yml`, `.github/workflows/orchi-docs.yml`, `orchi-standards.yml` | Issue forms and the documentation and standards checks, with `--github` |
 | PR template | Summary, Verification, Merge risk, Exceptions, Documentation impact, and Handoff sections, with `--github` |
 | `.claude/.orchi-install.json` | The manifest that upgrades and uninstalls rely on |
 
@@ -209,7 +208,7 @@ The installer keeps your own instructions. It maintains only the section between
 | [Documentation map](docs/README.md) | Find the page for each part of Orchi and the decisions in force |
 | [Workflow](docs/workflow.md) | Follow exploration, planning, delivery, and review |
 | [Pool](docs/pool.md) | See how Orchi, crews, and workers talk, and how modes work |
-| [Design](docs/design.md) | See how UI work runs through Impeccable |
+| [Design](docs/design.md) | See how a project picks its design engine and how UI work runs |
 | [Standards](docs/standards.md) | See `ENGINEERING.md`, the default stack and checks, and gate integrity |
 | [Context](docs/context.md) | See how documentation stays current |
 | [Installation](docs/installation.md) | Install, upgrade, or remove Orchi |

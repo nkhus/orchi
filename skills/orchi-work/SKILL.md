@@ -60,7 +60,7 @@ keep the role's full report as your final reply in this session:
 - `#<task> blocked: <reason>` for `BLOCKED` or a `size` `ESCALATE`, with the
   options and your recommendation;
 - `#<task> question: <question>` for a `decision` `ESCALATE` or any decision you
-  need to go on, including every answer, choice, or approval Impeccable asks for
+  need to go on, including every answer, choice, or approval the design skill asks for
   in `design` mode, with the paths of screenshots or produced assets the user
   should see; never use the question tool.
 
