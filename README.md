@@ -97,7 +97,7 @@ The installer renders six Claude Code subagents from one definition each in [`sk
 | `orchi-implementer` | opus / low | one commit per run | Runs the Task readiness gate, then implements and verifies one Task, standalone or in an Epic |
 | `orchi-fixer` | sonnet / medium | one commit per run (Task or repair) | Makes one small, fully specified change — a simple Task or a confirmed defect repair — and escalates anything larger |
 | `orchi-reviewer` | opus / high | nothing | Reviews a standalone Task, an assembled Epic, or a final Initiative candidate |
-| `orchi-designer` | opus / medium | one commit per UI Task run; nothing in Audit mode | Implements one ready UI Task or audits a UI diff with the installed design skills (Impeccable, Taste Skill, SmoothUI) |
+| `orchi-designer` | opus / medium | one commit per UI Task run; nothing in Audit mode | Builds one ready UI Task against the approved comp or direction contract, or audits a UI diff, with Impeccable; never asks the user |
 
 Implementers, fixers, designers, and reviewers may start `orchi-scout` or `orchi-reviewer` for independent sub-questions, researchers start scouts or other researchers, and scouts only other scouts; only the main session starts the writers `orchi-implementer`, `orchi-fixer`, and `orchi-designer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents)). If a model or agent is unavailable, the main session does the step itself.
 

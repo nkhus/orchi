@@ -11,7 +11,8 @@ The sources below describe external standards and tools used by Orchi. Orchi's o
 | [Claude Code skills](https://code.claude.com/docs/en/skills) | Skill discovery and invocation |
 | [Claude Code subagents](https://code.claude.com/docs/en/sub-agents) | Subagent definitions, models, and nesting |
 | [Claude Code memory](https://code.claude.com/docs/en/memory) | `CLAUDE.md` instruction discovery |
-| [Impeccable](https://impeccable.style/), [Taste Skill](https://www.tasteskill.dev/), [SmoothUI](https://shadcnregistry.com/smoothui/skill) | Design skills `orchi-designer` uses when installed |
+| [Impeccable](https://impeccable.style/) | The design engine Orchi installs and `orchi-designer` uses |
+| [SmoothUI](https://smoothui.dev/) | Animated React components a project's stack may name; added through the shadcn CLI or MCP server |
 | [GitHub sub-issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues) | Native Initiative/Epic/Task hierarchy |
 | [GitHub issue dependencies](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-issue-dependencies) | Native `blocked by` relationships between Epics |
 
