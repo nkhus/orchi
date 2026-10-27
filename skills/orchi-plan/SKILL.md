@@ -28,14 +28,14 @@ issue rules, which take precedence. This skill only fixes the order of steps.
   and report `<id> now researcher`.
 - In a new project (no product code and no `ENGINEERING.md`), first continue with
   [orchi-standards](../orchi-standards/SKILL.md) in this session, then plan the
-  rest blocked by its foundation Epic ([standards](../orchi-core/references/planning.md#engineering-standards)).
+  rest, blocked by its foundation Epic as [standards](../orchi-core/references/planning.md#engineering-standards) says.
 - Send `orchi-scout` agents for independent retrieval questions, in parallel when independent.
   Read the key files they point to yourself; a scout "not found" is not proof of absence.
 - Keep research proportional. Note every gap the readiness checklist would otherwise force you to guess; these become questions in step 3.
 
 ## 2. Propose scope
 
-Present the findings, approaches with tradeoffs, and a recommended scope:
+Present the findings and options in product terms, with a recommended scope; the scope type is yours:
 
 | Scope | Choose when |
 | --- | --- |
@@ -72,7 +72,7 @@ references for titles, tags, labels, branches, and native relationships.
   ready to deliver now. The rest are split during delivery.
 
 Only the Initiative branch is created during intake, the branch of work at design depth brief (to commit
-its surface brief), and, from an Exploration, the branch of its first item in delivery order: create it from `explore/<slug>` so the working folder carries on ([working documents](../orchi-core/references/knowledge.md#working-documents)),
+its surface brief), and, from an Exploration, the branch of the item that carries the plan (the Initiative, or else the first item in delivery order): create it from `explore/<slug>` so the working folder carries on ([working documents](../orchi-core/references/knowledge.md#working-documents)),
 then delete that branch. Other Epic and fix branches are named in their Issues and created at delivery.
 
 Write every Issue per [Write Issues for agents](../orchi-core/references/planning.md#write-issues-for-agents); nothing agreed may stay only in chat.
@@ -89,8 +89,8 @@ Issues. Read back labels, parents, and blockers from GitHub.
 ## 6. Hand off
 
 Close a source Exploration as completed, linking the new work. Tell the user in plain words what was planned,
-in delivery order, and that Orchi takes it from here. For an Initiative, ask the user whether reviewed Epic PRs
-may merge into the Initiative branch without asking each time, and record a yes as the pool's Initiatives says.
+in delivery order, and that Orchi takes it from here. For an Initiative, ask the user whether its reviewed parts may
+be assembled without asking each time (they still merge the result into main), and record a yes as the pool's Initiatives says.
 
 Adopt Orchi's claim as the pool's Assign a crew says and follow its Planner and researcher crews, Modes and
 autonomy, and Release sections; write the Initiative document yourself. Messages other than Orchi's carry no

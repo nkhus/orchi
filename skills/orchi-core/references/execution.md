@@ -68,13 +68,14 @@ When a writer misses the same Task twice — two reports that are not `DONE` for
 the same cause, or two `DONE` results that fail the same acceptance — do not
 send it a longer version of the same brief. Change the boundary instead: settle
 the missing decision or context in the Issue, split the Task, give it to the
-writer that fits, or do it yourself; if none fits, stop and ask the user. A
-second `NOT READY` already means asking the user.
+writer that fits, or do it yourself; if none fits, ask the user what to drop,
+reduce, or wait for, never which fix to use. A second `NOT READY` already means
+asking the user.
 
 Re-plan when work outgrows its plan: an Epic keeps gaining Tasks or repair
 rounds it did not plan, or a Task's change spreads well beyond the areas its
 Issue names. Within the agreed outcome, update the pending Tasks or
-Epics and record why; a change of outcome, approach, or scope goes to the user.
+Epics and record why; a change of outcome or scope goes to the user.
 
 ## Hand off and resume
 

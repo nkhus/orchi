@@ -146,7 +146,7 @@ def test_standards_wording_agrees_across_planning_delivery_and_roles():
     """Text, not behavior: the standards track is wired into every stage that reads it."""
     from orchi_core import installation
     planning, plan = prose('skills/orchi-core/references/planning.md'), prose('skills/orchi-plan/SKILL.md')
-    assert "every other Epic and Task, the design Epic included, is blocked by it" in planning
+    assert "every Initiative, Epic, and Task that writes product code is blocked by it. A design Epic is not" in planning
     assert "Never ask the user to choose a tool, threshold, or code layout" in planning
     assert "continue with [orchi-standards](../orchi-standards/SKILL.md) in this session" in plan
     assert "is blocked by the foundation or standards Epic" in prose('skills/orchi-core/references/readiness.md')
@@ -163,3 +163,17 @@ def test_standards_wording_agrees_across_planning_delivery_and_roles():
     assert "never ask about tools, thresholds, or layout" in standards_skill
     assert "the product constraints are the user's, even in auto mode" in standards_skill
     assert "| Planner | `orchi-standards` |" in prose('skills/orchi-core/references/pool.md')
+
+
+def test_a_new_project_starts_with_a_thin_foundation_and_hardens_later():
+    """Text, not behavior: the foundation is one Task, and the checks a lasting codebase needs come in parallel."""
+    reference, skill = prose('skills/orchi-core/references/standards.md'), prose('skills/orchi-standards/SKILL.md')
+    assert "plans a foundation Epic with one Task" in reference and "## Hardening" in reference
+    assert "blocked by the foundation and blocking nothing" in reference
+    assert "A proof of concept gets only the foundation's checks" in reference
+    assert "its one Task is the reference's" in skill and "also write the [hardening]" in skill
+    assert "Agents decide exceptions, never the user" in reference
+    template = (ROOT / 'skills/orchi-core/assets/standards/ENGINEERING.md').read_text()
+    for license_id in ('CC-BY-4.0', 'MPL-2.0', 'BlueOak-1.0.0'):
+        assert license_id in template, license_id
+    assert "`--production --onlyAllow`" in reference

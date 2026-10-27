@@ -33,23 +33,24 @@ delivery, together.
    - **Audit**: product code without `ENGINEERING.md`, or the argument `audit`.
      Go to step 3.
    - **`ENGINEERING.md` exists**: run `standards.py check` and report; plan a
-     Task only for what it finds, as any request.
+     Task only for what it finds, and the hardening Epic when the project is
+     now meant to last and lacks its checks.
 
 ## 2. New project
 
 1. Read the product constraints from the Exploration's Constraints, Stack, and
    Product sections. Ask the user only the constraints still missing, in
    product terms; never ask about tools, thresholds, or layout.
-2. Take the stack the Exploration's Stack section states; derive it from the
-   reference's defaults only when there is none (a mandated platform or
-   language replaces the matching default), and state it once, in a few plain
-   lines with the reasons, as a decision made under these defaults. The user may override any line; record an override with their
-   words.
+2. Take the stack the Exploration's Stack section states, or derive it from the
+   reference's defaults when there is none, and state it once in a few plain
+   lines with the reasons; record an override the user makes in their words.
 3. Write the foundation Epic (the `orchi-epic.yml` form when present): its
-   design is the filled [template](../orchi-core/assets/standards/ENGINEERING.md),
-   its Tasks are the reference's five foundation Tasks, and its acceptance is
-   the planted-violation run. Every other Epic or Task of the project is blocked
-   by it.
+   design is the filled [template](../orchi-core/assets/standards/ENGINEERING.md)
+   with the foundation checks, its one Task is the reference's
+   [new project](../orchi-core/references/standards.md#new-project) Task, and
+   its acceptance is the planted-violation run. For a project meant to last,
+   also write the [hardening](../orchi-core/references/standards.md#hardening)
+   Epic, blocked by it.
 
 ## 3. Audit
 
@@ -59,19 +60,20 @@ delivery, together.
    project enforces today and applies the sorting; each later Task closes one gap
    to the defaults, most protective first (secrets, types, tests, gate integrity,
    then the rest).
-3. Present it in product terms: what becomes safer, what it costs in Tasks, and
-   which existing rules move or go. The user agrees its scope like any Epic.
+3. Present it in product terms: what becomes safer, what it costs, which of the
+   repository's own rules move or go, and that GitHub will then require the
+   checks on every change.
 
 ## 4. Gate and hand off
 
 Agree the breakdown and check each Issue against the readiness checklists as
 `orchi-plan` steps 4 and 5 say. Then:
 
-- invoked from `orchi-plan`: return to it, and make what it plans blocked by
-  this Epic;
+- invoked from `orchi-plan`: return to it, which blocks the product code it
+  plans on the foundation;
 - invoked with an Exploration (`#<n>`): continue with
   [orchi-plan](../orchi-plan/SKILL.md) `#<n>` in this session for the rest of
-  the plan, blocked by this Epic; only `orchi-plan` closes the Exploration;
+  the plan; only `orchi-plan` closes the Exploration;
 - otherwise report it planned, as the pool's Planner section says.
 
 ## As a crew

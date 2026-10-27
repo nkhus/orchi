@@ -2,8 +2,9 @@
 
 <!-- Orchi template: the defaults for a TypeScript web app. Replace every <...>,
 drop rows that do not apply, and for Python take the Python column of the Orchi
-standards reference. Commit this file with the checks it declares, never ahead
-of them. `standards.py` reads the Checks and Exceptions tables: keep their
+standards reference. The foundation leaves out the rows that reference's
+hardening Epic adds. Commit this file with the checks
+it declares, never ahead of them. `standards.py` reads the Checks and Exceptions tables: keep their
 columns. -->
 
 Agents write and review this repository's code; these rules and the checks that
@@ -66,7 +67,8 @@ sensitivity; budget; proof of concept or meant to last. Link the Exploration.>
 
 ## Architecture
 
-Layers depend in one direction; the boundaries check enforces it.
+Layers depend in one direction; the review enforces it until the boundaries
+check is added.
 
 | Layer | Path | May import |
 | --- | --- | --- |
@@ -86,8 +88,10 @@ Layers depend in one direction; the boundaries check enforces it.
 ## Dependencies
 
 Add a dependency only with a reason in the PR. Pin exact versions in the
-lockfile; Dependabot proposes updates weekly, grouped. Allowed licenses: MIT,
-ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0, 0BSD.
+lockfile. With hardening, Dependabot proposes updates weekly, grouped, and
+production dependencies may use only these licenses: MIT, ISC, BSD-2-Clause,
+BSD-3-Clause, Apache-2.0, 0BSD, BlueOak-1.0.0, CC0-1.0, CC-BY-4.0, MPL-2.0,
+Python-2.0, Unlicense.
 
 ## Security
 

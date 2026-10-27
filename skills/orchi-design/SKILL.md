@@ -34,7 +34,6 @@ every autonomy level; you write no product code yourself.
 4. Run Impeccable's Setup (`impeccable context`) once. It reports whether image
    generation is available: with it, each surface gets a comp-led build from an
    approved comp; without it, a code-led build from the direction contract.
-   Tell the user which, once.
 
 ## 2. With the user, surface by surface
 
@@ -61,14 +60,16 @@ question into the Epic, so a lost session loses nothing.
 
 ## 3. Plan the builds
 
-Once a surface is approved, add its build as a Task under the Epic (the
+While the foundation Epic is open, report `#<n> waits for #<foundation>` as the
+pool reference's Messages says and wait; on `#<foundation> merged`, merge main
+into the Epic branch. Then add each approved surface's build as a Task (the
 `orchi-task.yml` form when present): the approved comp or the contract, the
 surface brief, `PRODUCT.md`, the `DESIGN.md` sections when one exists, states,
 breakpoints, themes, and accessibility level, with `orchi-designer` as the
-writer. The foundation Epic set up the stack; when it lacks the component
-library the surfaces need (SmoothUI and its shadcn MCP server for React with
-Tailwind CSS 4 and shadcn/ui), the first Task adds it, with `orchi-implementer`
-as the writer. Check each Task against the Task readiness checklist. After the
+writer. When the stack lacks
+the component library the surfaces need (SmoothUI and its shadcn MCP server for
+React with Tailwind CSS 4 and shadcn/ui), the first Task adds it, with
+`orchi-implementer` as the writer. Check each Task against the Task readiness checklist. After the
 last build, and before the PR is marked ready, write or replace `DESIGN.md` from
 the built surfaces with the user (`/impeccable document`) and commit it.
 

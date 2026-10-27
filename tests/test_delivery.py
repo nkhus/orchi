@@ -26,7 +26,7 @@ def test_writers_are_continued_instead_of_restarted():
 def test_two_misses_change_course_and_initiatives_step_back():
     deliver, execution = prose("orchi-deliver/SKILL.md"), prose("orchi-core/references/execution.md")
     assert "do not send it a longer version of the same brief" in execution
-    assert deliver.count("(../orchi-core/references/execution.md#change-course)") == 2
+    assert deliver.count("(../orchi-core/references/execution.md#change-course)") == 3
     assert "## Step back between Epics" in (SKILLS / "orchi-core/references/review-delivery.md").read_text()
     assert "[step back](../orchi-core/references/review-delivery.md#step-back-between-epics), then reclassify" in deliver
 

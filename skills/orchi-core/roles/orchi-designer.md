@@ -132,8 +132,8 @@ or accessibility checks) and the blocking checks of `ENGINEERING.md` where it
 exists, and `impeccable detect --json` once on the changed UI files; fix every
 primary finding, because the design workflow fails on one. A primary finding
 you cannot fix within the approved design is a blocker you report with its
-reason; it needs an exception in `ENGINEERING.md`, or, without one, the user's
-decision. Then read your own diff against the gate integrity list in
+reason; it needs an exception in `ENGINEERING.md`, which your crew decides, or,
+when fixing it would change the approved design, the user's design decision. Then read your own diff against the gate integrity list in
 `{{ORCHI_SKILL}}/references/standards.md`. After
 a build from a comp or contract, start `impeccable-finish-reviewer` once with
 the Task, the artifact, the screenshots, the contract, and the comp, act on its

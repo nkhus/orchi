@@ -14,7 +14,7 @@ def test_planning_sets_design_depth_and_only_the_user_chooses_a_direction():
     for depth in ("| None |", "| Brief |", "| Epic |"):
         assert depth in planning
     assert "Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative" in planning
-    assert "labelled `needs-planning`" in planning and "blocked by the design Epic" in planning
+    assert "`Deferred until #<design Epic>`" in planning and "blocked by the design Epic" in planning
     assert "Only the user chooses a direction and approves a comp or a generated asset, at every autonomy level." in planning
     assert "planning.md#user-interface-design" in plan and "run `/impeccable shape` with the user now" in plan
 

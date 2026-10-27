@@ -24,8 +24,9 @@ def test_delivery_steps_match_the_review_and_knowledge_references():
     assert "move the rest of the working folder into current documentation except the plan's `README.md`" in deliver
     assert "Delete the working folder in its own commit" in deliver
     assert "Core" not in deliver.replace("orchi-core", "")
-    assert "ask the user once whether to apply the branch ruleset" in deliver
-    assert "the delivering session (`orchi-deliver`) asks the user once" in prose("orchi-core/references/standards.md")
+    assert "apply or replace the branch ruleset as the" in deliver and "without asking" in deliver
+    assert "the delivering session (`orchi-deliver`) applies the ruleset and tells the user" in prose(
+        "orchi-core/references/standards.md")
 
 
 def test_orchi_picks_up_a_requested_plan_once_unblocked():
@@ -35,9 +36,9 @@ def test_orchi_picks_up_a_requested_plan_once_unblocked():
 
 
 def test_an_exploration_with_several_items_hands_its_folder_to_the_first():
-    assert "the folder goes to the first in delivery order" in prose("orchi-core/references/knowledge.md")
+    assert "the folder goes to the item that carries the plan" in prose("orchi-core/references/knowledge.md")
     assert "by commit permalink" in prose("orchi-core/references/exploration.md")
-    assert "the branch of its first item in delivery order" in prose("orchi-plan/SKILL.md")
+    assert "the branch of the item that carries the plan" in prose("orchi-plan/SKILL.md")
 
 
 def test_research_answers_reach_the_crew_in_full():
@@ -63,9 +64,9 @@ def test_flows_do_not_stall_and_keep_user_only_questions():
     assert "a `design` Epic has none yet" in prose("orchi-core/references/readiness.md")
     assert "and that Orchi takes it from here" in prose("orchi-plan/SKILL.md")
     assert "An Epic labelled `design` → report `#<n> declined: a design Epic goes to a designer crew`" in deliver
-    assert "to choose a design direction or approve a comp or a generated asset; to apply the branch ruleset" in pool
+    assert "to choose a design direction or approve a comp or a generated asset. Never ask a technical question" in pool
     assert "a researcher still leaves the exploration's direction to the user" in pool
-    assert "its Exceptions section says `None`" in pool
+    assert "the review confirmed each exception it adds or changes" in pool
     assert "and whether its PR was merged (then send `#<n> merged`)" in entry
     assert "the pool has no liveness check between wakes" in pool
     assert "Orchi on `crew-<k> ready`, a crew on each `worker-<n> ready`" in pool
@@ -90,3 +91,23 @@ def test_orchi_is_the_only_command_the_user_types():
         if path.is_file() and path.suffix in {".md", ".yml", ".py"}:
             assert not re.search(r"(?<![\w./-])/orchi-(explore|plan|standards|design|deliver|work|dashboard)\b", path.read_text()), path
     assert "The user types only `/orchi`" in prose("orchi-core/SKILL.md")
+
+
+def test_the_user_answers_only_product_questions_and_nothing_waits_needlessly():
+    core, planning = prose("orchi-core/SKILL.md"), prose("orchi-core/references/planning.md")
+    assert "agents own everything technical" in core and "never the mechanism" in core
+    assert "The split into Tasks, Epics, and an Initiative and the blockers between them are yours" in planning
+    deliver = prose("orchi-deliver/SKILL.md")
+    assert "Do not rerun the suite: CI runs it on the pushed commit" in deliver
+    assert "create its Tasks yourself: the user agreed its outcome" in deliver
+    assert "merge main into the Initiative branch first" in deliver
+    assert "`#<n> waits for #<m>`" in prose("orchi-core/references/pool.md")
+    assert "appends `, waits for #<m>` to its work reference" in prose("orchi-core/references/pool.md")
+    assert "when it says `waits for #<m>` and #<m> has merged, send that crew `#<m> merged`" in prose("orchi/SKILL.md")
+    assert "an unconfirmed one is a `blocker`" in prose("orchi-core/references/review-delivery.md")
+    assert "report `#<n> waits for #<foundation>`" in prose("orchi-design/SKILL.md")
+    assert "for one outside the Initiative, report `#<n> waits for #<m>`" in deliver
+    assert "make each Epic that builds on it blocked by it" in planning
+    assert "confirmed: <yes, no change avoids it" in prose("orchi-core/roles/orchi-reviewer.md")
+    assert "CI runs on every pull request, whatever its base" in prose("orchi-core/references/standards.md")
+    assert "never which fix to use" in prose("orchi-core/references/execution.md")
