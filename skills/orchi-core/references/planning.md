@@ -134,7 +134,8 @@ material change of direction with the user.
 
 Work that changes a user interface gets a design depth in its Epic or Task. The
 project's design engine, Hallmark or prototype, is the one `DESIGN.md` names;
-a project without `DESIGN.md` picks it in its first design Epic. The steps that
+a new product picks it in its exploration's design session, and a project
+without either picks it in its first design Epic. The steps that
 need the user run in the session that talks to them, and writers build only
 against what the user approved.
 
@@ -149,7 +150,11 @@ against what the user approved.
   designer splits them after the user approves each comp, so plan them at
   outcome level.
 - From scratch, plan the key surfaces as one design Epic, and the rest now as an
-  Initiative from the Exploration's shape. An Epic that builds on the designed
+  Initiative from the Exploration's shape. When the exploration ran a design
+  session, the design Epic names its Design section as its source: the user
+  has already approved the screen map, wireframes, references, engine, and
+  mockup, so the Epic builds them on the stack and designs only the surfaces
+  the session left out. An Epic that builds on the designed
   surfaces is blocked by the design Epic and answers
   its UI fields `Deferred until #<design Epic>`, resolved from `PRODUCT.md`,
   `DESIGN.md`, the surface briefs, and the built surfaces, which are kept. When
@@ -158,9 +163,10 @@ against what the user approved.
   Epic, for a planner once the design merges.
 - Without `PRODUCT.md`, the design Epic starts by writing it with the user; for
   a redesign without `DESIGN.md`, by recording the incumbent look in it as
-  evidence. Every design Epic then agrees references with the user, and one
-  without `DESIGN.md`, or one that replaces it, runs the engine round, in which
-  the user picks the project's engine from variants both skills built.
+  evidence. A design Epic without a design session behind it then agrees
+  references with the user, and one without `DESIGN.md`, or one that replaces
+  it, runs the engine round, in which the user picks the project's engine from
+  variants both skills built.
 - Every Task that builds UI links the `DESIGN.md` sections, surface brief, and
   approved comp it builds against, and names its states, breakpoints, themes,
   and accessibility level. A brief that turns out to need a new world or a
