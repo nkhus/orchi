@@ -122,3 +122,15 @@ def test_answers_claim_adoption_and_branch_handover_agree():
     assert "--report-to <Orchi's session id>" in pool and "this request's id is <id>" in pool
     assert "`git branch <branch> origin/<base>`" in pool and "`git switch --detach`" in work
     assert "A worker takes many tasks during one assignment" in pool and "branch check passes" in work
+
+
+def test_one_orchi_own_ids_and_rename_on_release():
+    pool, entry = prose("orchi/references/pool.md"), prose("orchi-pm/SKILL.md")
+    assert "A pool has one Orchi: the session that started its crews (their `parentSessionId`)" in pool
+    assert "`Orchi is now <title> (<session id>)`" in pool and "`crew-<k> refused: Orchi is <title> (<session id>)`" in pool
+    assert "after the host shows its current Orchi archived or gone" in pool and "except a takeover" in pool
+    assert "one-Orchi rule" in entry
+    assert "(`get_session` with `self`)" in pool
+    assert "Orchi renames the crew `crew-<k>` on the reply" in pool
+    assert "rename the crew `crew-<k>` now" in entry and "once its conversation is empty" not in entry
+    assert "typed over Remote Control starts no session" in pool

@@ -121,6 +121,20 @@ Observed in later runs the same day:
   session keeps its title, parent, folder, branch, and settings, and its Remote
   Control state; clearing does not touch its worktree.
 
+Observed in the first full pool run (Orchi 0.18, a disposable repository):
+
+- A message typed over Remote Control, in a session the user started, could not
+  start sessions; the same request typed in the desktop app could.
+- A detached crew still reports its starter as `parentSessionId`, which
+  identifies the pool's Orchi.
+- `/orchi-pm` in a second session adopted the existing pool without a word,
+  although the crews reported to the first Orchi.
+- A crew wrote a wrong session id for itself into a worker's brief and corrected
+  it by message; reading the id from the host avoids the guess.
+- A crew's `released` reply reached Orchi before the crew's self-clear landed, so
+  a rename that waited for an empty conversation never happened unless another
+  event woke Orchi.
+
 ## Not established
 
 - Whether a core session can start a sub-session in a turn the user started by
