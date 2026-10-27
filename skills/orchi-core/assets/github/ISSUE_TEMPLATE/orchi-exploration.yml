@@ -48,6 +48,13 @@ body:
       label: Requirements
       description: Numbered requirements (R1, R2, ...) of the chosen direction, each observable at completion.
   - type: textarea
+    id: design
+    attributes:
+      label: Design
+      description: For a product with a user interface - the screen map, the approved wireframe of each key screen, the references, the design engine, the approved comp, and the clickable mockup, each linked to its file in the working folder's design/, and the design board's link. Leave empty otherwise.
+    validations:
+      required: false
+  - type: textarea
     id: shape
     attributes:
       label: Shape
@@ -56,7 +63,7 @@ body:
     id: product
     attributes:
       label: Product
-      description: For a product with a user interface - the primary users and their situation, the purpose and the mechanism no competitor shares, positioning, platform, stack (from the Stack field), constraints, brand commitments, evidence, accessibility level (WCAG 2.2 AA unless the user says otherwise), and the products or sites the user names as references with what to take from each, for the first design Epic to record in PRODUCT.md and docs/design/references/. Leave empty otherwise.
+      description: For a product with a user interface - the primary users and their situation, the purpose and the mechanism no competitor shares, positioning, platform, stack (from the Stack field), constraints, brand commitments, evidence, and accessibility level (WCAG 2.2 AA unless the user says otherwise), for the first design Epic to record in PRODUCT.md. Leave empty otherwise.
     validations:
       required: false
   - type: textarea

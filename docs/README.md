@@ -45,6 +45,7 @@ still in force.
 | `skills/orchi-core/references/pool.md` | `docs/pool.md` | Pool |
 | `skills/orchi-design/**` | `docs/design.md` | Design |
 | `skills/orchi-core/roles/orchi-designer.md` | `docs/design.md` | Design |
+| `skills/orchi-core/assets/design-board.html` | `docs/design.md` | Design |
 | `skills/orchi-standards/**` | `docs/standards.md` | Standards |
 | `skills/orchi-core/references/standards.md` | `docs/standards.md` | Standards |
 | `skills/orchi-core/scripts/standards.py` | `docs/standards.md` | Standards |

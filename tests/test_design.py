@@ -16,7 +16,7 @@ def test_planning_sets_design_depth_and_only_the_user_chooses_a_direction():
     assert "Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative" in planning
     assert "`Deferred until #<design Epic>`" in planning and "blocked by the design Epic" in planning
     assert "Only the user names references, chooses the engine and a direction, and approves a comp or a generated asset, at every autonomy level." in planning
-    assert "the one `DESIGN.md` names; a project without `DESIGN.md` picks it in its first design Epic" in planning
+    assert "a new product picks it in its exploration's design session, and a project without either picks it in its first design Epic" in planning
     assert "planning.md#user-interface-design" in plan
     assert "agree the references and the surface brief with the user now" in plan
     assert "a design Epic leaves references, the engine, and the direction to its designer" in plan
@@ -47,9 +47,8 @@ def test_designer_crew_role_routing_and_mode_agree():
 def test_exploration_records_product_truth_and_references():
     exploration, design = prose("orchi-core/references/exploration.md"), prose("orchi-design/SKILL.md")
     assert "| Product | For a product with a user interface" in exploration
-    assert "the products or sites the user names as references" in exploration
-    assert "The first design Epic writes `PRODUCT.md` from it and asks only what is missing." in exploration
-    assert "How screens should look is not settled here" in exploration
+    assert "The first design Epic writes `PRODUCT.md` from it and asks only what is missing" in exploration
+    assert "How screens should look is not settled here" not in exploration
     assert "id: product" in (SKILLS / "orchi-core/assets/github/ISSUE_TEMPLATE/orchi-exploration.yml").read_text()
     assert "write it with the user from the Product section of the Exploration" in design
 
@@ -96,3 +95,49 @@ def test_no_skill_or_reference_still_names_impeccable():
     for path in sorted(SKILLS.rglob("*")):
         if path.is_file() and path.suffix in {".md", ".yml", ".html"} and "scripts" not in path.parts:
             assert "impeccable" not in path.read_text().lower(), path
+
+
+def test_exploration_runs_a_design_session_before_converging():
+    exploration, explore = prose("orchi-core/references/exploration.md"), prose("orchi-explore/SKILL.md")
+    assert exploration.index("4. **Design.**") < exploration.index("5. **Converge.**") < exploration.index("6. **Shape.**")
+    for step in ("1. **Structure.**", "2. **Style.**", "3. **Engine round.**", "4. **The whole system.**"):
+        assert step in exploration
+    assert "`orchi-designer` in Wireframe mode builds three or four grey layouts of the screen" in exploration
+    assert "propose five to seven strong references that fit the product's category" in exploration
+    assert "start two `orchi-designer` subagents in Variant mode at once, one per design skill" in exploration
+    assert "Start `orchi-designer` in Mockup mode" in exploration
+    assert "Commit and push only what the user approved" in exploration
+    assert "| Design | For a product with a user interface" in exploration
+    assert "Research, Diverge, Design (the [design session](../orchi-core/references/exploration.md#design-session)" in explore
+    assert "`orchi-designer` subagents in Wireframe, Variant, and Mockup modes for the design session" in explore
+    assert "id: design" in (SKILLS / "orchi-core/assets/github/ISSUE_TEMPLATE/orchi-exploration.yml").read_text()
+
+
+def test_design_epic_and_planning_reuse_the_design_session():
+    design, planning = prose("orchi-design/SKILL.md"), prose("orchi-core/references/planning.md")
+    assert "ran a design session (its Design section), copy what the user approved" in design
+    assert "step 2 covers only the surfaces the session left out" in design
+    assert "the design Epic names its Design section as its source" in planning
+    assert "A design Epic without a design session behind it then agrees references with the user" in planning
+
+
+def test_designer_wireframes_with_prototype_and_mocks_the_whole_system():
+    designer = prose("orchi-core/roles/orchi-designer.md")
+    for mode in ("## Wireframe mode", "## Variant mode", "## Mockup mode", "## Task mode", "## Audit mode"):
+        assert mode in designer
+    assert "Follow prototype's workflow for a project without a stack (Phases 1 to 5) at wireframe fidelity: greys only" in designer
+    assert "linked by the system's navigation, with an `index.html`" in designer
+    assert "Wireframe, Variant, and Mockup modes write only in the output folder: no edits in the repository, no commits." in designer
+
+
+def test_design_board_template_reads_rounds_and_saves_ratings():
+    board = (SKILLS / "orchi-core/assets/design-board.html").read_text()
+    exploration = prose("orchi-core/references/exploration.md")
+    assert board.startswith("<title>{{PRODUCT}} design board</title>")
+    assert 'db.doc("board/items").onSnapshot' in board and 'db.collection("ratings").onSnapshot' in board
+    assert 'db.doc("ratings/" + id).set' in board
+    for field in ("score", "note", "pick", "blind", "label", "notes", "file", "question"):
+        assert field in board
+    assert "`capabilities` `{\"db\": {}}`" in exploration and "`board/items`" in exploration
+    assert "read the collection `ratings` with `ArtifactData` (`list`)" in exploration
+    assert "[`assets/design-board.html`](../assets/design-board.html)" in exploration

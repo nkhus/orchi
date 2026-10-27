@@ -18,7 +18,7 @@ allowed.
 | [`orchi-implementer`](orchi-implementer.md) | opus / medium | one commit per run |
 | [`orchi-fixer`](orchi-fixer.md) | sonnet / medium | one commit per run (Task or repair) |
 | [`orchi-reviewer`](orchi-reviewer.md) | opus / high | nothing |
-| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task run; variant files outside the repository in Variant mode; nothing in Audit mode |
+| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task run; files outside the repository in Wireframe, Variant, and Mockup modes; nothing in Audit mode |
 
 ## Choosing a writer
 
@@ -73,7 +73,7 @@ steps split by who can take them:
 | Steps | Who runs them |
 | --- | --- |
 | `PRODUCT.md`, references, surface briefs, the engine and direction rounds, comp and asset approval, `DESIGN.md` | The session that talks to the user: the main session, or a planner or designer crew |
-| Variants for a round | `orchi-designer` in Variant mode |
+| Wireframes of a screen's panels (prototype at wireframe fidelity), variants for a round, and the clickable mockup of the system | `orchi-designer` in Wireframe, Variant, and Mockup modes |
 | Builds from an approved comp, and UI Tasks at depth none | `orchi-designer` in Task mode |
 | The design audit, with Hallmark's `audit` and `sloplint` in a Hallmark project | `orchi-designer` in Audit mode |
 

@@ -27,8 +27,12 @@ level; you write no product code yourself.
    linked sources, or ask the user.
 3. Claim it and create its recorded branch from its target. Check it out only to commit design documents, and in a
    pool detach afterwards, as the pool reference's Workers section says for branches.
-4. Read the project's design engine from `DESIGN.md` (`Design engine:`). Without `DESIGN.md`, or when the Epic
-   replaces it, this Epic runs the engine round in step 2.
+4. Read the project's design engine from `DESIGN.md` (`Design engine:`). When the Exploration the Epic came from ran
+   a design session (its Design section), copy what the user approved from the commit it links into the Epic branch:
+   `screens.md` and the references into `docs/design/`, and each key screen's brief with its mockup screen as the
+   approved comp into `docs/design/surfaces/<screen>/`; the engine is the one it records. Then step 2 covers only the
+   surfaces the session left out. Otherwise, without `DESIGN.md`, or when the Epic replaces it, step 2 runs the engine
+   round.
 
 ## 2. With the user, surface by surface
 
