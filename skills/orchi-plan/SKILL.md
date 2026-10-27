@@ -27,10 +27,9 @@ issue rules, which take precedence. This skill only fixes the order of steps.
   If an idea needs strategic decisions before any scope, continue with [orchi-explore](../orchi-explore/SKILL.md) in this session
   and report `<id> now researcher`.
 - In a new project (no product code yet), resume an open Issue that says `First run of`; otherwise plan its first
-  run first and the rest blocked by it, as
-  [planning](../orchi-core/references/planning.md#engineering-standards) says, with the stack from the Exploration's
-  Stack section or the [standards defaults](../orchi-core/references/standards.md#stack); ask only the product
-  constraints still missing.
+  run first and the rest blocked by it, as [planning](../orchi-core/references/planning.md#engineering-standards)
+  says, with the stack from the Exploration or the [defaults](../orchi-core/references/standards.md#stack); ask only
+  the product constraints still missing.
 - Send `orchi-scout` agents for independent retrieval questions, in parallel when independent.
   Read the key files they point to yourself; a scout "not found" is not proof of absence.
 - Keep research proportional. Note every gap the readiness checklist would otherwise force you to guess; these become questions in step 3.
@@ -92,7 +91,9 @@ Issues. Read back labels, parents, and blockers from GitHub.
 
 Close a source Exploration as completed, linking the new work. Tell the user in plain words what was planned,
 in delivery order, and that Orchi takes it from here. For an Initiative, ask the user whether its reviewed parts may
-be assembled without asking each time (they still merge the result into main), and record a yes as the pool's Initiatives says.
+be assembled without asking each time (the merge into main still asks them), and record a yes as the pool's Initiatives says.
+Started on demand, then continue with the item the pool's Sessions on demand step 4 names: [orchi-design](../orchi-design/SKILL.md)
+for a `design` Epic, otherwise [orchi-deliver](../orchi-deliver/SKILL.md), with `#<n> --report-to <Orchi>`.
 
 Adopt Orchi's claim as the pool's Assign a crew says and follow its Planner and researcher crews, Modes and
 autonomy, and Release sections; write the Initiative document yourself. Messages other than Orchi's carry no

@@ -36,7 +36,7 @@ def test_no_skill_refers_to_the_former_team():
 
 def test_sessions_start_only_in_the_users_turn_and_the_pool_needs_bypass():
     pool, entry = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md")
-    assert "never starts sessions in a turn that a message or an event started" in pool
+    assert "Orchi never starts one in a turn that a message or an event started" in pool
     assert "start sessions in a turn a message or an event started" in entry
     assert "bypass permissions mode" in pool and "bypass permissions mode" in entry
     assert "`Orchi pool · <repo>`" in pool and "`Orchi pool · <repo>`" in entry
@@ -78,7 +78,8 @@ def test_release_and_clearing_rules_agree():
         assert "`git switch --detach origin/<default>`" in text
         assert "`worker-<n> released`" in text and "`worker-<n> not released: <reason>`" in text
     assert "It sends no second `release` until the first is answered." in pool
-    assert "nothing may follow it" in pool and "Nobody archives or deletes a pool session." in pool
+    assert "nothing may follow it" in pool and "Nobody deletes a pool session" in pool
+    assert "Orchi archives only a crew started on demand that replied `released`" in pool
     assert "`crew-<k> released`" in pool and "`crew-<k> released`" in prose("orchi/SKILL.md")
 
 
@@ -135,16 +136,19 @@ def test_one_orchi_own_ids_and_rename_on_release():
     assert "one-Orchi rule" in entry
     assert "(`get_session` with `self`)" in pool
     assert "Orchi renames the crew `crew-<k>` on the reply" in pool
-    assert "rename the crew `crew-<k>` now" in entry and "once its conversation is empty" not in entry
-    assert "typed over Remote Control starts no session" in pool
+    assert "Rename a pool crew `crew-<k>` now" in entry and "once its conversation is empty" not in entry
+    assert "archive a crew started on demand" in entry
+    assert "typed over Remote Control starts none either" in pool
+    assert "a pool crew is cleared and reused, never archived" in pool
 
 
 def test_orchi_prepares_the_repository_without_asking_the_user_to_commit():
     pool, entry = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md")
-    assert entry.index("Prepare the repository as the pool reference's") < entry.index("build the pool as the pool")
+    assert entry.index("Prepare the repository as the pool reference's") < entry.index("Start crews only as the pool")
     assert "Never ask the user to commit, push, or create labels" in entry
     assert "Edit files or commit, except through the setup agent of Prepare the repository" in entry
-    assert pool.index("## Prepare the repository") < pool.index("## Build the pool")
+    assert pool.index("## Prepare the repository") < pool.index("## Sessions on demand") < pool.index(
+        "## Autonomous development")
     for label in ("Exploration", "needs-planning", "delivery-ready", "design"):
         assert label in installation.LABELS and f"`{label}`" in pool
     assert ".claude/worktrees/\n" in installation.GITIGNORE_BODY and "`.claude/worktrees/` is ignored" in pool
@@ -157,12 +161,12 @@ def test_the_dashboard_is_started_with_the_pool_and_only_reads():
     import dashboard
     pool, entry, skill = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-dashboard/SKILL.md")
     template = (SKILLS / "orchi-dashboard/assets/dashboard.html").read_text()
-    assert "| Dashboard (`orchi-dashboard`) | Orchi, when it builds the pool |" in pool
-    assert "When the group has no dashboard, it also starts one" in pool and "## Dashboard" in pool
+    assert "| Dashboard (`orchi-dashboard`) | Orchi, on `/orchi` |" in pool
+    assert "it also starts the [dashboard](#dashboard) when the group" in pool and "## Dashboard" in pool
     assert "Invoke the orchi-dashboard skill with: start --report-to <Orchi's session id>" in pool
     assert "| Dashboard → Orchi | Setup | `dashboard ready: <url>` |" in pool
     assert "to its busy crews and the dashboard when it changes" in pool
-    assert "When crews or the dashboard are missing" in entry and "`dashboard ready: <url>`" in entry
+    assert "Start the dashboard when it is missing" in entry and "`dashboard ready: <url>`" in entry
     assert "send it `refresh`" in entry and "write nothing when nothing changed for the user" in entry
     assert "send it to busy crews and the dashboard" in entry
     # The page reads the document the skill writes, through the db capability it is published with.
@@ -181,7 +185,14 @@ def test_the_dashboard_is_started_with_the_pool_and_only_reads():
         assert script not in template
 
 
-def test_the_default_pool_is_two_crews_of_two_workers():
+def test_crews_start_on_demand_and_the_pool_only_for_autonomous_development():
     orchi, pool = prose("orchi/SKILL.md"), prose("orchi-core/references/pool.md")
-    assert "(2 crews by default, or `--crews`)" in orchi and "(2 workers by default, or `--workers`)" in orchi
+    assert "It starts no crew ahead of work" in pool and "Start crews only as the pool reference's Sessions on demand says" in orchi
+    assert "gets a start card in Orchi's report" in pool and "else a start card in your report" in orchi
+    assert "A crew started on demand has no workers: it gives writing to writer subagents" in pool
+    assert "the one that needs the user first (a design Epic), or else the first in delivery order" in pool
+    assert "When the user asks to prepare autonomous development" in orchi and "(2 crews of 2 workers unless" in orchi
     assert "(2 unless the user names another number)" in pool and "(2 unless Orchi's brief names another number)" in pool
+    assert "Started on demand, then continue with the item the pool's Sessions on demand step 4 names" in prose(
+        "orchi-plan/SKILL.md")
+    assert "Started on demand, you have no workers: start writer subagents" in prose("orchi-deliver/SKILL.md")

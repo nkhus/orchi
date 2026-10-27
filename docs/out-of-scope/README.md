@@ -13,7 +13,7 @@ installed.
 | [Load-based worker capacity](load-based-worker-capacity.md) | The pool size is the limit |
 | [Team roles as agents](team-roles-as-agents.md) | Roles are skills the user types or Orchi sends by message |
 | [Session identity mechanisms](session-identity-mechanisms.md) | The owner re-sends the assignment |
-| [Archiving or deleting sessions](session-lifecycle.md) | Pool sessions are cleared and reused |
+| [Archiving or deleting sessions](session-lifecycle.md) | Crews started on demand are archived when done; pool crews are cleared and reused |
 | [Per-axis sub-reviewers](per-axis-sub-reviewers.md) | One reviewer keeps the axes in separate sections |
 
 ## Add a record
