@@ -127,6 +127,39 @@ findings and a recommendation, not silently adopted product code. Discuss a
 material change of direction with the user; ordinary implementation choices
 within the agreed approach need no new approval.
 
+## User interface design
+
+Work that changes a user interface gets a design depth in its Epic or Task. The
+design engine is Impeccable; the steps that need the user run in the session
+that talks to them, and writers build only against what the user approved.
+
+| Depth | When | Planning does |
+| --- | --- | --- |
+| None | The change stays within existing components and screens | Nothing more; the writer finishes with `polish` and the review audits it |
+| Brief | A new screen or feature inside an established visual world (`DESIGN.md` exists) | Run `/impeccable shape` with the user, keep its brief as the surface brief in `.impeccable/surfaces/`, and link it; run the direction round only when the composition stays materially open |
+| Epic | A new product, a redesign, or several screens whose composition is open | Plan a `design` Epic (labels `Epic` and `design`) for a designer crew, and make the Epics that build on it blocked by it |
+
+- A design Epic names the surfaces it designs, what must stay, and whether it
+  replaces `DESIGN.md`. Its Tasks are the builds of the approved surfaces; the
+  designer splits them after the user approves each comp, so plan them at
+  outcome level.
+- From scratch, the first Epic is the design Epic for the key surfaces, built on
+  the real stack and kept. Plan the rest of development as one Issue labelled
+  `needs-planning`, with `Requested by: <Orchi's title>` in a pool, blocked by
+  the design Epic: when the design merges, a planner details it from
+  `PRODUCT.md`, `DESIGN.md`, the surface briefs, and the built surfaces.
+- Without `PRODUCT.md`, the design Epic starts with `/impeccable init`; for a
+  redesign without `DESIGN.md`, with `/impeccable document`, so the incumbent
+  look is recorded as evidence.
+- Every Task that builds UI links the `DESIGN.md` sections, surface brief, and
+  approved comp it builds against, and names its states, breakpoints, themes,
+  and accessibility level. A brief that turns out to need a new world or a
+  redesign is raised to a design Epic, and the user is told why.
+- Only the user chooses a direction and approves a comp or a generated asset,
+  at every autonomy level. In auto mode, Orchi may answer `shape` questions that
+  `PRODUCT.md`, `DESIGN.md`, or the Issues already settle; the rest wait for the
+  user.
+
 ## Tasks
 
 Derive sequential Tasks from the design. Each owns one reviewable result and

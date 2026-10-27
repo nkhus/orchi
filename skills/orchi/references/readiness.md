@@ -44,6 +44,12 @@ standalone small fix.
 13. Lists no open question in the Task or its parent Epic that is marked as
     affecting this Task's approach; resolve such a question, or move it to a
     bounded investigation Task, first.
+14. For a Task that changes a user interface, states its
+    [design depth](planning.md#user-interface-design) and links the `DESIGN.md`
+    sections it follows; at depth brief or Epic, also the surface brief with its
+    direction contract and, for a build from a comp, the approved comp; and names
+    the states, breakpoints, themes, and accessibility level it covers (when
+    applicable).
 
 ## Epic readiness checklist
 
@@ -75,6 +81,11 @@ until the deferral is resolved.
     approach.
 12. Has native sub-issue Tasks in execution order, each passing the Task
     readiness checklist.
+13. For an Epic that changes a user interface, states its
+    [design depth](planning.md#user-interface-design): at depth brief, links the
+    surface brief; at depth Epic, is itself the `design` Epic, naming the surfaces
+    it designs and what must stay, or is blocked by the design Epic it builds on
+    (when applicable).
 
 ## Initiative readiness checklist
 
