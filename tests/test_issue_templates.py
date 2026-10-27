@@ -6,8 +6,8 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-TEMPLATES = ROOT / "skills/orchi/assets/github/ISSUE_TEMPLATE"
-READINESS = ROOT / "skills/orchi/references/readiness.md"
+TEMPLATES = ROOT / "skills/orchi-core/assets/github/ISSUE_TEMPLATE"
+READINESS = ROOT / "skills/orchi-core/references/readiness.md"
 FIELD_TYPES = {"markdown", "textarea", "input", "dropdown", "checkboxes"}
 
 # Checklist item number -> (field id, phrases the field's label or description must contain).

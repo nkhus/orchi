@@ -2,8 +2,8 @@
 
 Status: implemented on the `feat/design-track` branch. Part of the
 [single-entry Initiative](README.md); the [architecture](architecture.md) holds
-the pool this track runs in. The [planning](../../../skills/orchi/references/planning.md#user-interface-design)
-and [pool](../../../skills/orchi/references/pool.md#designer-crews) references and
+the pool this track runs in. The [planning](../../../skills/orchi-core/references/planning.md#user-interface-design)
+and [pool](../../../skills/orchi-core/references/pool.md#designer-crews) references and
 `orchi-design` describe the behavior; this page keeps the reasoning.
 
 ## Request

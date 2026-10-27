@@ -7,7 +7,7 @@ between `+++` lines (`name`, `description`, and `[claude]` `model`, `effort`,
 instead of editing them.
 
 Instructions write the installed Orchi skill directory as `{{ORCHI_SKILL}}`. The
-installer substitutes `.claude/skills/orchi` for a project installation and the
+installer substitutes `.claude/skills/orchi-core` for a project installation and the
 absolute skill path for a user-wide one. No other `{{NAME}}` placeholder is
 allowed.
 

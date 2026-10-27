@@ -9,8 +9,8 @@ argument-hint: "<idea in plain words> | #<exploration> [--report-to <Orchi sessi
 Arguments: $ARGUMENTS
 
 You are the main session and the only one that talks to the user. Follow
-`CLAUDE.md`, the [Orchi skill](../orchi/SKILL.md), and the
-[exploration reference](../orchi/references/exploration.md), which defines the
+`CLAUDE.md`, the [Orchi skill](../orchi-core/SKILL.md), and the
+[exploration reference](../orchi-core/references/exploration.md), which defines the
 Issue, each phase, and when it is done. This skill only fixes the order of
 steps. It creates no Epic, Task, or delivery branch and changes no product code.
 
@@ -20,7 +20,7 @@ steps. It creates no Epic, Task, or delivery branch and changes no product code.
   the first phase that is not done. Do not re-ask what its decisions answer.
 - With an idea: look for an open Exploration or tracked work that already
   covers it, and propose continuing that instead. If it matches a
-  [declined](../orchi/references/planning.md#declined-work) request, show that
+  [declined](../orchi-core/references/planning.md#declined-work) request, show that
   reason first. Without a GitHub remote,
   follow the reference's New projects first.
 - If the request is already agreed, scoped work, propose `/orchi-plan` instead.
@@ -42,7 +42,7 @@ supply what it names and start it again.
 
 ## Crew mode (`--report-to`)
 
-As a researcher crew of the [pool](../orchi/references/pool.md), adopt Orchi's
+As a researcher crew of the [pool](../orchi-core/references/pool.md), adopt Orchi's
 claim as its Assign a crew says, follow its Planner and researcher crews section,
 reporting to the Orchi whose session id `--report-to` names, and its Release
 section on `release`. Ask the user directly in both modes. Write research notes

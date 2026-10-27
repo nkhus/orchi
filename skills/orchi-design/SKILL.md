@@ -9,9 +9,9 @@ argument-hint: "#<design Epic> [--report-to <Orchi session>]"
 Arguments: $ARGUMENTS
 
 You are the main session and the only one that talks to the user. Follow
-`CLAUDE.md`, the [Orchi skill](../orchi/SKILL.md), its
-[user interface design](../orchi/references/planning.md#user-interface-design)
-and [readiness](../orchi/references/readiness.md) references, and Impeccable
+`CLAUDE.md`, the [Orchi skill](../orchi-core/SKILL.md), its
+[user interface design](../orchi-core/references/planning.md#user-interface-design)
+and [readiness](../orchi-core/references/readiness.md) references, and Impeccable
 (`/impeccable`), installed with Orchi. This skill fixes the order of steps.
 Only the user chooses a direction and approves a comp or a generated asset, at
 every autonomy level; you write no product code yourself.
@@ -73,7 +73,7 @@ Impeccable approval or choice goes to the user, never to an autonomy level.
 
 ## Crew mode (`--report-to`)
 
-As a designer crew of the [pool](../orchi/references/pool.md), adopt Orchi's
+As a designer crew of the [pool](../orchi-core/references/pool.md), adopt Orchi's
 claim as its Assign a crew says and follow its Designer crews, Modes and
 autonomy, and Release sections, reporting to the Orchi whose session id
 `--report-to` names. Ask the user directly in both modes, and report

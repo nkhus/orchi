@@ -4,7 +4,7 @@
 
 **Research first. Agree the scope. Deliver through branches and GitHub Issues.**
 
-Orchi is a development convention packaged as one agent skill, with five optional entry skills (one of them the entry of a session pool) and six model-tiered subagents. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. It installs into **Claude Code**.
+Orchi is a development convention packaged as one agent skill, with six optional entry skills (one of them, `/orchi`, the entry of a session pool) and six model-tiered subagents. Git stores code and documentation; GitHub Issues store ownership, hierarchy, dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade. It installs into **Claude Code**.
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [Subagents and entry skills](#subagents-and-entry-skills) · [Project instructions](#project-instructions) · [Documentation](#documentation)
 
@@ -52,7 +52,7 @@ Open a fresh Claude Code session and ask:
 Use Orchi to add CSV export to the orders page.
 ```
 
-Or invoke it explicitly: `/orchi`, or the IDE's skill picker. The installed project instructions also route implementation requests to Orchi. You can also start with the [entry skills](#subagents-and-entry-skills): `/orchi-plan <request>`.
+Claude Code loads the `orchi-core` skill for such requests by itself; it is hidden from the slash-command menu because you never need to type it. The installed project instructions also route implementation requests to Orchi. You can also start with the [entry skills](#subagents-and-entry-skills): `/orchi-plan <request>`.
 
 ## How it works
 
@@ -80,16 +80,16 @@ flowchart TD
 - **Scale the ceremony to the work.** A small fix is one Task and one PR. An Epic is one branch and one PR with sequential Tasks. An Initiative integrates several Epic PRs on its own branch before one final PR to main.
 - **Every title shows its lineage.** Initiatives and Epics have short tags, and titles start with them: Initiative `[PAY] Card payments`, Epic `[PAY][TOKEN] Tokenize stored cards`, Task `[PAY][TOKEN] Add token column`. Labels carry the type, and branches reuse the tags (`epic/pay-token-tokenize-cards`).
 - **Learn from each delivery.** The final report proposes up to three lessons, each tied to an observed event and placed on the most deterministic rung that fits: a check, a readiness item or form field, a reviewer rule, a pointer in `CLAUDE.md`, or an Orchi Issue. Nothing changes until the user accepts it as a `retro` Issue.
-- **Run as a pool when you want to.** In Claude Desktop, type `/orchi-pm` in one session in bypass permissions mode, and that session becomes Orchi: your single entry. It builds a pool of crews at the top level of the sidebar, and one click in each crew creates its workers, nested under it; no session is created after that. Orchi does no work itself. It routes each request to a crew: a researcher (`orchi-explore`) for an idea, a planner (`orchi-plan`) for a request or a fix, a designer (`orchi-design`) for a `design` Epic, and a dev lead (`orchi-deliver`) for other `delivery-ready` work you ask it to take. It renames the crew after its role and topic and links you to it. A crew talks to you and gives all repository work to its workers (`orchi-work`), which talk only to their crew; a dev lead runs Tasks that touch different files in parallel on `task/*` branches. When the work is done, workers and crews clear themselves and return to the pool. In interactive mode you answer crews in their sessions; in auto mode Orchi answers within the autonomy level, and merges reviewed PRs with passing checks. Exploration stays a conversation, and deployment, access, and destructive actions always wait for you. Claims, Issues, and PRs stay the state, so any session can restart and catch up. See [pool](skills/orchi/references/pool.md) and [pool setup](docs/installation.md#pool-setup).
+- **Run as a pool when you want to.** In Claude Desktop, type `/orchi` in one session in bypass permissions mode, and that session becomes Orchi: your single entry. It builds a pool of crews at the top level of the sidebar, and one click in each crew creates its workers, nested under it; no session is created after that. Orchi does no work itself. It routes each request to a crew: a researcher (`orchi-explore`) for an idea, a planner (`orchi-plan`) for a request or a fix, a designer (`orchi-design`) for a `design` Epic, and a dev lead (`orchi-deliver`) for other `delivery-ready` work you ask it to take. It renames the crew after its role and topic and links you to it. A crew talks to you and gives all repository work to its workers (`orchi-work`), which talk only to their crew; a dev lead runs Tasks that touch different files in parallel on `task/*` branches. When the work is done, workers and crews clear themselves and return to the pool. In interactive mode you answer crews in their sessions; in auto mode Orchi answers within the autonomy level, and merges reviewed PRs with passing checks. Exploration stays a conversation, and deployment, access, and destructive actions always wait for you. Claims, Issues, and PRs stay the state, so any session can restart and catch up. See [pool](skills/orchi-core/references/pool.md) and [pool setup](docs/installation.md#pool-setup).
 - **GitHub is the shared state.** `Initiative`, `Epic`, and `Task` labels, native sub-issues and `blocked by` dependencies, assignees, and `in-progress` describe hierarchy and ownership. Several Claude Code sessions can work on independent Epics in parallel, each in its own branch and worktree. `scripts/status.py` shows which Epics are ready, blocked, or claimed.
 - **Documentation follows the code.** Core documentation changes land with the implementation in the Epic branch, and every PR states its documentation impact. With `--github`, CI fails on broken local links the PR introduces or an empty impact section. Initiative plans live in `docs/initiatives/<tag>-<slug>/README.md` and are never presented as current behavior.
 - **Verify once, repair precisely.** Every new test is shown failing before the change. Each Epic gets one full review along three separate axes (Spec, including scope creep; Standards; Tests), with a design audit by `orchi-designer` when it changes user interface; demonstrated blockers are repaired, by the writer that already holds the Task's context when it can be continued, and rechecked with a targeted follow-up. After two misses on the same Task, the main session changes the Task's boundary instead of retrying it, and an Initiative steps back after each Epic merge to check that the remaining plan still fits. Verification reports each acceptance claim as established, limited, or not established. Each PR states its merge risk: a one-way or two-way door, and the blast radius. Interrupted work leaves a fixed Handoff section in the PR. Merging and deployment stay within the user's authority.
 
-The [skill](skills/orchi/SKILL.md) is the complete workflow. Stage references cover [exploration](skills/orchi/references/exploration.md), [planning](skills/orchi/references/planning.md), [readiness](skills/orchi/references/readiness.md), [execution](skills/orchi/references/execution.md), [testing](skills/orchi/references/testing.md), [knowledge](skills/orchi/references/knowledge.md), [review and delivery](skills/orchi/references/review-delivery.md), [GitHub conventions](skills/orchi/references/github.md), [documentation retrieval](skills/orchi/references/retrieval.md), and [working as a session pool](skills/orchi/references/pool.md).
+The [skill](skills/orchi-core/SKILL.md) is the complete workflow. Stage references cover [exploration](skills/orchi-core/references/exploration.md), [planning](skills/orchi-core/references/planning.md), [readiness](skills/orchi-core/references/readiness.md), [execution](skills/orchi-core/references/execution.md), [testing](skills/orchi-core/references/testing.md), [knowledge](skills/orchi-core/references/knowledge.md), [review and delivery](skills/orchi-core/references/review-delivery.md), [GitHub conventions](skills/orchi-core/references/github.md), [documentation retrieval](skills/orchi-core/references/retrieval.md), and [working as a session pool](skills/orchi-core/references/pool.md).
 
 ## Subagents and entry skills
 
-The installer renders six Claude Code subagents from one definition each in [`skills/orchi/roles/`](skills/orchi/roles/README.md). The main session talks to the user, owns Issues, pushes, and merges; it may delegate retrieval, research and option design, one Task or defect repair at a time, UI design, and review.
+The installer renders six Claude Code subagents from one definition each in [`skills/orchi-core/roles/`](skills/orchi-core/roles/README.md). The main session talks to the user, owns Issues, pushes, and merges; it may delegate retrieval, research and option design, one Task or defect repair at a time, UI design, and review.
 
 | Agent | Model / effort | Writes | Role |
 | --- | --- | --- | --- |
@@ -102,7 +102,7 @@ The installer renders six Claude Code subagents from one definition each in [`sk
 
 Implementers, fixers, designers, and reviewers may start `orchi-scout` or `orchi-reviewer` for independent sub-questions, researchers start scouts or other researchers, and scouts only other scouts; only the main session starts the writers `orchi-implementer`, `orchi-fixer`, and `orchi-designer`, and nested agents never talk to the user, change Issues, push, or merge. Claude Code allows subagents to start their own, up to three layers below the main conversation, by default ([Claude Code subagents](https://code.claude.com/docs/en/sub-agents)). If a model or agent is unavailable, the main session does the step itself.
 
-Six entry skills fix the order of steps; they are conveniences, not a required facade. `orchi-pm` runs only when you type it; a session may invoke the other five itself when you, Orchi, or a crew ask for them by name:
+Six entry skills fix the order of steps; they are conveniences, not a required facade. `orchi` runs only when you type it; a session may invoke the other five itself when you, Orchi, or a crew ask for them by name:
 
 - `orchi-explore` (`/orchi-explore <idea>` or `#<exploration>`) researches and shapes an idea with the user before any scope exists: frame, research, diverge into at least three options, converge on decisions, shape requirements and candidate Epics. It keeps everything in an `Exploration` Issue, resumes from it, creates no delivery branch or product code, and ends with `Plan with: /orchi-plan #<n>`.
 
@@ -110,16 +110,16 @@ Six entry skills fix the order of steps; they are conveniences, not a required f
 - `orchi-design` (`/orchi-design #<n>`) runs a `design` Epic with you through [Impeccable](https://impeccable.style/): product context, then for each surface the direction you choose and the comp you approve, then the builds through `orchi-deliver`. It records every choice in the Epic, never picks a direction for you, and ends with a PR holding the built surfaces, the surface briefs, and `DESIGN.md`. With `--report-to <Orchi>` it runs as a designer crew.
 - `orchi-deliver` (`/orchi-deliver #<n> [--merge-epics]`) delivers a standalone Task, Epic, or Initiative through the subagents and resumes interrupted delivery. It never merges into main; `--merge-epics` allows merging reviewed Epic PRs into their Initiative branch. With `--report-to <Orchi>` it runs as a dev lead crew: it adopts Orchi's assignment claim, gives each Task to one of its workers, reports its events to Orchi, and releases itself when asked.
 - `orchi-work` (from a crew's task message) runs one task as a pool worker: it implements, fixes, or designs one ready Task on the branch its crew names, or answers one research or retrieval question, following the matching subagent role. It commits but never pushes, talks only to its crew, and releases itself when asked.
-- `orchi-pm` (`/orchi-pm [request]`) makes a long-lived session Orchi, the pool's entry: it builds the pool, routes each request to a crew role, assigns and releases crews, and tells you only about decisions, merges into main, and questions waiting for you. It never plans, researches, edits code, or merges into main without you below auto mode.
+- `orchi` (`/orchi [request]`) makes a long-lived session Orchi, the pool's entry: it builds the pool, routes each request to a crew role, assigns and releases crews, and tells you only about decisions, merges into main, and questions waiting for you. It never plans, researches, edits code, or merges into main without you below auto mode.
 
-`orchi-plan` and `orchi-deliver` enforce the [readiness checklists](skills/orchi/references/readiness.md) for Tasks, Epics, and Initiatives: `orchi-plan` checks every Issue it creates, and `orchi-deliver` checks the Task, Epic, or Initiative again before delivering it.
+`orchi-plan` and `orchi-deliver` enforce the [readiness checklists](skills/orchi-core/references/readiness.md) for Tasks, Epics, and Initiatives: `orchi-plan` checks every Issue it creates, and `orchi-deliver` checks the Task, Epic, or Initiative again before delivering it.
 
 ## Project instructions
 
 | File or directory | Purpose |
 | --- | --- |
-| `.claude/skills/orchi/` | The Orchi skill |
-| `.claude/skills/orchi-explore/`, `orchi-plan/`, `orchi-design/`, `orchi-deliver/`, `orchi-work/`, `orchi-pm/` | Optional entry skills |
+| `.claude/skills/orchi-core/` | The Orchi skill |
+| `.claude/skills/orchi-explore/`, `orchi-plan/`, `orchi-design/`, `orchi-deliver/`, `orchi-work/`, `orchi/` | Optional entry skills |
 | Root `CLAUDE.md` | Managed Orchi workflow instructions |
 | `.claude/agents/orchi-*.md` | Rendered subagents |
 | `.claude/skills/impeccable/`, `.claude/agents/impeccable-*.md` | Impeccable at the version Orchi pins, installed by its own installer without hooks |
@@ -138,13 +138,13 @@ Commit the installed skills, rendered agents, instruction changes, and installat
 | Guide | Read it to… |
 | --- | --- |
 | [Installation](docs/installation.md) | Install, upgrade, or remove the skill |
-| [Subagent roles](skills/orchi/roles/README.md) | Choose a writer, see each role's model and tools, and find the design skills `orchi-designer` uses |
+| [Subagent roles](skills/orchi-core/roles/README.md) | Choose a writer, see each role's model and tools, and find the design skills `orchi-designer` uses |
 | [Testing](docs/testing.md) | Validate the package and run the installed-skill smoke test |
 | [External references](docs/references.md) | Find the skill standards and Claude Code documentation |
 
 ## Contributing
 
-The installable skills live in `skills/`; subagent roles live in `skills/orchi/roles/`. Repository-only validation, tests, and documentation live in `tools/`, `tests/`, and `docs/`.
+The installable skills live in `skills/`; subagent roles live in `skills/orchi-core/roles/`. Repository-only validation, tests, and documentation live in `tools/`, `tests/`, and `docs/`.
 
 ```bash
 python3 -m venv .venv

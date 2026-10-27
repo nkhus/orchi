@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-deliver', 'orchi-work', 'orchi-pm')
+SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-deliver', 'orchi-work', 'orchi')
 ROLES = ('orchi-designer', 'orchi-fixer', 'orchi-implementer', 'orchi-researcher', 'orchi-reviewer', 'orchi-scout')
 
 
@@ -56,7 +56,7 @@ def smoke(out: Path, installer: str, github: bool = False) -> dict:
     for name in SKILLS:
         if not (project / '.claude/skills' / name / 'SKILL.md').is_file():
             raise RuntimeError('Missing installed skill: ' + name)
-    knowledge = project / '.claude/skills/orchi/scripts/knowledge.py'
+    knowledge = project / '.claude/skills/orchi-core/scripts/knowledge.py'
     hits = json.loads(run([sys.executable, str(knowledge), 'search', 'session']))['results']
     if [hit['path'] for hit in hits] != ['docs/guide.md']:
         raise RuntimeError('Installed knowledge search returned unexpected results')

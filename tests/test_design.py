@@ -10,7 +10,7 @@ def prose(path):
 
 
 def test_planning_sets_design_depth_and_only_the_user_chooses_a_direction():
-    planning, plan = prose("orchi/references/planning.md"), prose("orchi-plan/SKILL.md")
+    planning, plan = prose("orchi-core/references/planning.md"), prose("orchi-plan/SKILL.md")
     for depth in ("| None |", "| Brief |", "| Epic |"):
         assert depth in planning
     assert "Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative" in planning
@@ -20,15 +20,15 @@ def test_planning_sets_design_depth_and_only_the_user_chooses_a_direction():
 
 
 def test_ui_readiness_items_have_form_fields():
-    readiness = prose("orchi/references/readiness.md")
+    readiness = prose("orchi-core/references/readiness.md")
     assert readiness.count("planning.md#user-interface-design") == 2
     for form in ("orchi-task.yml", "orchi-epic.yml"):
-        text = (SKILLS / "orchi/assets/github/ISSUE_TEMPLATE" / form).read_text()
+        text = (SKILLS / "orchi-core/assets/github/ISSUE_TEMPLATE" / form).read_text()
         assert "id: ui" in text and "label: UI design" in text
 
 
 def test_designer_crew_role_routing_and_mode_agree():
-    pool, entry, design = prose("orchi/references/pool.md"), prose("orchi-pm/SKILL.md"), prose("orchi-design/SKILL.md")
+    pool, entry, design = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-design/SKILL.md")
     assert "| Designer | `orchi-design` | One standalone `design` Epic, with the user |" in pool
     assert '"Take #n" on a `delivery-ready` Epic labelled `design` | Designer | `orchi-design`' in pool
     assert "the user still answers a researcher and a designer" in pool
@@ -42,17 +42,17 @@ def test_designer_crew_role_routing_and_mode_agree():
 
 
 def test_exploration_records_product_truth_for_init():
-    exploration, design = prose("orchi/references/exploration.md"), prose("orchi-design/SKILL.md")
+    exploration, design = prose("orchi-core/references/exploration.md"), prose("orchi-design/SKILL.md")
     assert "| Product | For a product with a user interface" in exploration
     assert "The first design Epic's `init` writes `PRODUCT.md` from it and asks only what is missing." in exploration
     assert "How screens should look is not settled here" in exploration
-    assert "id: product" in (SKILLS / "orchi/assets/github/ISSUE_TEMPLATE/orchi-exploration.yml").read_text()
+    assert "id: product" in (SKILLS / "orchi-core/assets/github/ISSUE_TEMPLATE/orchi-exploration.yml").read_text()
     assert "starting from the Product section of the Exploration" in design
 
 
 def test_delivery_routes_ui_tasks_to_the_designer_and_audits_ui_changes():
-    readme = " ".join((SKILLS / "orchi/roles/README.md").read_text().split())
-    review, deliver = prose("orchi/references/review-delivery.md"), prose("orchi-deliver/SKILL.md")
+    readme = " ".join((SKILLS / "orchi-core/roles/README.md").read_text().split())
+    review, deliver = prose("orchi-core/references/review-delivery.md"), prose("orchi-deliver/SKILL.md")
     assert "every Task that builds against a surface brief or an approved comp" in readme
     assert "a direction, a comp, or a generated asset goes to the user whatever they delegated" in readme
     assert "start `orchi-designer` in Audit mode on it beside the reviewer" in review
