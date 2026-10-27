@@ -94,7 +94,7 @@ which plans the foundation Epic that every other Epic is blocked by.
 
 ## Hand off
 
-When the user confirms the shape, end with `Plan with: /orchi-plan #<n>`.
+When the user confirms the shape, the researcher crew continues into planning in the same session.
 Planning takes the destination, requirements, decisions, and Epic candidates as
 agreed, links the Exploration as the source request, and asks only what the
 exploration left open. It creates its Initiative or Epic branch from

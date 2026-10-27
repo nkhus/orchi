@@ -37,7 +37,7 @@ def test_designer_crew_role_routing_and_mode_agree():
     assert "(researcher, planner, designer, dev lead)" in entry and "for a researcher or designer, and for a question marked `(user)`" in entry
     assert "Only the user chooses a direction and approves a comp or a generated asset, at every autonomy level" in design
     assert "you never pick for them" in design and "Continue with [orchi-deliver](../orchi-deliver/SKILL.md)" in design
-    assert "Ask the user directly in both modes" in design and "adopt Orchi's claim" in design
+    assert "Ask the user directly in both modes" in design and "Adopt Orchi's claim" in design
     assert "asks for orchi-design by name" in design
 
 

@@ -14,8 +14,8 @@ SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-st
 # Only the workflow skill loads implicitly; the entry skills run when the user invokes them.
 # Skills a session may invoke itself: the entrypoint, and the worker skills a team hub asks for by message.
 IMPLICIT = {'orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work'}
-# Skills only a session invokes: hidden from the user's slash-command menu.
-HIDDEN = {'orchi-core', 'orchi-work'}
+# The user types only /orchi; every other skill is invoked by a pool session and hidden from the menu.
+HIDDEN = {'orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work'}
 IGNORED = {'__pycache__', '.pytest_cache', '.venv', '.git', 'reports', 'build', 'dist', 'node_modules'}
 # The npm package publishes the installed skills plus these wrapper files, and nothing else.
 WRAPPER_FILES = {'bin/orchi.js', 'tools/install.py'}

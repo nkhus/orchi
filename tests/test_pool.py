@@ -118,7 +118,7 @@ def test_answers_claim_adoption_and_branch_handover_agree():
     assert "A crew takes an answer from Orchi only in auto mode" in pool
     assert "appends `, started <date>` to the work reference" in pool and ", started <date>" in deliver
     for text in (plan, explore):
-        assert "adopt Orchi's claim" in text
+        assert "Adopt Orchi's claim" in text
     assert "--report-to <Orchi's session id>" in pool and "this request's id is <id>" in pool
     assert "`git branch <branch> origin/<base>`" in pool and "`git switch --detach`" in work
     assert "A worker takes many tasks during one assignment" in pool and "branch check passes" in work

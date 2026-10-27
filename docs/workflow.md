@@ -3,8 +3,8 @@
 The core workflow every Orchi session follows: research and agree scope with the
 user, track proportional work as a Task, Epic, or Initiative in GitHub Issues,
 deliver it on Git branches, review it once, and leave merging and deployment to
-the user's authority. A solo session runs it directly; a [pool](pool.md) runs the
-same workflow through crews and workers.
+the user's authority. The user types only `/orchi`; a [pool](pool.md) runs the
+workflow through crews and workers.
 
 ## Structure
 
@@ -40,8 +40,9 @@ delete it when it no longer holds.
 
 | Decision | Reason | Rejected | Since |
 | --- | --- | --- | --- |
+| `/orchi` is the only command the user types; every other skill is hidden from the menu and runs only as a crew's or worker's assignment, and a session outside the pool answers questions and points work to `/orchi` | The user talks to one session and never needs to know which role skill comes next; crews report to Orchi, and Orchi brings back only decisions | Entry skills the user could type in a solo session, with hand-off lines such as `Deliver with:` | [#51](https://github.com/nkhus/orchi/pull/51) |
 | Every PR lists each review finding with its resolution or `unresolved`; `blocker` and `major` findings are repaired before the PR is marked ready, and Orchi's Auto merge needs none unresolved | Auto merge relies on the PR body, and nobody reads the code after the review | Repairing only `blocker` findings, with no record of the rest | [#49](https://github.com/nkhus/orchi/pull/49) |
-| A rerun of `/orchi-deliver` after an interruption keeps the claim when its assignee, branch, and PR match and the session it names has stopped, and replaces that session in the work reference | Every rerun runs in a new session, and the old rule read its own claim as another owner's | Session-only claim matching | [#49](https://github.com/nkhus/orchi/pull/49) |
+| When Orchi sends an assignment again after an interruption, the crew keeps the claim if its assignee, branch, and PR match and the session it names has stopped, and replaces that session in the work reference | A resumed assignment can run in a new session, and the old rule read its own claim as another owner's | Session-only claim matching | [#49](https://github.com/nkhus/orchi/pull/49), [#51](https://github.com/nkhus/orchi/pull/51) |
 | `orchi-plan` ends with one line per top item (`Deliver with`, `Design with`, `Plan with`), and a planner labels every top item that passed its gate, a `design` Epic included | A new product's plan has several top items, and a design Epic has no Tasks until comps are approved | One `Deliver with:` line for the whole plan | [#49](https://github.com/nkhus/orchi/pull/49) |
 | The branch hierarchy stays: Initiative branch from main, Epic branches from it, Tasks on their Epic branch | Working documents change several times before they settle; a branch per level lets each settle locally and move into the current documentation at its merge | Flat branches from main for every piece of work, which leave nowhere to settle a plan before main | [#45](https://github.com/nkhus/orchi/pull/45) |
 | `orchi-reviewer`'s own instructions carry every check the review must make, including `ENGINEERING.md` and gate integrity, exceptions, acceptance evidence, and the documentation map; it reports the exceptions for the PR | Nobody reads the code after the reviewer, and an agent reads its role file, not the whole review reference | Relying on the review reference alone | [#47](https://github.com/nkhus/orchi/pull/47) |

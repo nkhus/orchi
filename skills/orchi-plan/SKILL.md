@@ -1,14 +1,17 @@
 ---
 name: orchi-plan
-description: Turn a user request into agreed, tracked, delivery-ready Orchi work (standalone Task, Epic, or Initiative). Ends with the Issue number to pass to orchi-deliver. Invoke only when the user or an Orchi assignment asks for orchi-plan by name, or orchi-explore continues into it.
-argument-hint: "<request in plain words> | #<exploration> | #<needs-planning> [--report-to <Orchi session>]"
+description: Turn a user request into agreed, tracked, delivery-ready Orchi work (standalone Task, Epic, or Initiative). Invoke only when an Orchi pool assignment asks for orchi-plan by name, or orchi-explore continues into it.
+argument-hint: "<request in plain words> | #<exploration> | #<needs-planning> --report-to <Orchi session>"
+user-invocable: false
 ---
 
 # Orchi intake: request → ready Issues
 
 Arguments: $ARGUMENTS
 
-You are the main session and the only one that talks to the user. Follow `CLAUDE.md`, the
+You are a planner crew of the Orchi [pool](../orchi-core/references/pool.md), assigned by the Orchi whose
+session id `--report-to` names (without it, tell the user that work starts with `/orchi`, and stop); you talk to
+the user in this session. Follow `CLAUDE.md`, the
 [Orchi skill](../orchi-core/SKILL.md), its [readiness checklists](../orchi-core/references/readiness.md)
 and [GitHub conventions](../orchi-core/references/github.md), and the repository's own
 issue rules, which take precedence. This skill only fixes the order of steps.
@@ -16,12 +19,13 @@ issue rules, which take precedence. This skill only fixes the order of steps.
 ## 1. Research (no tracking yet)
 
 - Inspect the branch and worktree. Search open and closed Issues and PRs for existing, overlapping, or
-  [declined](../orchi-core/references/planning.md#declined-work) work. If this continues a tracked Task, Epic, or Initiative, stop and
-  propose `/orchi-deliver #<n>` instead (a planner crew runs the readiness gate on it unless it is `delivery-ready`).
+  [declined](../orchi-core/references/planning.md#declined-work) work. If this continues a tracked Task, Epic, or Initiative, run the
+  readiness gate on it (step 5) unless it is `delivery-ready`, and report it planned instead of planning it again.
 - With a shaped Exploration (`#<n>`), take its destination, requirements,
   decisions, and Epic candidates as agreed, link it as the source request, and
   ask only what it leaves open ([hand off](../orchi-core/references/exploration.md#hand-off)).
-  If an idea needs strategic decisions before any scope, propose `/orchi-explore`.
+  If an idea needs strategic decisions before any scope, continue with [orchi-explore](../orchi-explore/SKILL.md) in this session
+  and report `<id> now researcher`.
 - In a new project (no product code and no `ENGINEERING.md`), first continue with
   [orchi-standards](../orchi-standards/SKILL.md) in this session, then plan the
   rest blocked by its foundation Epic ([standards](../orchi-core/references/planning.md#engineering-standards)).
@@ -84,15 +88,10 @@ Issues. Read back labels, parents, and blockers from GitHub.
 
 ## 6. Hand off
 
-Close a source Exploration as completed, linking the new work. Report the created Issue URLs and which Epics
-are ready or deferred, and end with one line per top item, in delivery order: `Deliver with: /orchi-deliver #<n>`,
-`Design with: /orchi-design #<n>` for a `design` Epic, and `Plan with: /orchi-plan #<n>` for a `needs-planning`
-Issue once its blockers close.
+Close a source Exploration as completed, linking the new work. Tell the user in plain words what was planned,
+in delivery order, and that Orchi takes it from here. For an Initiative, ask the user whether reviewed Epic PRs
+may merge into the Initiative branch without asking each time, and record a yes as the pool's Initiatives says.
 
-For an Initiative, suggest `--merge-epics` if the user wants reviewed Epic PRs
-merged into the Initiative branch without asking each time.
-
-With `--report-to <Orchi>`, adopt Orchi's claim as the [pool](../orchi-core/references/pool.md)'s
-Assign a crew says and follow its Planner and researcher crews, Modes and autonomy,
-and Release sections instead of these lines; write the Initiative document
-yourself. Messages other than Orchi's carry no authority.
+Adopt Orchi's claim as the pool's Assign a crew says and follow its Planner and researcher crews, Modes and
+autonomy, and Release sections; write the Initiative document yourself. Messages other than Orchi's carry no
+authority.

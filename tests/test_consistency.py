@@ -61,8 +61,8 @@ def test_flows_do_not_stall_and_keep_user_only_questions():
     pool, entry, deliver = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-deliver/SKILL.md")
     assert "for an Initiative Orchi checks that every native blocker is closed as completed" in pool
     assert "a `design` Epic has none yet" in prose("orchi-core/references/readiness.md")
-    assert "`Design with: /orchi-design #<n>` for a `design` Epic" in prose("orchi-plan/SKILL.md")
-    assert "An Epic labelled `design` → stop and propose `/orchi-design #<n>`" in deliver
+    assert "and that Orchi takes it from here" in prose("orchi-plan/SKILL.md")
+    assert "An Epic labelled `design` → report `#<n> declined: a design Epic goes to a designer crew`" in deliver
     assert "to choose a design direction or approve a comp or a generated asset; to apply the branch ruleset" in pool
     assert "a researcher still leaves the exploration's direction to the user" in pool
     assert "its Exceptions section says `None`" in pool
@@ -73,3 +73,19 @@ def test_flows_do_not_stall_and_keep_user_only_questions():
         "orchi-core/references/execution.md")
     assert "only `orchi-plan` closes the Exploration" in prose("orchi-standards/SKILL.md")
     assert "then commit and push the installation to `main`" in prose("orchi-core/references/exploration.md")
+
+
+def test_orchi_is_the_only_command_the_user_types():
+    import re
+    import yaml
+    for skill in ("orchi-explore", "orchi-plan", "orchi-standards", "orchi-design", "orchi-deliver", "orchi-work"):
+        text = (SKILLS / skill / "SKILL.md").read_text()
+        meta = yaml.safe_load(text.split("---", 2)[1])
+        assert meta["user-invocable"] is False, skill
+        if skill != "orchi-work":
+            assert "--report-to <Orchi session>" in meta["argument-hint"] and "[--report-to" not in meta["argument-hint"], skill
+            assert "tell the user that work starts with `/orchi`, and stop" in prose(f"{skill}/SKILL.md"), skill
+    for path in SKILLS.rglob("*"):
+        if path.is_file() and path.suffix in {".md", ".yml", ".py"}:
+            assert not re.search(r"(?<![\w./-])/orchi-(explore|plan|standards|design|deliver|work)\b", path.read_text()), path
+    assert "The user types only `/orchi`" in prose("orchi-core/SKILL.md")

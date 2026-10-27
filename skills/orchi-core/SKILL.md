@@ -1,6 +1,6 @@
 ---
 name: orchi-core
-description: "Research development requests, agree scope and approach with the user, then execute tasks, epics, or initiatives through Git branches and GitHub Issues. Use for implementation work, continuing Orchi work from an issue or branch, and project documentation search."
+description: "The Orchi workflow every pool session follows: research, agree scope with the user, and execute Tasks, Epics, or Initiatives through Git branches and GitHub Issues. Use in Orchi's pool sessions, for implementation requests (which go to Orchi through /orchi), and for project documentation search."
 user-invocable: false
 ---
 
@@ -10,8 +10,11 @@ Orchi is a development convention. Git stores code and documentation; GitHub
 Issues store ownership, hierarchy, dependencies, and status. There is no
 controller, state database, approval receipt, or mandatory command facade.
 
-Identify your role (researcher, Epic owner, Initiative integrator, or reader), inspect branch and
-worktree changes, read the relevant issue and PR, and resume existing work instead of duplicating it.
+The user types only `/orchi`: Orchi routes every request to a crew of its session pool, and crews give
+repository work to their workers. A session that is none of these answers questions and documentation lookups
+only; for anything to plan, build, or change it tells the user to bring it to Orchi with `/orchi`. Identify your
+role (Orchi, a crew, a worker, or a reader), inspect branch and worktree changes, read the relevant issue and PR,
+and resume existing work instead of duplicating it.
 Repository instructions (CLAUDE.md, AGENTS.md, scoped files) take precedence. Preserve the user's request, decisions, and edits.
 
 ## Research, propose, agree
@@ -21,10 +24,9 @@ uncertainty and ask focused questions when missing context would change the resu
 Present findings, approaches with tradeoffs, and a recommended outcome and scope.
 An idea that needs strategic decisions before any scope is [explored](references/exploration.md) first.
 
-Agree the direction with the user before creating branches, Issues, or changes.
-Exploring a problem is not agreement to an agent-chosen scope; silence is not
-agreement; a pool's [autonomy level](references/pool.md#modes-and-autonomy) can delegate it. Do not
-re-ask agreed direction. If new evidence changes the outcome, approach, or scale, explain and agree again.
+Agree the direction with the user before creating branches, Issues, or changes. Exploring a problem is not
+agreement to an agent-chosen scope; silence is not agreement; a pool's [autonomy level](references/pool.md#modes-and-autonomy)
+can delegate it. Do not re-ask agreed direction. If new evidence changes the outcome, approach, or scale, explain and agree again.
 
 ## Scope
 
@@ -80,17 +82,15 @@ Read only the reference needed for the current stage.
 
 ## Entry skills and subagents
 
-`orchi-explore` (idea → Exploration), `orchi-plan` (request → ready Issues), `orchi-standards`
-(product constraints → foundation or standards Epic), `orchi-design` (design Epic → approved
-surfaces → PR), `orchi-deliver` (Issue → PR), `orchi` (a session pool's entry; typed only), and
-`orchi-work` (a pool worker's task) are optional entry points; the rules above apply without them.
-The main session may delegate to the subagents in [roles](roles/README.md): `orchi-scout` retrieves,
-`orchi-researcher` researches and designs options for an exploration, `orchi-implementer` executes
-one ready Task, `orchi-fixer` makes one small, fully specified change (a simple Task or a confirmed
-defect repair), `orchi-designer` executes one ready UI Task or audits a UI diff with Impeccable,
-and `orchi-reviewer` reviews.
-Subagents never talk to the user, change Issues, push, or merge; their reports
-are claims to verify. Delegation is optional; the readiness checklists are not.
+`orchi` is the entry the user types. Crews run `orchi-explore` (idea → Exploration), `orchi-plan` (request →
+ready Issues), `orchi-standards` (foundation or standards Epic), `orchi-design` (design Epic → PR), and
+`orchi-deliver` (Issue → PR); workers run `orchi-work`. They are hidden from the menu. Sessions may delegate to the
+subagents in [roles](roles/README.md): `orchi-scout` retrieves, `orchi-researcher` researches and designs options for
+an exploration, `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small, fully specified change
+(a simple Task or a confirmed defect repair), `orchi-designer` executes one ready UI Task or audits a UI diff with
+Impeccable, and `orchi-reviewer` reviews.
+Subagents never talk to the user, change Issues, push, or merge; their reports are claims to verify.
+Delegation is optional; the readiness checklists are not.
 
 ## Tools
 
