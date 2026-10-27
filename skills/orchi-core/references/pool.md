@@ -15,6 +15,7 @@ every other skill runs as a crew's or worker's assignment.
 | Orchi (`/orchi`) | the user | top level | the user; crews | Plans, researches, edits code, or merges outside the mode's limits |
 | Crew | Orchi, when it builds the pool | top level, in the group `Orchi pool · <repo>` | Orchi; the user in interactive mode; its workers | Writes code itself, takes a second assignment, or starts sessions after setup |
 | Worker (`orchi-work`) | its crew, in the user's turn | nested under its crew | its crew only | Talks to the user, pushes, or opens PRs |
+| Dashboard (`orchi-dashboard`) | Orchi, when it builds the pool | top level, in the group `Orchi pool · <repo>` | Orchi, once, with its page's link; the user who opens it | Messages crews or workers, changes Issues, PRs, branches, or files, or takes a request |
 
 A free crew is titled `crew-<k>`; an assigned one `<role>-<topic>`, where
 `<topic>` is the lowercase tag of the Issue it holds (`planner-pay`,
@@ -113,7 +114,8 @@ in the desktop app.
 2. It starts the missing crews (5 unless the user names another number), each
    with its own worktree, a brief to run the crew setup below, and the title
    `crew-<k>`. It detaches each to the top level and files it into the group
-   `Orchi pool · <repo>`.
+   `Orchi pool · <repo>`. When the group has no dashboard, it also starts one
+   as the [Dashboard](#dashboard) section says.
 3. Each crew ends its first turn with one reply button, `Create workers`, in the
    host's next-step box. Where there is none, it proposes its workers as start
    cards; failing both, it asks the user to reply `yes`.
@@ -124,7 +126,8 @@ in the desktop app.
 5. A session served over Remote Control cannot be cleared, so its starter turns
    Remote Control off when the session reports after its first turn: Orchi on
    `crew-<k> ready`, a crew on each `worker-<n> ready`.
-6. Orchi reports the pool: crews, workers, and anything that failed to start.
+6. Orchi reports the pool: crews, workers, the dashboard's link once it has
+   it, and anything that failed to start.
 
 A crew's brief: `You are crew-<k> of the Orchi pool; Orchi is <Orchi's title> (<session id>). Follow the pool reference of the installed orchi skill (references/pool.md). End this turn with one reply button, Create workers, as its Build the pool step 3 says. When the user answers, start <m> workers as step 4 says, turn their Remote Control off after their first turn, report crew-<k> ready: <started> workers to Orchi, and wait for an assignment.`
 
@@ -176,6 +179,8 @@ its title, so the assignment states it.
 | Crew → Orchi | Setup, takeover, release | `crew-<k> ready: <n> workers`, `crew-<k> refused: Orchi is <title> (<session id>)`, `crew-<k> released`, `crew-<k> not released: <reason>` |
 | Orchi → crew | Answer, delivery | `<id> answer: <answer>`, `#<n> rework: <what the user asked>`, `#<n> merged` |
 | Orchi → crew | Mode, takeover, release | `mode <interactive or auto>, autonomy <level>`, `Orchi is now <title> (<session id>)`, `release` |
+| Dashboard → Orchi | Setup | `dashboard ready: <url>` |
+| Orchi → dashboard | Mode, interval, restart | `mode <interactive or auto>, autonomy <level>`, `every <m> minutes`, `refresh` |
 | Worker → crew | Setup, task | `worker-<n> ready`, `#<task> question: <question>`, `#<task> done: <commit>` and the role's report, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
 | Crew → worker | Task | `#<task> rework: <what>`, `#<task> answer: <answer>` |
 | Crew ↔ worker | Release | `release`; `worker-<n> released`, `worker-<n> not released: <reason>` |
@@ -196,7 +201,8 @@ The user sets the mode by telling Orchi; it applies to the whole pool and holds,
 through compaction, until the user changes it or runs `/orchi` again, which
 resets it to interactive at Ask. Orchi states it in every report, ends every
 assignment with `Mode: <mode>, autonomy: <level>, set by the user on <date>.`,
-and sends `mode <mode>, autonomy <level>` to its busy crews when it changes.
+and sends `mode <mode>, autonomy <level>` to its busy crews and the dashboard
+when it changes.
 
 | | Interactive | Auto |
 | --- | --- | --- |
@@ -383,6 +389,32 @@ holding an unprocessed message or live work, or served over Remote Control. The
 clearing session retries on its next wake and tells its owner if the refusal
 persists; the user removes the cause. A cleared session keeps its title, parent,
 folder, branch, and settings. Nobody archives or deletes a pool session.
+
+## Dashboard
+
+The dashboard is one more session in the pool group. It shows the pool's state
+on a live page so that Orchi does not have to: the crews and what each holds,
+the work with its progress, what waits for the user, PRs and their checks, the
+planning queue, and recent merges. It reads GitHub and the host's session list,
+writes only to its own page, and changes nothing else.
+
+Orchi starts it with the crews, in the user's turn, at the cheapest model the
+host offers (Haiku), without a worktree, titled `dashboard`, filed into the
+group and detached to the top level, with this brief:
+
+`You are the dashboard of the Orchi pool; Orchi is <Orchi's title> (<session id>). Invoke the orchi-dashboard skill with: start --report-to <Orchi's session id> --every 10 --mode "<mode>, <level>".`
+
+The dashboard publishes its page from the template in its skill, refreshes it
+on a one-shot timer it schedules again at each refresh (every 10 minutes unless
+the user tells Orchi another interval), renames itself to a one-line summary
+(`📊 <time> · <n> active · <n> wait for you · <n> PRs`), and sends Orchi
+`dashboard ready: <url>` once. Orchi gives the user the link in its next report,
+and again when asked about status.
+
+A timer lives only while the app runs. When the dashboard's title shows a
+refresh more than three intervals old, Orchi sends it `refresh` at its next
+wake, which restarts the timer. The dashboard is never released, cleared, or
+given work; when it is gone, the next `/orchi` starts a new one.
 
 ## Limits
 
