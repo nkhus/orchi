@@ -19,6 +19,7 @@ to it.
 | Destination | What is being decided, what the end looks like, and how much it is worth: Task, Epic, or Initiative size, and any time limit |
 | Request | The original idea in the user's words, kept apart from later decisions |
 | Constraints and no-gos | Fixed limits, and what is explicitly out of scope |
+| Stack | For a new product: its [product constraints](standards.md#product-constraints), and the stack the standards defaults derive from them, with reasons |
 | Options | Each direction considered: its shape, what it makes easy and hard, the findings it rests on (links to research comments), and the verdict with its reason |
 | Decisions | The decision log ([clarify](planning.md#clarify-with-the-user)); mark a decision that is hard to reverse, surprising, and a real tradeoff as a decision record candidate |
 | Requirements | Numbered requirements (R1, R2, ...) of the chosen direction, each observable at completion |
@@ -32,7 +33,7 @@ Each phase ends on its completion criterion. Return to an earlier phase when an
 answer changes the destination or invalidates options.
 
 1. **Frame.** Ask about the destination and its size, the original request, and
-   the constraints. Done when the user agrees on the destination; then create
+   the constraints; for a new product, the product constraints too. Done when the user agrees on the destination; then create
    the Issue.
 2. **Research.** Facts are the agent's job. Start `orchi-researcher` in Research
    mode for each external question and `orchi-scout` for code and Issues, in
@@ -56,10 +57,13 @@ answer changes the destination or invalidates options.
 5. **Shape.** Write the requirements and the Shape section. For a product with
    a user interface, also fill the Product section with what Impeccable's
    `init` asks: the primary users and their situation, the purpose and the
-   mechanism no competitor shares, positioning, platform, stack (for a React web
-   project, Tailwind CSS 4, shadcn/ui, and SmoothUI), constraints, brand
+   mechanism no competitor shares, positioning, platform, stack (from the Stack
+   section), constraints, brand
    commitments, evidence, and the accessibility level. The first design Epic's
-   `init` writes `PRODUCT.md` from it and asks only what is missing. Then read
+   `init` writes `PRODUCT.md` from it and asks only what is missing. For a new
+   product, fill the Stack section from the
+   [standards defaults](standards.md#stack) and state it once; never ask the user
+   to choose a tool. Then read
    the whole Issue back to the user. Done when the user confirms it is shaped. When
    planning continues in the same session, that confirmation also agrees the
    plan's outcome and direction; planning asks only about scope it adds.
@@ -78,8 +82,9 @@ not the code, carries into planning.
 Exploration needs a Git repository with a GitHub remote, because the Issue is
 its state. If none exists, offer to create one (`git init`, `gh repo create`)
 and to install Orchi there before framing; creating a remote repository needs
-the user's agreement. The first Initiative of a new project usually establishes
-its foundation, and the decision record candidates land with it.
+the user's agreement. Planning a new project starts with `orchi-standards`,
+which plans the foundation Epic that every other Epic is blocked by; the
+decision record candidates land with it.
 
 ## Hand off
 

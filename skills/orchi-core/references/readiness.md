@@ -38,7 +38,9 @@ standalone small fix.
     evidence replaces it ([testing](testing.md#defects)).
 11. Gives observable acceptance mapped to the requirements, and the exact checks
     or commands that verify it, naming the seams where new tests go (when
-    applicable).
+    applicable). User-facing behavior is stated as what a user can see or do,
+    each with the acceptance test that checks it; in a project with
+    `ENGINEERING.md`, the checks it runs come from there.
 12. States its documentation impact: the owning pages named by the project's
     documentation routing, or why none change.
 13. Lists no open question in the Task or its parent Epic that is marked as
@@ -85,6 +87,9 @@ until the deferral is resolved.
     [design depth](planning.md#user-interface-design): at depth brief, links the
     surface brief; at depth Epic, is itself the `design` Epic, naming the surfaces
     it designs and what must stay, or is blocked by the design Epic it builds on
+    (when applicable).
+14. In a project without `ENGINEERING.md`, is blocked by the foundation or
+    standards Epic that [sets the standards](standards.md), or is that Epic
     (when applicable).
 
 ## Initiative readiness checklist

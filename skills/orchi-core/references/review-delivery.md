@@ -31,10 +31,21 @@ the PR as well.
 Keep three axes apart, so that a pass on one cannot hide a failure on another:
 **Spec** (the Issues' requirements, acceptance, and scenarios, including scope
 creep: behavior no requirement asks for), **Standards** (the repository's rules
-and documentation), and **Tests** (per [testing](testing.md#review-the-tests)).
+and documentation, and `ENGINEERING.md` where it exists), and **Tests** (per [testing](testing.md#review-the-tests)).
 A new or changed test without red evidence or a stated reason goes back to its
 writer like any other missing check. Remove scope creep, or agree it with the
 user and record the decision; never accept it silently.
+
+Where `ENGINEERING.md` exists, nobody reads the code but its checks and this
+review ([standards](standards.md#premise)). Its blocking checks and
+`standards.py ratchet` against the PR target must pass on the candidate; a
+failure is a blocker. Each user-facing acceptance criterion needs an acceptance
+test that asserts it, and the PR's Verification section gives the evidence per
+criterion: the test, and for a visible change a screenshot, a recording, or a
+preview link. A writer that needs an exception reports it; record it in
+`ENGINEERING.md` only when no change avoids it, and list every exception the PR
+adds or changes in its Exceptions section in plain words: what is waived, where,
+why, and until when. The session that talks to the user relays them.
 
 A blocker states the violated criterion, concrete causal path, consequence, and
 evidence. Deduplicate root causes. Advisory style, speculative concerns, and

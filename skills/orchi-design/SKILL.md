@@ -58,9 +58,10 @@ Once a surface is approved, add its build as a Task under the Epic (the
 `orchi-task.yml` form when present): the approved comp or the contract, the
 surface brief, `PRODUCT.md`, the `DESIGN.md` sections when one exists, states,
 breakpoints, themes, and accessibility level, with `orchi-designer` as the
-writer. On a new stack, the first Task scaffolds it as `PRODUCT.md` names it
-(SmoothUI and its shadcn MCP server for React with Tailwind CSS 4 and
-shadcn/ui), with `orchi-implementer` as the writer. The last Task writes or
+writer. The foundation Epic set up the stack; when it lacks the component
+library the surfaces need (SmoothUI and its shadcn MCP server for React with
+Tailwind CSS 4 and shadcn/ui), the first Task adds it, with `orchi-implementer`
+as the writer. The last Task writes or
 replaces `DESIGN.md` from the built surfaces with Impeccable's documenter. Check
 each Task against the Task readiness checklist.
 

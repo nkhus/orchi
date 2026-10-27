@@ -16,12 +16,12 @@ def test_entry_is_typed_and_crew_and_worker_skills_can_be_invoked_by_message():
     assert "orchi" in agents.SKILLS
     assert "disable-model-invocation: true" in text and "../orchi-core/references/pool.md" in text
     assert "including after any compaction" in " ".join(text.split())
-    for name in ("orchi-explore", "orchi-plan", "orchi-design", "orchi-deliver", "orchi-work"):
+    for name in ("orchi-explore", "orchi-plan", "orchi-design", "orchi-standards", "orchi-deliver", "orchi-work"):
         text = (SKILLS / name / "SKILL.md").read_text()
         assert "disable-model-invocation" not in text
         assert f"asks for {name} by name" in text
     pool = prose("orchi-core/references/pool.md")
-    for name in ("orchi-explore", "orchi-plan", "orchi-design", "orchi-deliver"):
+    for name in ("orchi-explore", "orchi-plan", "orchi-design", "orchi-standards", "orchi-deliver"):
         assert f"| `{name}` |" in pool
     assert "Invoke the <skill> skill with:" in pool and "Invoke the orchi-work skill with:" in pool
 

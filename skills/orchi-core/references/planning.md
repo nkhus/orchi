@@ -143,8 +143,8 @@ that talks to them, and writers build only against what the user approved.
   replaces `DESIGN.md`. Its Tasks are the builds of the approved surfaces; the
   designer splits them after the user approves each comp, so plan them at
   outcome level.
-- From scratch, the first Epic is the design Epic for the key surfaces, built on
-  the real stack and kept. Plan the rest of development as one Issue labelled
+- From scratch, the design Epic for the key surfaces comes right after the
+  foundation Epic and builds on the stack it set up; the result is kept. Plan the rest of development as one Issue labelled
   `needs-planning`, with `Requested by: <Orchi's title>` in a pool, blocked by
   the design Epic: when the design merges, a planner details it from
   `PRODUCT.md`, `DESIGN.md`, the surface briefs, and the built surfaces.
@@ -159,6 +159,21 @@ that talks to them, and writers build only against what the user approved.
   at every autonomy level. In auto mode, Orchi may answer `shape` questions that
   `PRODUCT.md`, `DESIGN.md`, or the Issues already settle; the rest wait for the
   user.
+
+## Engineering standards
+
+- A new project's first Epic is the foundation Epic that `orchi-standards`
+  plans; every other Epic and Task, the design Epic included, is blocked by it,
+  and only it scaffolds the stack. An existing project without `ENGINEERING.md`
+  gets a standards Epic the same way when the user agrees to it.
+- Never ask the user to choose a tool, threshold, or code layout: the
+  [standards defaults](standards.md) decide, and the decision log records the
+  choice with its reason. Ask only for the product constraints.
+- State user-facing acceptance as what a user can see or do, and name the
+  acceptance test for each criterion.
+- With `ENGINEERING.md`, take each Task's checks from its Checks table and plan
+  within its Architecture rules. A Task that needs an exception names it with its
+  reason, so the user hears of it before delivery.
 
 ## Tasks
 

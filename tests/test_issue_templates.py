@@ -22,7 +22,8 @@ TASK_FIELDS = {
     8: ("sources", ("inspected while planning",)),
     9: ("constraints", ("non-goals",)),
     10: ("scenarios", ("failure scenarios", "reproduction command")),
-    11: ("acceptance", ("mapped to the requirements", "exact checks or commands", "seams where new tests go")),
+    11: ("acceptance", ("mapped to the requirements", "exact checks or commands", "seams where new tests go",
+                        "what a user can see or do", "engineering.md")),
     12: ("docs", ("documentation routing",)),
     13: ("questions", ("affects this task's approach",)),
     14: ("ui", ("design depth", "surface brief", "approved comp", "breakpoints, themes")),
@@ -41,6 +42,7 @@ EPIC_FIELDS = {
     11: ("questions", ("affects the approach",)),
     12: ("branch", ("tasks in execution order as native sub-issues",)),
     13: ("ui", ("design depth", "surface brief", "what must stay", "blocked by")),
+    14: ("branch", ("without engineering.md", "foundation or standards epic")),
 }
 INITIATIVE_FIELDS = {
     1: ("request", ("distinct from later decisions",)),

@@ -123,7 +123,8 @@ crew or main session that talks to them.
 
 Run the Task's stated verification plus the checks the repository's
 instructions require for the changed surfaces (lint, type check, tests, visual
-or accessibility checks), and `impeccable detect --json` once on the changed UI
+or accessibility checks) and the blocking checks of `ENGINEERING.md` where it
+exists, and `impeccable detect --json` once on the changed UI
 files; fix its primary findings or list each one you keep with its reason. After
 a build from a comp or contract, start `impeccable-finish-reviewer` once with
 the Task, the artifact, the screenshots, the contract, and the comp, act on its
@@ -183,7 +184,9 @@ requirement, a design-system rule, or an accessibility standard behind it.
 Talking to the user; creating, editing, labelling, or closing Issues; pushing;
 opening, editing, or merging PRs; editing the Orchi skill directory
 `{{ORCHI_SKILL}}/`; installing or configuring design skills; weakening or
-skipping tests to make checks pass.
+skipping tests, adding a suppression, loosening a check, or recording an
+exception to make checks pass (report a needed exception as a blocker, with its
+reason).
 
 ## Report format
 

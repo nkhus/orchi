@@ -10,13 +10,13 @@ npx --yes github:nkhus/orchi
 
 The current directory is the installation target; `--project /path/to/project` chooses another one.
 
-The installer installs the `orchi-core` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the entry skills `orchi-explore`, `orchi-plan`, `orchi-design`, `orchi-deliver`, `orchi-work`, and `orchi` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, installs [Impeccable](#impeccable), and reports whether `git`, `gh`, `node`, and `npx` are available. It does not install or authenticate Claude Code or the GitHub CLI.
+The installer installs the `orchi-core` skill (its instructions, references, subagent roles, the read-only knowledge and status tools, and the installer itself) and the entry skills `orchi-explore`, `orchi-plan`, `orchi-design`, `orchi-standards`, `orchi-deliver`, `orchi-work`, and `orchi` for Claude Code. It renders the Orchi subagents, adds a managed section to `CLAUDE.md`, installs [Impeccable](#impeccable), and reports whether `git`, `gh`, `node`, and `npx` are available. It does not install or authenticate Claude Code or the GitHub CLI.
 
 Requirements: Git, the GitHub CLI (`gh`) for Issue and PR work, Python 3.11 or newer for the bundled scripts, which use only the standard library, and Node.js 18.19 or newer with `npx` for Impeccable. Without Node.js the installer stops before changing anything. The npm wrapper also needs `uv`. Linux, macOS, and WSL are supported.
 
 ## Skills and instructions
 
-Each skill is installed as a directory in `.claude/skills/` (`orchi-core`, `orchi-explore`, `orchi-plan`, `orchi-design`, `orchi-deliver`, `orchi-work`, `orchi`), where Claude Code discovers it. The skills move and clone with the repository.
+Each skill is installed as a directory in `.claude/skills/` (`orchi-core`, `orchi-explore`, `orchi-plan`, `orchi-design`, `orchi-standards`, `orchi-deliver`, `orchi-work`, `orchi`), where Claude Code discovers it. The skills move and clone with the repository.
 
 The installer appends an Orchi workflow section to the target root `CLAUDE.md`. Its rules route implementation through the Orchi skill, require research and agreement before tracking or changes, and keep merge and deployment within the user's authority. It never copies this repository's contributor `AGENTS.md` into another project, and it does not change an existing root `AGENTS.md`. When `CLAUDE.md` is a symlink to root `AGENTS.md`, the section goes into `AGENTS.md`, which Claude Code reads through the link.
 
@@ -61,9 +61,10 @@ npx --yes github:nkhus/orchi --github
 | File or resource | Purpose |
 | --- | --- |
 | `.github/ISSUE_TEMPLATE/orchi-initiative.yml`, `orchi-epic.yml`, `orchi-task.yml`, `orchi-exploration.yml` | Issue forms that apply the matching type label; the Task, Epic, and Initiative forms have a field for every item of the [readiness checklists](../skills/orchi-core/references/readiness.md), and the Exploration form prepares an Initiative's first five |
-| PR template section | Summary, Verification, Merge risk, Documentation impact, and Handoff, as a managed section in an existing template (`.github/pull_request_template.md` or another location GitHub reads) or a new one |
+| PR template section | Summary, Verification, Merge risk, Exceptions, Documentation impact, and Handoff, as a managed section in an existing template (`.github/pull_request_template.md` or another location GitHub reads) or a new one |
 | `.github/workflows/orchi-docs.yml` | On every PR, fails on broken local links the PR introduces (`knowledge.py lint --since` the base branch) or a missing or empty Documentation impact section; omitted with `--no-docs-workflow` |
 | `.github/workflows/orchi-design.yml` | On every PR that changes UI files (HTML, CSS and its preprocessors, JSX, TSX, Vue, Svelte, Astro), runs `impeccable detect --github` on them at the pinned version, annotates each finding, and fails when a primary finding remains |
+| `.github/workflows/orchi-standards.yml` | When the repository has `ENGINEERING.md`: on every PR, `standards.py check` (every declared check has its CI job and configuration, and no exception has expired) and `standards.py ratchet` against the base (no check weakened without an exception); weekly, the same check, keeping one open `Standards drift` Issue labelled `needs-planning` when it fails. Without `ENGINEERING.md` it passes. See [standards](../skills/orchi-core/references/standards.md) |
 | Labels `Initiative`, `Epic`, `Task`, `in-progress`, `Exploration`, `needs-planning`, `delivery-ready`, `retro`, `design` | Created with `gh` when missing; existing labels are not changed |
 
 The template and workflow files are recorded in the manifest with their hashes, so they follow the same rules as the skill: unmodified files update in place, edited or pre-existing files need `--replace-orchi`, and uninstalling refuses edited files. Label creation needs a GitHub remote and an authenticated `gh`. If either is missing, the installation still completes and reports the error in `labels`; rerun it later to create them. Uninstalling leaves labels in place.
@@ -130,7 +131,7 @@ python3 .claude/skills/orchi-core/scripts/orchi_install.py --project "$PWD"
 
 Rerun the installation command. The manifest records the installed version; `python3 .claude/skills/orchi-core/scripts/orchi_install.py --version` prints it with the bundled version and the upgrade command. An installed copy cannot fetch a newer version, so upgrades come from `npx` or a source checkout. Running from the installed copy still treats local edits to the installed skills as conflicts; there, `--replace-orchi` records the edited copy as installed.
 
-### From 0.7.x to 0.19.x
+### From 0.7.x to 0.20.x
 
 Reinstalling adds and updates everything below; rendered agents and unmodified managed files update in place.
 
@@ -144,6 +145,7 @@ Reinstalling adds and updates everything below; rendered agents and unmodified m
 - **Installer.** `--dry-run` with `--github` lists the labels it would create, a clean update keeps no backup directory, and skills a release no longer ships are removed.
 - **Skill names (0.19).** `/orchi` is the pool entry, formerly `/orchi-pm`. The core skill every session reads moved from `.claude/skills/orchi/` to `.claude/skills/orchi-core/`; it and `orchi-work` are hidden from the slash-command menu. Reinstalling moves both and updates the managed `CLAUDE.md` section; an edited copy of either is a conflict that needs `--replace-orchi`.
 - **Design track (0.19).** The installer now needs Node.js 18.19+ and installs [Impeccable](#impeccable) 4.8.0 without hooks and with telemetry off, adds a `.gitignore` section for its runtime files, and with `--github` adds the `orchi-design.yml` workflow, the `design` label, and UI design fields in the Task, Epic, and Exploration forms. An Impeccable you installed yourself at another version is kept until you pass `--replace-orchi`. Planning sets a [design depth](../skills/orchi-core/references/planning.md#user-interface-design) for work that changes a user interface; the new entry skill `orchi-design` runs a `design` Epic with you, and in a pool a designer crew holds it. `orchi-designer` uses Impeccable only; Taste Skill is no longer used, and SmoothUI is used where a project's stack names it. Two readiness items are new (Task item 14, Epic item 13), so open UI Issues written earlier may get `NOT READY` until their UI design field is filled.
+- **Engineering standards (0.20).** The new entry skill `orchi-standards` sets a project's [standards](../skills/orchi-core/references/standards.md): `ENGINEERING.md` and blocking checks from Orchi's defaults, planned as a foundation Epic for a new project or a standards Epic after an audit; a planner crew runs it in a pool. Planning asks the user only product constraints, states user-facing acceptance as what a user can see or do with an acceptance test each, and blocks other work on the foundation Epic, which now scaffolds the stack instead of the design Epic. Writers run the checks `ENGINEERING.md` declares and never add a suppression or loosen a check to pass; the review reports evidence per criterion and every exception in plain words. With `--github`, the `orchi-standards.yml` workflow, a `Stack` field in the Exploration form, and an Exceptions section in the managed PR template. Task item 11 and the new Epic item 14 apply only where `ENGINEERING.md` exists or should.
 - **GitHub setup.** With `--github`: the `orchi-exploration.yml` form, a `Merge risk` section and acceptance verdicts in the managed PR template, and the `Exploration`, `needs-planning`, `delivery-ready`, and `retro` labels.
 
 ### From 0.6.x to 0.7.x

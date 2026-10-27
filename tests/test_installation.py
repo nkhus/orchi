@@ -402,7 +402,7 @@ def test_github_setup_installs_managed_files_and_persists(tmp_path, labels):
     assert result["labels"] == {"created": ["Epic"]} and labels == [tmp_path.resolve()]
     for relative in ("ISSUE_TEMPLATE/orchi-epic.yml", "ISSUE_TEMPLATE/orchi-task.yml",
                      "ISSUE_TEMPLATE/orchi-initiative.yml", "ISSUE_TEMPLATE/orchi-exploration.yml",
-                     "workflows/orchi-docs.yml", "workflows/orchi-design.yml"):
+                     "workflows/orchi-docs.yml", "workflows/orchi-design.yml", "workflows/orchi-standards.yml"):
         assert (tmp_path / ".github" / relative).is_file()
     template = (tmp_path / ".github/pull_request_template.md").read_text()
     assert "## Documentation impact" in template and "## Merge risk" in template
