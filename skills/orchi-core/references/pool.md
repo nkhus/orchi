@@ -5,8 +5,8 @@ them through a pool of crews and their workers. Each session follows Orchi; the
 pool adds roles and a message protocol, not a controller. GitHub holds every
 fact the pool relies on. Messages only wake the recipient and point it at that
 state, so a session that restarts rebuilds its picture from Issues, PRs, claims,
-and the host's session list. Without a pool, `/orchi-explore`, `/orchi-plan`,
-and `/orchi-deliver` work on their own.
+and the host's session list. `/orchi` is the only command the user types;
+every other skill runs as a crew's or worker's assignment.
 
 ## Sessions
 
@@ -117,7 +117,7 @@ its title, so the assignment states it.
 
 | From → to | When | Message |
 | --- | --- | --- |
-| Crew → Orchi | Started, waiting, planned, declined | `<id> started`, `<id> needs the user: <question>`, `<id> now planner`, `<id> planned: #<n>[, #<m>]`, `<id> declined: <reason>` |
+| Crew → Orchi | Started, waiting, planned, declined | `<id> started`, `<id> needs the user: <question>`, `<id> now <role>`, `<id> planned: #<n>[, #<m>]`, `<id> declined: <reason>` |
 | Crew → Orchi | Delivery | `#<n> PR ready: <url>`, `#<n> follow-up: #<m>`, `#<n> done: <url>` |
 | Crew → Orchi | Setup, takeover, release | `crew-<k> ready: <n> workers`, `crew-<k> refused: Orchi is <title> (<session id>)`, `crew-<k> released`, `crew-<k> not released: <reason>` |
 | Orchi → crew | Answer, delivery | `<id> answer: <answer>`, `#<n> rework: <what the user asked>`, `#<n> merged` |

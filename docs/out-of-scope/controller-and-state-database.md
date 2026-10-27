@@ -15,8 +15,8 @@ and no service runs besides the assistant.
 
 Git branches and GitHub Issues are the only shared state: type labels, native
 sub-issues and `blocked by` dependencies, assignees, and `in-progress`. The
-bundled scripts only read. Entry skills fix the order of steps but are
-conveniences; the workflow works without them.
+bundled scripts only read. The role skills fix the order of steps for Orchi's
+sessions; their state is still only in Git and GitHub.
 
 ## Decided in
 

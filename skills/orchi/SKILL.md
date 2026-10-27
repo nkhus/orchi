@@ -61,7 +61,7 @@ more crews, start them in that turn; for more workers, tell them to ask in the c
 
 - `started`: nothing to do. `ready: <n> workers`: turn the crew's Remote Control
   off; a crew with fewer workers than asked waits for the user to ask in it.
-  `now planner`: rename it `planner-<topic>` and answer it as a planner.
+  `now <role>`: rename it `<role>-<topic>` and treat it as that role.
 - `needs the user`: in interactive mode, for a researcher or designer, and for a
   question marked `(user)`, tell the user once which crew waits and for what. In
   auto mode, answer a planner or dev lead with `<id> answer: <answer>` within the

@@ -314,7 +314,8 @@ def instruction_blocks(root: Path, global_scope: bool, pr_template: str | None =
     skill = skill_path(root, global_scope) + "/SKILL.md"
     body = (
         "## Orchi workflow\n\n"
-        f"For implementation work and Orchi continuation, read and follow `{skill}` before planning or editing.\n"
+        "Orchi runs this repository's work: the user types `/orchi`, and Orchi routes each request to a crew of its pool.\n"
+        f"Orchi, its crews, and their workers read and follow `{skill}`. Anywhere else, answer questions only, and ask the user to bring work to Orchi with `/orchi`.\n"
         "Research first and agree the outcome, approach, and scope (Task, Epic, or Initiative) with the user before creating branches, issues, or changes.\n"
         "Track work in Git branches and GitHub Issues; resume from the existing issue, branch, and PR instead of duplicating work.\n"
         "For documentation-only questions, use its retrieval guidance without creating tracking.\n"
