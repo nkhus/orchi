@@ -8,10 +8,10 @@ claiming are in [execution](execution.md).
 ## Setup
 
 Orchi uses the type labels `Initiative`, `Epic`, and `Task`; `in-progress` for
-claims; `Exploration` for explorations; and, in a session pool, `needs-planning`,
-`delivery-ready`, and `retro` for hand-offs. A project installed with `--github`
-already has them, plus issue templates, a PR template,
-and a documentation check workflow. Otherwise, create missing labels deliberately
+claims; `Exploration` for explorations; `design` for an Epic a designer runs;
+and `needs-planning`, `delivery-ready`, and `retro` for hand-offs. A project
+installed with `--github` already has them, plus issue templates, a PR template,
+and the documentation, design, and standards check workflows. Otherwise, create missing labels deliberately
 with a stable description; do not invent variants.
 
 ## Titles and tags
@@ -28,6 +28,9 @@ label, not the title.
 | Standalone Epic, tag `CSV` | `[CSV] Export orders as CSV` | `epic/csv-export-orders` |
 | Task in a standalone Epic | `[CSV] Add export endpoint` | The Epic branch |
 | Standalone Task | `Fix rounding in invoice totals` | `fix/invoice-rounding` |
+| Exploration | `Explore: card payments` | `explore/card-payments`, for its working folder |
+| Task a pool dev lead runs in parallel | As its Epic's Task | `task/<slug>` from the Epic branch, merged back into it |
+| Prototype | None | `prototype/<slug>`, never merged |
 
 - A tag is 2–8 uppercase letters or digits, starting with a letter, and names the
   outcome. Choose it when creating the Initiative or Epic. An Initiative's or
@@ -83,6 +86,9 @@ reviewed outcome rather than an intermediate commit. The PR body contains:
 - **Merge risk:** whether the change is a one-way door (hard to undo: data
   migrations, deletions, public contracts, external side effects) or a two-way
   door (a revert undoes it), and the blast radius if it is wrong;
+- **Exceptions:** each `ENGINEERING.md` exception the PR adds or changes, in
+  plain words, or `None`
+  ([gate integrity](standards.md#gate-integrity));
 - **Documentation impact:** pages updated, or why none change (required);
 - **Handoff:** filled only while work is interrupted, in the format from
   [execution](execution.md#hand-off-and-resume).

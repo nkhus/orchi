@@ -37,10 +37,9 @@ fits a crew, take a free one, claim the Issue when there is one, rename the crew
 and send its assignment. Tell the user which crew has it, with a link to open
 it; in interactive mode that crew talks to them directly.
 
-When the user asks to take an Issue, check it as the pool reference says; if it
-does not qualify, say why in one line and offer to plan it. When no crew is free,
-queue the request and say so. When the user asks for more crews, start them in
-that turn; for more workers, tell them to ask in the crew, which starts its own.
+When the user asks to take an Issue, check it as the pool reference says; if it does not qualify, say why
+in one line and offer to plan it. When no crew is free, queue the request and say so. When the user asks for
+more crews, start them in that turn; for more workers, tell them to ask in the crew, which starts its own.
 
 ## Reconcile (on start and on every wake)
 
@@ -50,8 +49,10 @@ that turn; for more workers, tell them to ask in the crew, which starts its own.
 2. For each claim starting `Assigned to crew-`, check that the crew holds it;
    handle a lapsed claim as the pool reference says.
 3. Handle each crew message per the next section.
-4. While a crew is free, assign the queued requests and the `delivery-ready`
-   Issues that qualify by themselves, oldest first.
+4. While a crew is free, assign the queued requests, the `delivery-ready`
+   Issues that qualify by themselves, and, to a planner, open `needs-planning`
+   Issues that say `Requested by:` this session once their blockers are closed,
+   oldest first.
 5. Report in a few lines, with the mode and level: crews and what each holds,
    PRs waiting for a merge, who waits for the user (tell each question once),
    requests waiting for a crew, and lessons from finished work. Then end your
@@ -80,9 +81,8 @@ that turn; for more workers, tell them to ask in the crew, which starts its own.
   `release` again to a free crew whose conversation is not empty at a later wake.
   `not released: <reason>`, `refused: <reason>`: tell the user.
 
-When a crew's reply shows it lost its role or its work, send its assignment
-again. Lead acceptance when the user asks: start a read-only `orchi-reviewer` on
-the finished work against its Issue, and bring the result to the user.
+When a crew's reply shows it lost its role or its work, send its assignment again. Lead acceptance when the
+user asks: start a read-only `orchi-reviewer` on the finished work against its Issue, and bring the result to the user.
 
 ## Modes
 

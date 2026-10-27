@@ -4,7 +4,7 @@ description = "Executes exactly one ready Orchi Task, standalone or in an Epic, 
 
 [claude]
 model = "opus"
-effort = "low"
+effort = "medium"
 tools = ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]
 +++
 

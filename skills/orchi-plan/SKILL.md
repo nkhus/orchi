@@ -67,9 +67,9 @@ references for titles, tags, labels, branches, and native relationships.
   Add native blocked-by relationships. Split into Tasks only the Epics that are
   ready to deliver now. The rest are split during delivery.
 
-Only the Initiative branch is created during intake, and, from an Exploration, the Epic branch: create
-either from `explore/<slug>` so its working folder carries on, then delete that branch. Other Epic and fix
-branches are named in their Issues and created at delivery.
+Only the Initiative branch is created during intake, and, from an Exploration, the branch of its first
+item in delivery order: create it from `explore/<slug>` so the working folder carries on ([working documents](../orchi-core/references/knowledge.md#working-documents)),
+then delete that branch. Other Epic and fix branches are named in their Issues and created at delivery.
 
 Write every Issue per [Write Issues for agents](../orchi-core/references/planning.md#write-issues-for-agents); nothing agreed may stay only in chat.
 

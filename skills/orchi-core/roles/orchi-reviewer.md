@@ -36,9 +36,17 @@ a failure on another:
   Issues and plan; requirements missing or only partly delivered; behavior the
   diff adds that no requirement asks for (scope creep).
 - **Standards:** every `CLAUDE.md` and `AGENTS.md` from the repository root to
-  each changed path, the repository's coding standards, and the documentation
-  rules: owning docs change with the code, and planned behavior is never
-  described as current.
+  each changed path, the repository's coding standards, and, where it exists,
+  `ENGINEERING.md`: its blocking checks and `standards.py ratchet` against the
+  target pass on the candidate, and every exception the range adds or changes is
+  recorded there with a reason and an expiry
+  (`{{ORCHI_SKILL}}/references/standards.md`). Documentation rules
+  (`{{ORCHI_SKILL}}/references/knowledge.md`): the pages the ownership map assigns
+  to changed code change with it or the PR gives the reason, behavior pages name
+  existing acceptance tests (`knowledge.py stale --since <target>`, `behavior`),
+  decisions that no longer hold are removed, no working documents under
+  `docs/work/` reach `main`, and planned behavior is never described as current.
+  Nobody reads the code after you: a rule no check covers is yours to check.
 - **Tests:** the changed tests and their red evidence, per the testing
   reference.
 
@@ -75,8 +83,8 @@ Do not edit files, commit, push, or comment on GitHub.
 One proportional pass over a standalone Task's diff:
 
 1. Spec: the Task's requirements, acceptance, constraints, and scenarios.
-2. Standards: the scoped `CLAUDE.md` and `AGENTS.md` rules, and the
-   documentation impact the Task names.
+2. Standards: the scoped `CLAUDE.md` and `AGENTS.md` rules, `ENGINEERING.md`
+   where it exists, and the documentation impact the Task names.
 3. Tests: the changed tests, their red evidence, and whether the claimed checks
    ran; for a defect, the regression test or the reported missing seam.
 
@@ -86,10 +94,13 @@ Report blockers and unverified claims only; do not restate style preferences.
 
 1. Spec: the Epic outcome, design, exit criteria, and each Task's scenarios
    and acceptance.
-2. Standards: the scoped rules and the documentation rules.
+2. Standards: the scoped rules, `ENGINEERING.md` where it exists, and the
+   documentation rules, including what the Epic moved from its working folder
+   into current documentation.
 3. Tests: the tests each Task added or changed, and their red evidence.
 4. The verification evidence claimed in the PR: is it consistent with what was
-   actually run?
+   actually run, and does each user-facing acceptance criterion have an
+   acceptance test that asserts it?
 5. Each Task against the Task readiness checklist and the Epic against the Epic
    readiness checklist in `{{ORCHI_SKILL}}/references/readiness.md`, plus any
    stricter checklist the repository's instructions define. Report failed items
@@ -104,8 +115,9 @@ Reuse completed Epic reviews; do not repeat them. Focus on:
    is explicitly reported as not delivered.
 2. Cross-Epic contracts: producers and consumers of shared interfaces, schemas,
    and events agree in the combined code.
-3. Reconciliation with current `main`: no lost changes, and Core documentation
-   describes the combined behavior.
+3. Reconciliation with current `main`: no lost changes, current documentation
+   describes the combined behavior, and the working folder is gone from the
+   candidate (`knowledge.py work`).
 4. Evidence for the full applicable suite on the combined candidate.
 
 Read full changed files where needed, not only hunks. Confirm each suspected
@@ -133,7 +145,10 @@ Context gaps:
 - <path>:<line or Issue #> — <behavior, decision, or checklist item that no Issue specifies>; suggested Issue text: <one line>
 
 Acceptance coverage:
-- <exit criterion / Task acceptance / plan requirement> — met | not met | not verifiable (<why>)
+- <exit criterion / Task acceptance / plan requirement> — met | not met | not verifiable (<why>); evidence: <acceptance test or check>
+
+Exceptions:
+- <each ENGINEERING.md exception the range adds or changes, in plain words: what is waived, where, why, until when>
 
 Summary: <finding count per axis, and the worst finding in each axis>
 ```

@@ -87,7 +87,7 @@ def test_agent_files_render_every_role(tmp_path):
 def test_shipped_roles_have_agreed_models_and_nesting():
     expected = {
         "orchi-scout": ("haiku", "medium", ["Read", "Grep", "Glob", "Bash", "Agent"]),
-        "orchi-implementer": ("opus", "low", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]),
+        "orchi-implementer": ("opus", "medium", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]),
         "orchi-fixer": ("sonnet", "medium", ["Read", "Edit", "Write", "Grep", "Glob", "Bash", "Agent"]),
         "orchi-reviewer": ("opus", "high", ["Read", "Grep", "Glob", "Bash", "Agent"]),
         "orchi-researcher": ("opus", "medium", ["Read", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "Agent"]),

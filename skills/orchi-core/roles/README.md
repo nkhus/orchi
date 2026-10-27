@@ -15,7 +15,7 @@ allowed.
 | --- | --- | --- |
 | [`orchi-scout`](orchi-scout.md) | haiku / medium | nothing |
 | [`orchi-researcher`](orchi-researcher.md) | opus / medium | nothing |
-| [`orchi-implementer`](orchi-implementer.md) | opus / low | one commit per run |
+| [`orchi-implementer`](orchi-implementer.md) | opus / medium | one commit per run |
 | [`orchi-fixer`](orchi-fixer.md) | sonnet / medium | one commit per run (Task or repair) |
 | [`orchi-reviewer`](orchi-reviewer.md) | opus / high | nothing |
 | [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task run; nothing in Audit mode |
@@ -78,6 +78,11 @@ components, is a component source rather than a design skill: where
 `PRODUCT.md` or `DESIGN.md` names it (React with Tailwind CSS 4 and shadcn/ui),
 the designer adds its components through the shadcn CLI or MCP server and
 restyles them with the project's tokens.
+
+Impeccable's installer also adds its own subagents. `orchi-designer` starts
+`impeccable-finish-reviewer`, `impeccable-asset-producer`, and
+`impeccable-documenter` where Impeccable's references call for them; `impeccable-manual-edit-applier` serves
+Impeccable's live mode, which Orchi does not run, so nothing starts it.
 
 For a UI diff, the main session may also start `orchi-designer` in Audit mode
 next to `orchi-reviewer`; the designer reports design and accessibility

@@ -157,8 +157,9 @@ Its Tasks:
 
 Its acceptance: CI passes on the empty project and fails on a planted violation
 of each blocking check, including a planted suppression and a loosened
-threshold; the planted violations never land. After its PR merges, the session
-that talks to the user asks once to apply the ruleset, and applies it on a yes:
+threshold; the planted violations never land. After its PR merges into main,
+the delivering session (`orchi-deliver`) asks the user once to apply the
+ruleset, at every autonomy level, and applies it on a yes:
 
 ```
 python3 <skill>/scripts/standards.py ruleset | gh api -X POST repos/{owner}/{repo}/rulesets --input -

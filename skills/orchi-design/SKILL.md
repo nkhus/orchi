@@ -22,7 +22,7 @@ every autonomy level; you write no product code yourself.
    propose `/orchi-plan` or `/orchi-deliver`. Read its surfaces, what must stay,
    whether it replaces `DESIGN.md`, its blockers, and the work reference; resume
    from the decisions and links it already records.
-2. Check it against items 1–11 and 13 of the Epic readiness checklist; its Tasks
+2. Check it against items 1–11, 13, and 14 of the Epic readiness checklist; its Tasks
    come in step 3. Fix gaps from linked sources, or ask the user.
 3. Claim it and create its recorded branch from its target. Check it out only to
    commit design documents, and in a pool detach afterwards, as the pool

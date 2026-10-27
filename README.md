@@ -96,7 +96,7 @@ The installer renders six Claude Code subagents from one definition each in [`sk
 | --- | --- | --- | --- |
 | `orchi-scout` | haiku / medium | nothing | Returns paths, line ranges, and excerpts |
 | `orchi-researcher` | opus / medium | nothing | Answers an exploration question from cited primary sources, or designs one option under a given lens |
-| `orchi-implementer` | opus / low | one commit per run | Runs the Task readiness gate, then implements and verifies one Task, standalone or in an Epic |
+| `orchi-implementer` | opus / medium | one commit per run | Runs the Task readiness gate, then implements and verifies one Task, standalone or in an Epic |
 | `orchi-fixer` | sonnet / medium | one commit per run (Task or repair) | Makes one small, fully specified change — a simple Task or a confirmed defect repair — and escalates anything larger |
 | `orchi-reviewer` | opus / high | nothing | Reviews a standalone Task, an assembled Epic, or a final Initiative candidate |
 | `orchi-designer` | opus / medium | one commit per UI Task run; nothing in Audit mode | Builds one ready UI Task against the approved comp or direction contract, or audits a UI diff, with Impeccable; never asks the user |
