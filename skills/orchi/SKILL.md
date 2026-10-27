@@ -78,9 +78,9 @@ Read only the reference needed for the current stage.
 
 ## Entry skills and subagents
 
-`orchi-explore` (idea → Exploration), `orchi-plan` (request → ready Issues),
-`orchi-deliver` (Issue → PR), `orchi-pm` (Orchi, a session pool's entry; typed
-only), and `orchi-work` (a pool worker's task) are optional entry points.
+`orchi-explore` (idea → Exploration), `orchi-plan` (request → ready Issues), `orchi-design`
+(design Epic → approved surfaces → PR), `orchi-deliver` (Issue → PR), `orchi-pm` (Orchi, a session
+pool's entry; typed only), and `orchi-work` (a pool worker's task) are optional entry points.
 The rules above apply without them. The main session may delegate to the
 subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
 `orchi-researcher` researches and designs options for an exploration,
