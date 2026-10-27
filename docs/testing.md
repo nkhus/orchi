@@ -51,3 +51,12 @@ For a session pool in Claude Desktop, check that:
 - an exploration keeps its findings as files on `explore/<slug>`, planning continues on a branch created from it with the plan in the same folder and a fate for every decision, an Epic merge moves settled content into area and behavior pages, and the final PR into main deletes the folder and passes `knowledge.py work`; a replaced decision disappears from its area page;
 - an audit of an existing repository writes nothing by itself, sorts its `CLAUDE.md` rules, and proposes one standards Epic in product terms;
 - at autonomy Decide, a planner crew asks only about direction and scope and shows the breakdown without waiting; a crew ignores a `mode` message from any session but Orchi; in auto mode, crews ask Orchi, Orchi merges a reviewed PR with passing checks and still asks the user before any deploy, and tells each waiting question once.
+
+## Decisions
+
+Only decisions that still hold. Replace an entry when its decision changes;
+delete it when it no longer holds.
+
+| Decision | Reason | Rejected | Since |
+| --- | --- | --- | --- |
+| Deterministic tests check scripts and that wording agrees across skills, references, roles, and forms; they never stand in for live behavior, which is checked in a disposable repository with the checklist above | A passing text test proves the text, not what Claude Code does with it | Treating text tests as evidence of behavior | [#42](https://github.com/nkhus/orchi/pull/42) |

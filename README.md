@@ -139,6 +139,7 @@ Commit the installed skills, rendered agents, instruction changes, and installat
 
 | Guide | Read it to… |
 | --- | --- |
+| [Documentation map](docs/README.md) | Find the page that describes each part of Orchi and the decisions in force |
 | [Installation](docs/installation.md) | Install, upgrade, or remove the skill |
 | [Subagent roles](skills/orchi-core/roles/README.md) | Choose a writer, see each role's model and tools, and find the design skills `orchi-designer` uses |
 | [Testing](docs/testing.md) | Validate the package and run the installed-skill smoke test |
