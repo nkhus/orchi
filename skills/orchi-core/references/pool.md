@@ -45,6 +45,60 @@ itself, a crew gives that to a worker instead. It may start read-only subagents
 Audit mode) for retrieval, research, and review. Adding a role means adding its skill and a row
 to this table.
 
+## Prepare the repository
+
+The pool's worktrees, branches, and CI start from the default branch on GitHub,
+so on every `/orchi` Orchi first checks, read-only, that:
+
+- the repository has a GitHub remote and `gh` is authenticated;
+- the default branch has a commit and GitHub has it;
+- the installation is committed and pushed: `git status --porcelain` lists none
+  of its paths, which are the manifest `.claude/.orchi-install.json`, the paths
+  it names (each skill as `.claude/skills/<name>/`, its files, and its
+  instruction files), and Impeccable's `.claude/skills/impeccable/` and
+  `.impeccable/config.json`;
+- the labels the pool uses exist (`Exploration`, `needs-planning`,
+  `delivery-ready`, `design`);
+- `.claude/worktrees/` is ignored (`git check-ignore -q .claude/worktrees/x`).
+
+When all hold, it builds the pool. Otherwise it fixes them in the same turn
+without asking the user: it starts one general-purpose subagent, the setup
+agent, with the absolute repository path, the default branch, and what failed,
+waits for its report, and checks the result (`git log -1 origin/<default>`,
+`gh label list`). Orchi itself still edits and commits nothing. The setup agent:
+
+1. Works in the main checkout (`git worktree list`, first entry), on the default
+   branch; any other checked-out branch, or a default branch that has diverged
+   from GitHub's, stops it with a report. It fast-forwards a branch that is
+   behind.
+2. Before every commit, checks the files it stages for credentials, private
+   keys, tokens, `.env` files, and files over 5 MB, and leaves out and reports
+   any it finds instead of committing them.
+3. When labels are missing, reruns the installed installer with
+   `python3 .claude/skills/orchi-core/scripts/orchi_install.py --project <path> --github`,
+   which creates them and adds the GitHub files an installation without
+   `--github` lacks.
+4. When `.claude/worktrees/` is not ignored, adds it to `.gitignore` outside
+   the section between `# orchi:begin` and `# orchi:end`.
+5. In a repository without commits, commits every file Git does not ignore as
+   `Initial Orchi setup`, pushes the default branch with an upstream, and makes
+   it GitHub's default branch. In a repository with history, it commits only the
+   installation's paths, as the check above lists them, and `.gitignore`, as
+   `Install Orchi <version>` and pushes it; the user's other changes stay as
+   they are. When
+   GitHub refuses the push to the default branch, it pushes the commit to
+   `chore/orchi-setup` instead and opens a PR to the default branch.
+6. Reports the commit, the branch it pushed, the files it left out and why, and
+   anything that stopped it. It never force-pushes, rewrites history, or
+   changes branch protection.
+
+Only these wait for the user, asked once in Orchi's report: no GitHub remote
+(Orchi offers to create a private repository named after the folder with
+`gh repo create`, and the setup agent does it on the user's yes), `gh` not
+authenticated (`gh auth login` is theirs), a file left out as a possible secret,
+a diverged branch, and the setup PR, which the pool waits for. Orchi builds the
+pool in the user's next turn after the PR is merged.
+
 ## Build the pool
 
 Orchi builds the pool in a turn the user started, because a session can start

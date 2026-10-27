@@ -36,8 +36,10 @@ IMPECCABLE_SKILL = SKILLS_DIR + "impeccable/SKILL.md"
 IMPECCABLE_CONFIG = ".impeccable/config.json"
 NODE_MINIMUM = (18, 19)
 GITIGNORE = ".gitignore"
-# Impeccable ignores some of its runtime files itself; these are the rest. Approved comps are added with git add -f.
-GITIGNORE_BODY = """# Impeccable runtime files; commit an approved comp with git add -f.
+# The pool's session worktrees, and the Impeccable runtime files Impeccable does not ignore itself.
+GITIGNORE_BODY = """# Worktrees of Orchi's pool sessions.
+.claude/worktrees/
+# Impeccable runtime files; commit an approved comp with git add -f.
 .impeccable/config.local.json
 .impeccable/review/
 .impeccable/mocks/

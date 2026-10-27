@@ -24,17 +24,15 @@ and only the decisions that are yours come back to you.
 npx --yes github:nkhus/orchi --github
 ```
 
-`--github` adds the Issue forms, the PR template, the documentation, design, and standards checks, and Orchi's labels. Leave it out for the skills and subagents alone.
+`--github` adds the Issue forms, the PR template, the documentation, design, and standards checks, and Orchi's labels. If you leave it out, the first `/orchi` adds them, because the pool needs the labels.
 
-**2. Commit and push** the installation to `main`. Orchi's sessions, branches, and CI start from it.
-
-**3. Start Orchi.** In Claude Desktop, open a session in the repository, switch it to **bypass permissions mode**, and type:
+**2. Start Orchi.** In Claude Desktop, open a session in the repository, switch it to **bypass permissions mode**, and type:
 
 ```text
 /orchi
 ```
 
-That session becomes Orchi and builds its pool: 5 crews, each in its own worktree. Click **`Create workers`** once in each crew, and each one starts 3 workers. That is the last setup step. From now on, just tell Orchi what you want.
+That session becomes Orchi. You don't commit or push anything: it commits and pushes the installation to `main` first, because its sessions, branches, and CI start from there. Then it builds its pool: 5 crews, each in its own worktree. Click **`Create workers`** once in each crew, and each one starts 3 workers. That is the last setup step. From now on, just tell Orchi what you want.
 
 > **Needs** Git, an authenticated GitHub CLI (`gh`), Python 3.11+, Node.js 18.19+ with `npx`, and `uv`, on macOS, Linux, or WSL. The installer also installs [Impeccable](https://impeccable.style/), Orchi's design engine.
 
@@ -196,7 +194,7 @@ Only the session that owns the work starts the writers (`orchi-implementer`, `or
 | PR template | Summary, Verification, Merge risk, Exceptions, Documentation impact, and Handoff sections, with `--github` |
 | `.claude/.orchi-install.json` | The manifest that upgrades and uninstalls rely on |
 
-The installer keeps your own instructions. It maintains only the section between `<!-- orchi:begin -->` and `<!-- orchi:end -->` and refuses to overwrite a managed section you edited. Your repository's instructions take precedence over Orchi's defaults. Commit the installation to share it with your team.
+The installer keeps your own instructions. It maintains only the section between `<!-- orchi:begin -->` and `<!-- orchi:end -->` and refuses to overwrite a managed section you edited. Your repository's instructions take precedence over Orchi's defaults. The first `/orchi` commits the installation, which shares it with your team.
 
 </details>
 
