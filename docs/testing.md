@@ -28,8 +28,8 @@ Tests do not establish that Claude Code follows the workflow. When changing the 
 
 For a session pool in Claude Desktop, check that:
 
-- `/orchi` in a session that is not in bypass permissions mode stops and asks to switch; in bypass mode it starts the crews in one turn, detaches them, and files them into `Orchi pool · <repo>`;
-- one click on `Create workers` in each crew starts its workers nested under it, and a crew that cannot show a button proposes cards or asks for a reply;
+- `/orchi` in a session that is not in bypass permissions mode stops and asks to switch; in bypass mode it starts only the dashboard; a request starts its crew in that turn, detached and filed into `Orchi pool · <repo>`; a planner continues with the first item it planned, and other ready items get start cards that start their crews with one click; a finished crew is archived;
+- "prepare autonomous development" starts 2 crews in one turn; one click on `Create workers` in each starts 2 workers nested under it, and a crew that cannot show a button proposes cards or asks for a reply;
 - `/orchi` in a second session leaves the pool to its Orchi and links to it; after that Orchi is archived, it takes the pool over and every crew accepts;
 - every crew and worker brief carries the sender's real session id;
 - no session is started in a turn a message or an event started;
@@ -40,7 +40,7 @@ For a session pool in Claude Desktop, check that:
 - after `/compact` in Orchi, a crew, and a worker mid-task, asking "who are you and what is next?" gets the role and the next step, or the owner's re-sent message restores it;
 - an Epic with more Tasks than workers keeps moving because a worker takes the next Task after `done`, and a worker's branch is free for its dev lead's merge after `done`;
 - in auto mode a planner's question is answered by Orchi's `answer` message, and a researcher's still reaches the user;
-- workers are released only after the PR with their work is merged, return to a detached default branch, and are cleared by their crew; a released crew clears itself and Orchi renames it back to `crew-<k>` on its `released` reply, with no other event needed; nothing is archived or deleted;
+- workers are released only after the PR with their work is merged, return to a detached default branch, and are cleared by their crew; a released pool crew clears itself and Orchi renames it back to `crew-<k>` on its `released` reply, with no other event needed; only crews started on demand are archived, and nothing is deleted;
 - a clear refused because the session is open on screen is retried later;
 - the slash-command menu offers only `/orchi`; in a session outside the pool, an implementation request gets an answer pointing to `/orchi`, not a plan or a branch, and a role skill invoked without `--report-to` stops with the same pointer;
 - from scratch: an exploration of a product with a user interface fills its Product section; the plan is a first run, a standalone `design` Epic, and the rest as an Initiative whose UI Epics are blocked by the design Epic (or, when the rest is one UI Epic, a `needs-planning` Issue blocked by it); a designer crew starts while the first run is built, runs `init` from the Product section, then for each surface `shape` and the direction round, and never picks a direction or approves a comp itself, also in auto mode; it reports `waits for` until the first run merges, then its workers build the approved surfaces on that stack without asking the user; `DESIGN.md` is written last; the Initiative's non-UI Epics start once the first run merges, its dev lead reports `waits for` the design Epic and is woken by `merged`, and its UI Epics resolve their deferred fields from `DESIGN.md`, the surface briefs, and the comps;
