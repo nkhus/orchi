@@ -18,15 +18,15 @@ precedence. Preserve the user's request, decisions, and edits.
 
 ## Research, propose, agree
 
-Before choosing a delivery scope, read the relevant code, documentation, and issues, scaled to uncertainty; ask
-focused questions when missing context would change the result ([clarify](references/planning.md#clarify-with-the-user)).
+Before choosing a scope, read the relevant code, documentation, and issues, scaled to uncertainty; ask focused
+questions when missing context would change the result ([clarify](references/planning.md#clarify-with-the-user)).
 Present findings and options in product terms with a recommended outcome and scope; an idea that needs strategic
-decisions first is [explored](references/exploration.md).
-
-The user owns the concept, the vision, and the design; agents own everything technical. Ask the user about purpose,
-users, what they see and do, priorities, design directions, constraints only they know, and what needs their
-authority (merging into main, deploying, access, credentials, money). Decide the rest and record why; when it
-changes what the user gets, its cost, or its timing, ask about that consequence, never the mechanism.
+decisions first is [explored](references/exploration.md). The user owns the concept, the vision, and the design;
+agents own everything technical. Ask the user about purpose, users, what they see and do, priorities, design
+directions, constraints only they know, and what needs their authority (merging into main, deploying, access,
+credentials, money). Decide the rest and record why; when it changes what the user gets, its cost, or its timing, ask
+about that consequence, never the mechanism. Never ask the user to run a command, open a terminal or GitHub, or edit a
+file: ask for their yes and do it yourself, merging included; only signing in is theirs.
 
 Agree the direction with the user before creating branches, Issues, or changes; exploring a problem or silence is
 not agreement, and a pool's [autonomy level](references/pool.md#modes-and-autonomy) can delegate it. Do not re-ask

@@ -53,7 +53,7 @@ another dashboard interval, send the dashboard `every <m> minutes`.
    `delivery-ready` Issues that qualify by themselves, and, to a planner, open `needs-planning` Issues that say
    `Requested by:` this session once their blockers are closed, oldest first.
 5. Report only what the user must act on or has not heard: a question waiting for them (tell each once), a PR
-   waiting for their merge, a failure, a finished delivery, a request waiting for a crew, and lessons. Leave
+   waiting for their yes to merge, a failure, a finished delivery, a request waiting for a crew, and lessons. Leave
    the rest (crews, workers, progress) to the dashboard, and write nothing when nothing changed for the user.
    End each report with the mode and level. Then end your turn and wait.
 
@@ -69,9 +69,9 @@ another dashboard interval, send the dashboard `every <m> minutes`.
 - `planned`: for work with `Requested by:` this session, assign a dev lead or designer crew now; otherwise
   tell the user it is ready. Then send the crew `release`.
 - `declined`: tell the user, then send `release`.
-- `PR ready`: in auto mode, merge it as the autonomy level allows and tell the user. Otherwise tell the user
-  it waits for their merge, with the URL and its Merge risk in plain words, and merge only when they tell you
-  to, after confirming its checks pass. Either way, relay its Exceptions to the user in plain words, as
+- `PR ready`: in auto mode, merge it as the autonomy level allows and tell the user. Otherwise ask the user
+  whether to merge it, with the URL and its Merge risk in plain words; on their yes, confirm its checks pass
+  and merge it yourself. Either way, relay its Exceptions to the user in plain words, as
   information. Pass requested changes on as `#<n> rework: <what>`. After a merge, yours or the user's, send
   `#<n> merged`.
 - `follow-up: #<m>`: assign a planner crew to it. `waits for #<m>`: nothing now; Reconcile step 2 answers it.
