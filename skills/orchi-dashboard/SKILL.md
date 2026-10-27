@@ -15,8 +15,9 @@ read and show. Never message a crew or worker, change Issues, PRs, branches, or
 repository files, take a request, or answer a crew. Keep every refresh short:
 run the steps, write nothing else into this conversation, and end the turn.
 
-Work files (crews, snapshot) go in a temporary directory: your scratchpad
-directory when the host names one, otherwise `mktemp -d`; never the repository.
+Work files (crews, snapshot) go in one temporary directory that every refresh
+reuses: your scratchpad directory when the host names one, otherwise
+`${TMPDIR:-/tmp}/orchi-dashboard-<repo>`; never the repository.
 
 ## Start
 
@@ -46,16 +47,22 @@ its title, `<repo> pool`, and use interactive at Ask until Orchi sends the mode.
 2. Read the pool: the host's sessions in the sidebar group `Orchi pool · <repo>`.
    A crew is a top-level session there titled `crew-<k>` or `<role>-<topic>`, but
    not Orchi and not you; its `name` is `crew-<k>` (the handle the host lists,
-   or its title when free). Its workers are the sessions it started; count
-   them, and those running. Write the crews as a JSON list to `crews.json`:
-   `{"name", "title", "state", "workers": {"busy", "total"}, "link"}`, plus
-   `"issue"` and `"stage"` when you know them, and `"question"` when it waits.
-   `state` is `working` while the crew runs, `free` for a `crew-<k>` title, and
-   otherwise `waiting` when its last message asks the user something (read
-   its last two messages; put the question in one line, in its own words), or
-   `idle`. `stage` is a few words from that message, such as
-   `Reviewing the Epic` or `Task #6: CI checks`.
-3. Build the snapshot:
+   or its title when free). Its workers are the sessions whose `startedBy` is
+   the crew: `total` counts them, `busy` those with `isRunning` true. Write the
+   crews as a JSON list to `crews.json`: `{"name", "title", "state", "workers":
+   {"busy", "total"}, "link", "last_activity"}` (`last_activity` is the host's
+   `lastActivityAt`), plus `"stage"` when you know it and `"question"` when it
+   waits; the script adds the role and the Issue. `state` is `working` while the
+   crew runs (`isRunning`), `free` while its title is `crew-<k>`, and otherwise
+   `waiting` or `idle`. Decide those two only from the crew's last assistant
+   text: read its recent messages (`list_events`, 20), skip tool calls, and take
+   the newest text. It is `waiting` when that text asks the user something (put
+   the question in one line, in its own words); else `idle`. `stage` is a few
+   words from it, such as `Reviewing the Epic`; no text among those messages
+   means no `stage`. Read messages only for an assigned crew that is not
+   running and whose `last_activity` differs from the previous `crews.json`;
+   otherwise copy its `state`, `stage`, and `question` from that file.
+3. Build the snapshot (`--page` belongs to this skill, not to the script):
    `python3 .claude/skills/orchi-core/scripts/dashboard.py --crews <crews.json> --every <m> --mode "<mode>" --out <snapshot.json>`
    (in a user-wide installation the script is under `~/.claude/skills/`). It
    prints this session's title and exits 2 when GitHub could not be read.
