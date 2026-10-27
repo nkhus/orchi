@@ -68,8 +68,8 @@ who can take them:
 
 | Steps | Who runs them |
 | --- | --- |
-| `init` (`PRODUCT.md`), `document`, `shape`, the direction round, and comp and asset approval | The session that talks to the user: the main session, or a researcher, planner, or designer crew |
-| Builds from an approved comp or a direction contract, the focused commands (`layout`, `typeset`, `colorize`, `animate`, `adapt`, `clarify`, `harden`), `polish`, the finish reviewer, and the documenter (`DESIGN.md`) | `orchi-designer` in Task mode |
+| `init` (`PRODUCT.md`), `document` (`DESIGN.md`), `shape`, the direction round, and comp and asset approval | The session that talks to the user: the main session, or a researcher, planner, or designer crew |
+| Builds from an approved comp or a direction contract, the focused commands (`layout`, `typeset`, `colorize`, `animate`, `adapt`, `clarify`, `harden`), `polish`, the finish reviewer, and producing an asset for the user's approval | `orchi-designer` in Task mode |
 | `audit`, `critique`, and `detect` | `orchi-designer` in Audit mode, and the `--github` design workflow |
 
 `orchi-designer` never asks the user: what Impeccable would ask it returns as
@@ -80,9 +80,10 @@ the designer adds its components through the shadcn CLI or MCP server and
 restyles them with the project's tokens.
 
 Impeccable's installer also adds its own subagents. `orchi-designer` starts
-`impeccable-finish-reviewer`, `impeccable-asset-producer`, and
-`impeccable-documenter` where Impeccable's references call for them; `impeccable-manual-edit-applier` serves
-Impeccable's live mode, which Orchi does not run, so nothing starts it.
+`impeccable-finish-reviewer` and `impeccable-asset-producer` where Impeccable's
+references call for them; `impeccable-documenter` serves `document`, which runs
+with the user; `impeccable-manual-edit-applier` serves Impeccable's live mode,
+which Orchi does not run, so nothing starts it.
 
 For a UI diff, the main session may also start `orchi-designer` in Audit mode
 next to `orchi-reviewer`; the designer reports design and accessibility

@@ -57,3 +57,21 @@ def test_delivery_routes_ui_tasks_to_the_designer_and_audits_ui_changes():
     assert "a direction, a comp, or a generated asset goes to the user whatever they delegated" in readme
     assert "start `orchi-designer` in Audit mode on it beside the reviewer" in review
     assert "`orchi-designer` in Audit mode" in deliver
+
+
+def test_design_outputs_that_bind_later_work_pass_the_user():
+    designer, readme = prose("orchi-core/roles/orchi-designer.md"), " ".join((SKILLS / "orchi-core/roles/README.md").read_text().split())
+    design, planning = prose("orchi-design/SKILL.md"), prose("orchi-core/references/planning.md")
+    assert "Never write or replace `DESIGN.md`" in designer
+    assert "commit a produced asset only when the Issue links that asset as approved" in designer
+    assert "fix every primary finding, because the design workflow fails on one" in designer
+    assert "the `DESIGN.md` sections it follows when `DESIGN.md` exists" in designer
+    assert "**Recheck (Audit mode):**" in designer
+    assert "write or replace `DESIGN.md` from the built surfaces with the user (`/impeccable document`)" in design
+    assert "`git add -f` for both" in design
+    assert "`impeccable-documenter` serves `document`, which runs with the user" in readme
+    assert "Commit the brief on the work's branch, which planning creates now" in planning
+    assert "In auto mode, Orchi may answer `shape` questions" not in planning
+    assert "the branch of work at design depth brief" in prose("orchi-plan/SKILL.md")
+    assert "for a `decision` `ESCALATE`" in prose("orchi-work/SKILL.md")
+    assert "surface briefs and approved comps in `.impeccable/surfaces/`" in prose("orchi-core/references/knowledge.md")

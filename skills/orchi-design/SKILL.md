@@ -38,16 +38,19 @@ every autonomy level; you write no product code yourself.
    Product section of the Exploration the Epic came from, so it asks only what
    that leaves open; commit `PRODUCT.md` on the Epic branch. For a redesign
    without `DESIGN.md`, run `/impeccable document` first, so the incumbent look
-   is recorded as evidence and then replaced.
+   is recorded as evidence; until the Epic replaces it, this Epic's approved
+   briefs and comps override `DESIGN.md` for its builds and audit.
 2. For each surface the Epic names, run `/impeccable shape <surface>` with the
    user: its discovery questions, then the direction round on Impeccable's
-   decision page. The user picks; you never pick for them, and silence is not a
-   choice.
+   decision page. Answer yourself what `PRODUCT.md`, `DESIGN.md`, or the Epic
+   already settles; ask the user the rest. The user picks; you never pick for
+   them, and silence is not a choice.
 3. Record the chosen direction as the surface brief's `## Direction contract`
    (`impeccable surface-brief write`), and, comp-led, run Impeccable's comp round
    until the user approves one comp. Commit the brief, the approved comp, and its
-   sidecar on the Epic branch (`git add -f` for the comp, which `.gitignore`
-   hides with the drafts), and record in the Epic who chose what and when.
+   sidecar on the Epic branch (`git add -f` for both, which `.gitignore` hides
+   with the drafts), and record in the Epic who chose what and when. Do the same
+   for a generated asset the user approves.
 
 Ask with the host's question tool. Before stopping for an answer, write the open
 question into the Epic, so a lost session loses nothing.
@@ -61,9 +64,9 @@ breakpoints, themes, and accessibility level, with `orchi-designer` as the
 writer. The foundation Epic set up the stack; when it lacks the component
 library the surfaces need (SmoothUI and its shadcn MCP server for React with
 Tailwind CSS 4 and shadcn/ui), the first Task adds it, with `orchi-implementer`
-as the writer. The last Task writes or
-replaces `DESIGN.md` from the built surfaces with Impeccable's documenter. Check
-each Task against the Task readiness checklist.
+as the writer. Check each Task against the Task readiness checklist. After the
+last build, and before the PR is marked ready, write or replace `DESIGN.md` from
+the built surfaces with the user (`/impeccable document`) and commit it.
 
 ## 4. Build
 

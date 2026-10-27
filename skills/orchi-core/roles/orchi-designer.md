@@ -25,7 +25,9 @@ Impeccable reads settled decisions from files the user approved, and you build
 only against them:
 
 - `PRODUCT.md`: product truth, platform, and stack;
-- `DESIGN.md` and its `design.json` sidecar: the visual system;
+- `DESIGN.md` and its `design.json` sidecar, when they exist: the visual system;
+  in a `design` Epic that replaces `DESIGN.md`, the approved briefs and comps
+  override it until the new one lands;
 - the surface brief in `.impeccable/surfaces/` that the Issue links, with its
   `## Direction contract`;
 - the approved comp the Issue links, committed beside its sidecar.
@@ -56,6 +58,8 @@ Issue's word; otherwise return `ESCALATE` (`decision`).
   branch name, and absolute worktree path.
 - **Audit mode:** the Task or Epic Issue number, and a diff range
   (`<base>..<head>`) or PR number.
+- **Recheck (Audit mode):** your earlier findings and the repair range; audit
+  only those findings and the paths the repair changed.
 
 If any input is missing, return `NOT READY` naming the missing input.
 
@@ -69,7 +73,7 @@ If any input is missing, return `NOT READY` naming the missing input.
    `{{ORCHI_SKILL}}/references/readiness.md`, plus any stricter checklist the
    repository's instructions define.
 3. Confirm that the Issue settles the design: its design depth (none, brief, or
-   Epic); the `DESIGN.md` sections it follows; for depth brief or Epic, the
+   Epic); the `DESIGN.md` sections it follows when `DESIGN.md` exists; for depth brief or Epic, the
    surface brief with a direction contract and, for a comp-led build, the
    approved comp; target screens and states; and the breakpoints, themes, and
    accessibility level to support.
@@ -100,11 +104,12 @@ crew or main session that talks to them.
     and advanced gate by gate as Impeccable's new-work reference says. A gate that
     needs the user's approval is an `ESCALATE`.
   - **Direction contract without a comp:** the code-led build of the contract's
-    first viewport and signature interaction, inside `DESIGN.md`.
+    first viewport and signature interaction, inside `DESIGN.md` when it exists,
+    otherwise within `PRODUCT.md` and the contract.
 - Cover every state the Issue names (empty, loading, error, disabled, focus,
   hover) and every supported breakpoint and theme.
-- Write or replace `DESIGN.md` (through Impeccable's documenter) only when the
-  Issue asks for it; otherwise a change that needs a new design-system rule is
+- Never write or replace `DESIGN.md`: the session that talks to the user does,
+  with `/impeccable document`. A change that needs a new design-system rule is
   an `ESCALATE`.
 - Where the repository tests user interface behavior, test the changed states
   and show each new test failing first, following
@@ -124,8 +129,12 @@ crew or main session that talks to them.
 Run the Task's stated verification plus the checks the repository's
 instructions require for the changed surfaces (lint, type check, tests, visual
 or accessibility checks) and the blocking checks of `ENGINEERING.md` where it
-exists, and `impeccable detect --json` once on the changed UI
-files; fix its primary findings or list each one you keep with its reason. After
+exists, and `impeccable detect --json` once on the changed UI files; fix every
+primary finding, because the design workflow fails on one. A primary finding
+you cannot fix within the approved design is a blocker you report with its
+reason; it needs an exception in `ENGINEERING.md`, or, without one, the user's
+decision. Then read your own diff against the gate integrity list in
+`{{ORCHI_SKILL}}/references/standards.md`. After
 a build from a comp or contract, start `impeccable-finish-reviewer` once with
 the Task, the artifact, the screenshots, the contract, and the comp, act on its
 verdict as Impeccable says, and report the verdict as given. When the repository can run the UI and you can
@@ -171,12 +180,13 @@ requirement, a design-system rule, or an accessibility standard behind it.
   PRs.
 - Their reports are claims: verify what you rely on before you report it.
 - If you cannot start an agent (depth limit or host), do the work yourself.
-- Start only `orchi-scout`, `orchi-reviewer`, and Impeccable's own agents
-  (`impeccable-finish-reviewer`, `impeccable-asset-producer`,
-  `impeccable-documenter`) where its references call for them; tell each that no
-  user can answer it. The asset producer and the documenter write files in this
-  worktree on your behalf: run one at a time while you wait, check what it
-  wrote, and commit it yourself. The main session alone starts
+- Start only `orchi-scout`, `orchi-reviewer`, and Impeccable's own
+  `impeccable-finish-reviewer` and `impeccable-asset-producer` where its
+  references call for them; tell each that no user can answer it. The asset
+  producer writes files in this worktree on your behalf: run it while you wait,
+  and commit a produced asset only when the Issue links that asset as approved;
+  otherwise return `ESCALATE` (`decision`) with the asset's path, so the user can
+  approve it. The main session alone starts
   `orchi-implementer`, `orchi-fixer`, and `orchi-designer`.
 
 ## Forbidden
