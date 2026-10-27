@@ -173,3 +173,13 @@ Notes for versions before 0.6 are in the Git history of this file.
 - [Claude Code memory](https://code.claude.com/docs/en/memory)
 - [GitHub sub-issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues)
 - [GitHub issue dependencies](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-issue-dependencies)
+
+## Decisions
+
+Only decisions that still hold. Replace an entry when its decision changes;
+delete it when it no longer holds.
+
+| Decision | Reason | Rejected | Since |
+| --- | --- | --- | --- |
+| The installer always installs Impeccable at a pinned version, in Orchi's scope, for Claude Code only, without hooks and with telemetry off, and stops before any change when Node.js is missing | Design work must never run without Impeccable, and its hooks would run the detector after every edit in every session | Impeccable as an optional install; Impeccable with its hooks | [#43](https://github.com/nkhus/orchi/pull/43) |
+| An upgrade does not migrate a project's own records (Issues, claims, plans, team lists); the upgrade notes say what to move by hand | The maintainer migrates existing projects by hand, and records in a project's Issues and branches are its own | An automatic migration step | [#42](https://github.com/nkhus/orchi/pull/42) |

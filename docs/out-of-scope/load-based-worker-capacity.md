@@ -23,5 +23,5 @@ only when the user asks.
   [nkhus/orchi#24](https://github.com/nkhus/orchi/pull/24) with a fixed limit.
 - [nkhus/orchi#34](https://github.com/nkhus/orchi/pull/34): the fixed limit
   became the team list in the repository's instructions.
-- The [ENTRY] Initiative (`docs/initiatives/entry-single-entry/`): the pool size
+- [nkhus/orchi#42](https://github.com/nkhus/orchi/pull/42): the pool size
   replaced the team list.

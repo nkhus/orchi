@@ -19,5 +19,5 @@ worktree to the default branch and is cleared, and Orchi renames a crew back to
 
 - [nkhus/orchi#34](https://github.com/nkhus/orchi/pull/34): the reusable worker
   pool replaced archiving.
-- The [ENTRY] Initiative (`docs/initiatives/entry-single-entry/`): Orchi creates,
+- [nkhus/orchi#42](https://github.com/nkhus/orchi/pull/42): Orchi creates,
   renames, and clears pool sessions; the user no longer creates and titles them.
