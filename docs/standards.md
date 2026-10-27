@@ -23,6 +23,7 @@ delete it when it no longer holds.
 
 | Decision | Reason | Rejected | Since |
 | --- | --- | --- | --- |
+| `orchi-standards` invoked with an Exploration continues into `orchi-plan` for the rest of the plan, and only `orchi-plan` closes the Exploration; it takes the Exploration's Stack section as stated | Closing the Exploration after the foundation alone left the design Epic and the rest unplanned, and deriving the stack twice let the two drift | Closing the Exploration from `orchi-standards` | [#49](https://github.com/nkhus/orchi/pull/49) |
 | The user is asked only product constraints; Orchi applies the defaults for stack, tools, thresholds, and layout without asking and records why | The user never reads the code and cannot weigh tooling choices | Orchi confirming the stack with the user | [#44](https://github.com/nkhus/orchi/pull/44) |
 | Every check blocks from the first commit, including 90% coverage of changed lines and high and critical dependency and static analysis findings | Tools are the only review the code gets, and gates added later find a backlog | Coverage and audits starting as warnings | [#44](https://github.com/nkhus/orchi/pull/44) |
 | One strict TypeScript stack for web apps, services, and CLIs; Python for data and ML | Static types are the cheapest check an agent gets, and one language keeps one toolchain | Choosing the language per project | [#44](https://github.com/nkhus/orchi/pull/44) |

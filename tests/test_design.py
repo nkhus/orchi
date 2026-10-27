@@ -34,7 +34,7 @@ def test_designer_crew_role_routing_and_mode_agree():
     assert "the user still answers a researcher and a designer" in pool
     assert "an autonomy level never chooses a direction or approves a comp" in pool
     assert "A `design` Epic stays standalone" in pool
-    assert "(researcher, planner, designer, dev lead)" in entry and "for a researcher or designer in any mode" in entry
+    assert "(researcher, planner, designer, dev lead)" in entry and "for a researcher or designer, and for a question marked `(user)`" in entry
     assert "Only the user chooses a direction and approves a comp or a generated asset, at every autonomy level" in design
     assert "you never pick for them" in design and "Continue with [orchi-deliver](../orchi-deliver/SKILL.md)" in design
     assert "Ask the user directly in both modes" in design and "adopt Orchi's claim" in design

@@ -20,12 +20,10 @@ crews do the work. Running this command sets the mode to interactive at Ask.
 
 1. Check that this session runs in bypass permissions mode; if not, ask the user
    to switch it and stop.
-2. List the sessions in the group `Orchi pool · <repo>`. When their Orchi is
-   another session, follow the pool reference's one-Orchi rule. When crews are missing
-   (5 by default, or `--crews`), build the pool as the pool reference says, in
-   this turn: you may start sessions only in a turn the user started. Tell the
-   user to click `Create workers` in each new crew (3 workers by default, or
-   `--workers`).
+2. List the sessions in the group `Orchi pool · <repo>`. When their Orchi is another session, follow the pool
+   reference's one-Orchi rule. When crews are missing (5 by default, or `--crews`), build the pool as the pool
+   reference says, in this turn: you may start sessions only in a turn the user started. Tell the user to click
+   `Create workers` in each new crew (3 workers by default, or `--workers`).
 3. Reconcile, below. Treat a request in the arguments as the user's first request.
 
 ## Requests
@@ -46,13 +44,14 @@ more crews, start them in that turn; for more workers, tell them to ask in the c
 1. Read `python3 .claude/skills/orchi-core/scripts/status.py --json`,
    `gh issue list --label delivery-ready --state open`, the open PRs, and the
    pool's sessions.
-2. For each claim starting `Assigned to crew-`, check that the crew holds it;
-   handle a lapsed claim as the pool reference says.
+2. For each claim starting `Assigned to crew-`, check that the crew holds it and
+   exists, and whether its PR was merged (then send `#<n> merged`); handle a
+   lapsed claim or a lost crew as the pool reference says.
 3. Handle each crew message per the next section.
-4. While a crew is free, assign the queued requests, the `delivery-ready`
-   Issues that qualify by themselves, and, to a planner, open `needs-planning`
-   Issues that say `Requested by:` this session once their blockers are closed,
-   oldest first.
+4. While a crew is free (dev lead and designer work needs one with workers),
+   assign the queued requests, the `delivery-ready` Issues that qualify by
+   themselves, and, to a planner, open `needs-planning` Issues that say
+   `Requested by:` this session once their blockers are closed, oldest first.
 5. Report in a few lines, with the mode and level: crews and what each holds,
    PRs waiting for a merge, who waits for the user (tell each question once),
    requests waiting for a crew, and lessons from finished work. Then end your
@@ -60,13 +59,14 @@ more crews, start them in that turn; for more workers, tell them to ask in the c
 
 ## Crew events
 
-- `started`, `ready: <n> workers`: nothing to do; a crew with fewer workers than
-  asked waits for the user to ask again in it.
-- `needs the user`: in interactive mode, and for a researcher or designer in any mode, tell
-  the user once which crew waits and for what. In auto mode, answer a planner or
-  dev lead with `<id> answer: <answer>` within the autonomy level; a question the
-  level keeps for the user waits on your report, and you pass on their reply as
-  `<id> answer: the user says <reply>`.
+- `started`: nothing to do. `ready: <n> workers`: turn the crew's Remote Control
+  off; a crew with fewer workers than asked waits for the user to ask in it.
+  `now planner`: rename it `planner-<topic>` and answer it as a planner.
+- `needs the user`: in interactive mode, for a researcher or designer, and for a
+  question marked `(user)`, tell the user once which crew waits and for what. In
+  auto mode, answer a planner or dev lead with `<id> answer: <answer>` within the
+  autonomy level; a question the level keeps for the user waits on your report,
+  and you pass on their reply as `<id> answer: the user says <reply>`.
 - `planned`: for work with `Requested by:` this session, assign a dev lead or designer crew
   now; otherwise tell the user it is ready. Then send the crew `release`.
 - `declined`: tell the user, then send `release`.
@@ -77,8 +77,8 @@ more crews, start them in that turn; for more workers, tell them to ask in the c
   or the user's, send `#<n> merged`.
 - `follow-up: #<m>`: assign a planner crew to it.
 - `done`: confirm the PR is merged and the Issue closed, then send `release`.
-- `crew-<k> released`: rename the crew `crew-<k>` now, then reconcile; send
-  `release` again to a free crew whose conversation is not empty at a later wake.
+- `crew-<k> released`: rename the crew `crew-<k>` now and give it nothing in this
+  wake; at a later wake, send `release` once more if its conversation is not empty.
   `not released: <reason>`, `refused: <reason>`: tell the user.
 
 When a crew's reply shows it lost its role or its work, send its assignment again. Lead acceptance when the
@@ -86,9 +86,8 @@ user asks: start a read-only `orchi-reviewer` on the finished work against its I
 
 ## Modes
 
-The user switches the mode by telling you ("mode auto", "mode interactive",
-"autonomy decide"). Keep it until they change it, through compaction (your last
-report states it), and send it to busy crews as the pool reference says.
+The user switches the mode by telling you ("mode auto", "mode interactive", "autonomy decide"). Keep it until
+they change it, through compaction (your last report states it), and send it to busy crews as the pool reference says.
 
 ## Never
 

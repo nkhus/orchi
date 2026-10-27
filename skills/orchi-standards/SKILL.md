@@ -36,10 +36,10 @@ delivery, together.
 1. Read the product constraints from the Exploration's Constraints, Stack, and
    Product sections. Ask the user only the constraints still missing, in
    product terms; never ask about tools, thresholds, or layout.
-2. Derive the stack and checks from the reference's defaults; a mandated
-   platform or language replaces the matching default. State the result once,
-   in a few plain lines with the reasons, as a decision made under these
-   defaults. The user may override any line; record an override with their
+2. Take the stack the Exploration's Stack section states; derive it from the
+   reference's defaults only when there is none (a mandated platform or
+   language replaces the matching default), and state it once, in a few plain
+   lines with the reasons, as a decision made under these defaults. The user may override any line; record an override with their
    words.
 3. Write the foundation Epic (the `orchi-epic.yml` form when present): its
    design is the filled [template](../orchi-core/assets/standards/ENGINEERING.md),
@@ -65,6 +65,9 @@ Agree the breakdown and check each Issue against the readiness checklists as
 
 - invoked from `orchi-plan`: return to it, and make what it plans blocked by
   this Epic;
+- invoked with an Exploration (`#<n>`): continue with
+  [orchi-plan](../orchi-plan/SKILL.md) `#<n>` in this session for the rest of
+  the plan, blocked by this Epic; only `orchi-plan` closes the Exploration;
 - otherwise end with one line: `Deliver with: /orchi-deliver #<n>`.
 
 ## Crew mode (`--report-to`)

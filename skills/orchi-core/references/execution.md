@@ -96,6 +96,8 @@ is not available on another. Confirm the former writer has stopped, and remove
 ownership only on explicit release or agreed transfer.
 
 To resume, read the Handoff section first, then verify the current diff and target
-before continuing. Do not restart planning, recreate Tasks, or discard a
+before continuing, and clear the section. A rerun after an interruption runs in a
+new session: the claim is still yours when its assignee, branch, and PR match and
+the session it names has stopped; replace that session in the work reference. Do not restart planning, recreate Tasks, or discard a
 candidate. If a GitHub failure left bookkeeping incomplete, report and reconcile
 it. Do not take shared work whose ownership cannot be established.

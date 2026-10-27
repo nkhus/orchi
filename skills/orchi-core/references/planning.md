@@ -152,7 +152,8 @@ that talks to them, and writers build only against what the user approved.
 - From scratch, the design Epic for the key surfaces comes right after the
   foundation Epic and builds on the stack it set up; the result is kept. Plan the rest of development as one Issue labelled
   `needs-planning`, with `Requested by: <Orchi's title>` in a pool, blocked by
-  the design Epic: when the design merges, a planner details it from
+  the design Epic, carrying the Exploration's requirements, decisions, and fates
+  it covers: when the design merges, a planner details it from those,
   `PRODUCT.md`, `DESIGN.md`, the surface briefs, and the built surfaces.
 - Without `PRODUCT.md`, the design Epic starts with `/impeccable init`; for a
   redesign without `DESIGN.md`, with `/impeccable document`, so the incumbent

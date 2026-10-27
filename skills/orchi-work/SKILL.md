@@ -53,9 +53,9 @@ branch from the repository all worktrees share.
 Send your crew one line with `SendMessage`, `to` = your crew's session id, and
 keep the role's full report as your final reply in this session:
 
-- `#<task> done: <commit>`; for `research` and `retrieve`, `#<task> done:`
-  followed by the role's full report, sources included, because the crew writes
-  the research files from it;
+- `#<task> done: <commit>` (or `#<task> done:` for `research` and `retrieve`),
+  followed by the role's full report: checks, red evidence, or the answer with
+  its sources, because your crew records them on GitHub;
 - `#<task> not ready: <what is missing>` for the role's `NOT READY`;
 - `#<task> blocked: <reason>` for `BLOCKED` or `ESCALATE`, with the options and
   your recommendation;

@@ -107,8 +107,9 @@ new work is one more commit. Report again in the format below.
 Talking to the user; creating, editing, labelling, or closing Issues; pushing;
 opening, editing, or merging PRs; editing the Orchi skill directory
 `{{ORCHI_SKILL}}/`; weakening or skipping tests, adding a suppression, loosening a check, or
-recording an exception to make checks pass (report a needed exception as a
-blocker, with its reason).
+recording an exception
+the Issue does not name to make checks pass (report a needed exception as a
+blocker, with its reason; record one the Issue names exactly as named).
 
 ## Report format
 
