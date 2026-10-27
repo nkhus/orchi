@@ -78,10 +78,17 @@ def smoke(out: Path, installer: str, github: bool = False) -> dict:
             raise RuntimeError('Installation modified an unrelated file: ' + relative)
     if installer != 'skills':
         folder = project / '.claude/agents'
-        found = sorted(path.name for path in folder.iterdir()) if folder.is_dir() else []
+        found = sorted(path.name for path in folder.glob('orchi-*')) if folder.is_dir() else []
         if found != [name + '.md' for name in ROLES]:
             raise RuntimeError('Unexpected Orchi subagents in .claude/agents: ' + ', '.join(found))
-        for path in folder.glob('*.md'):
+        skill = project / '.claude/skills/impeccable/SKILL.md'
+        if not skill.is_file() or 'version: 4.8.0' not in skill.read_text(encoding='utf-8'):
+            raise RuntimeError('Impeccable 4.8.0 was not installed')
+        if (project / '.claude/settings.local.json').exists():
+            raise RuntimeError('Impeccable was installed with hooks')
+        if json.loads((project / '.impeccable/config.json').read_text(encoding='utf-8')).get('telemetry') is not False:
+            raise RuntimeError('Impeccable telemetry was not turned off')
+        for path in folder.glob('orchi-*.md'):
             if '{{' in path.read_text(encoding='utf-8'):
                 raise RuntimeError('Unexpanded placeholder in ' + str(path))
         for unexpected in ('.agents', '.codex'):

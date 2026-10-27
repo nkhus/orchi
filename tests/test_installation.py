@@ -11,6 +11,8 @@ import pytest
 from orchi_core import installation, roles
 from orchi_core.agents import SKILLS
 
+from conftest import npx_calls
+
 ROLES = ("orchi-designer", "orchi-fixer", "orchi-implementer", "orchi-researcher", "orchi-reviewer", "orchi-scout")
 MANIFEST = ".claude/.orchi-install.json"
 
@@ -27,14 +29,16 @@ def test_each_scope(tmp_path, global_scope):
     assert not (tmp_path / "AGENTS.md").exists() and not (tmp_path / ".agents").exists()
     assert not (tmp_path / ".codex").exists() and not (tmp_path / ".github").exists()
     skill = str(tmp_path.resolve() / ".claude/skills/orchi") if global_scope else ".claude/skills/orchi"
-    assert sorted(p.name for p in (tmp_path / ".claude/agents").iterdir()) == [name + ".md" for name in ROLES]
-    for path in (tmp_path / ".claude/agents").glob("*.md"):
+    assert sorted(p.name for p in (tmp_path / ".claude/agents").glob("orchi-*")) == [name + ".md" for name in ROLES]
+    for path in (tmp_path / ".claude/agents").glob("orchi-*.md"):
         text = path.read_text()
         assert "{{" not in text and (f'"{skill}/scripts/' in text or f"`{skill}/references/" in text)
     assert f"`{skill}/SKILL.md`" in instructions.read_text()
+    assert installation.impeccable_version(tmp_path) == installation.IMPECCABLE
     assert installation.install(tmp_path, global_scope=global_scope)["status"] == "unchanged"
     installation.install(tmp_path, global_scope=global_scope, uninstall=True)
-    assert not [path for path in (tmp_path / ".claude").rglob("*") if path.is_file()]
+    left = sorted(path.relative_to(tmp_path).as_posix() for path in (tmp_path / ".claude").rglob("*") if path.is_file())
+    assert left == [".claude/agents/impeccable-documenter.md", ".claude/skills/impeccable/SKILL.md"]
 
 
 def test_uninstall_preserves_user_content(tmp_path):
@@ -50,7 +54,8 @@ def test_uninstall_preserves_user_content(tmp_path):
     assert (tmp_path / "CLAUDE.md").read_bytes() == existing["CLAUDE.md"] + b"\nLater user rule\n"
     assert (tmp_path / "AGENTS.md").read_bytes() == existing["AGENTS.md"]
     assert not (tmp_path / MANIFEST).exists()
-    assert not list((tmp_path / ".claude/skills").iterdir())
+    # Impeccable stays installed after Orchi is removed.
+    assert [p.name for p in (tmp_path / ".claude/skills").iterdir()] == ["impeccable"]
 
 
 def test_project_can_move(tmp_path):
@@ -98,7 +103,7 @@ def test_claude_link_to_agents_receives_the_managed_section(tmp_path):
     installation.install(tmp_path)
     assert (tmp_path / "CLAUDE.md").is_symlink()
     assert "Orchi workflow" in (tmp_path / "AGENTS.md").read_text()
-    assert list(json.loads((tmp_path / MANIFEST).read_text())["instructions"]) == ["AGENTS.md"]
+    assert list(json.loads((tmp_path / MANIFEST).read_text())["instructions"]) == [".gitignore", "AGENTS.md"]
     installation.install(tmp_path, uninstall=True)
     assert (tmp_path / "CLAUDE.md").is_symlink()
     assert (tmp_path / "AGENTS.md").read_text() == "Existing rules"
@@ -289,12 +294,12 @@ def test_shared_layout_migrates_to_claude_code_only(tmp_path):
     result = installation.install(tmp_path)
     assert result["status"] == "installed" and result["version"]["installed"] == "0.6.0" and result["notes"] == []
     assert not (tmp_path / ".agents/.orchi-install.json").exists() and not list((tmp_path / ".agents/skills").iterdir())
-    assert sorted(p.name for p in (tmp_path / ".claude/skills").iterdir()) == sorted(SKILLS)
+    assert sorted(p.name for p in (tmp_path / ".claude/skills").glob("orchi*")) == sorted(SKILLS)
     for name in SKILLS:
         folder = tmp_path / ".claude/skills" / name
         assert not folder.is_symlink() and installation.inventory(folder) == installation.inventory(installation.SOURCE / name)
     assert not list((tmp_path / ".codex/agents").iterdir())
-    assert sorted(p.name for p in (tmp_path / ".claude/agents").iterdir()) == [name + ".md" for name in ROLES]
+    assert sorted(p.name for p in (tmp_path / ".claude/agents").glob("orchi-*")) == [name + ".md" for name in ROLES]
     assert "{{" not in (tmp_path / ".claude/agents/orchi-scout.md").read_text()
     assert (tmp_path / "AGENTS.md").read_text() == "# Team rules"
     assert (tmp_path / ".github/copilot-instructions.md").read_text() == "Copilot rules"
@@ -302,8 +307,8 @@ def test_shared_layout_migrates_to_claude_code_only(tmp_path):
     assert claude.startswith("Claude rules\n\n<!-- orchi:begin -->\n## Orchi workflow") and "@AGENTS.md" not in claude
     assert (tmp_path / ".codex/config.toml").read_text() == 'model = "operator-model"\n'
     manifest = json.loads((tmp_path / MANIFEST).read_text())
-    assert set(manifest) == {"version", "scope", "github", "docs_workflow", "skills", "instructions", "files"}
-    assert list(manifest["instructions"]) == ["CLAUDE.md"]
+    assert set(manifest) == {"version", "scope", "github", "docs_workflow", "skills", "instructions", "files", "impeccable"}
+    assert list(manifest["instructions"]) == [".gitignore", "CLAUDE.md"]
     assert (Path(result["backup"]) / ".agents/skills/orchi-work/SKILL.md").read_text() == "Shared orchi-work"
     assert installation.install(tmp_path)["status"] == "unchanged"
     installation.install(tmp_path, uninstall=True)
@@ -396,7 +401,7 @@ def test_github_setup_installs_managed_files_and_persists(tmp_path, labels):
     assert result["labels"] == {"created": ["Epic"]} and labels == [tmp_path.resolve()]
     for relative in ("ISSUE_TEMPLATE/orchi-epic.yml", "ISSUE_TEMPLATE/orchi-task.yml",
                      "ISSUE_TEMPLATE/orchi-initiative.yml", "ISSUE_TEMPLATE/orchi-exploration.yml",
-                     "workflows/orchi-docs.yml"):
+                     "workflows/orchi-docs.yml", "workflows/orchi-design.yml"):
         assert (tmp_path / ".github" / relative).is_file()
     template = (tmp_path / ".github/pull_request_template.md").read_text()
     assert "## Documentation impact" in template and "## Merge risk" in template
@@ -634,3 +639,91 @@ def test_edited_retired_skill_needs_replace(tmp_path):
     result = installation.install(tmp_path, replace=True)
     assert not folder.exists()
     assert (Path(result["backup"]) / ".claude/skills/orchi-planner/SKILL.md").read_text() == "Local edit"
+
+
+def test_impeccable_is_installed_pinned_without_hooks_and_telemetry(tmp_path, fake_node):
+    result = installation.install(tmp_path)
+    assert result["impeccable"] == {"version": installation.IMPECCABLE, "installed": installation.IMPECCABLE}
+    (call,) = npx_calls(fake_node)
+    assert call.split() == ["--yes", "impeccable@" + installation.IMPECCABLE, "install", "-y", "--providers=claude",
+                            "--scope=project", "--no-hooks"]
+    assert json.loads((tmp_path / ".impeccable/config.json").read_text()) == {"telemetry": False}
+    ignore = (tmp_path / ".gitignore").read_text()
+    assert ignore.startswith("# orchi:begin\n") and ".impeccable/mocks/" in ignore and "**/skills/impeccable/scripts/bin/" in ignore
+    assert json.loads((tmp_path / MANIFEST).read_text())["impeccable"] == installation.IMPECCABLE
+    assert installation.install(tmp_path)["status"] == "unchanged" and len(npx_calls(fake_node)) == 1
+    installation.install(tmp_path, uninstall=True)
+    assert not (tmp_path / ".gitignore").exists() and (tmp_path / ".impeccable/config.json").is_file()
+
+
+def test_global_impeccable_goes_to_the_user_scope(tmp_path, fake_node):
+    installation.install(tmp_path, global_scope=True)
+    assert "--scope=global" in npx_calls(fake_node)[0].split()
+    assert json.loads((tmp_path / ".impeccable/config.json").read_text()) == {"telemetry": False}
+    assert not (tmp_path / ".gitignore").exists()
+
+
+def test_missing_or_old_node_fails_before_any_change(tmp_path, monkeypatch, fake_node):
+    (tmp_path / "CLAUDE.md").write_text("Original")
+    monkeypatch.setenv("FAKE_NODE_VERSION", "v18.18.2")
+    with pytest.raises(ValueError, match="Node.js v18.18.2 is too old"):
+        installation.install(tmp_path)
+    monkeypatch.setattr(installation.shutil, "which", lambda name: None)
+    with pytest.raises(ValueError, match="Node.js is missing"):
+        installation.install(tmp_path)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["CLAUDE.md"] and not npx_calls(fake_node)
+
+
+def test_existing_telemetry_choice_and_config_are_kept(tmp_path):
+    config = tmp_path / ".impeccable/config.json"
+    config.parent.mkdir()
+    config.write_text(json.dumps({"buildPath": "code"}))
+    installation.install(tmp_path)
+    assert json.loads(config.read_text()) == {"buildPath": "code", "telemetry": False}
+    config.write_text(json.dumps({"telemetry": True}))
+    installation.install(tmp_path)
+    assert json.loads(config.read_text()) == {"telemetry": True}
+
+
+def test_users_own_impeccable_is_kept_until_replace(tmp_path, fake_node):
+    skill = tmp_path / ".claude/skills/impeccable/SKILL.md"
+    skill.parent.mkdir(parents=True)
+    skill.write_text("---\nname: impeccable\nversion: 4.5.0\n---\n")
+    result = installation.install(tmp_path)
+    assert installation.impeccable_version(tmp_path) == "4.5.0" and not npx_calls(fake_node)
+    assert any("Impeccable 4.5.0 was installed outside Orchi" in note for note in result["notes"])
+    assert "impeccable" not in json.loads((tmp_path / MANIFEST).read_text())
+    installation.install(tmp_path, replace=True)
+    assert installation.impeccable_version(tmp_path) == installation.IMPECCABLE
+    assert npx_calls(fake_node)[0].split()[-1] == "--force"
+
+
+def test_orchi_updates_the_impeccable_it_installed(tmp_path, fake_node):
+    installation.install(tmp_path)
+    manifest = json.loads((tmp_path / MANIFEST).read_text())
+    manifest["impeccable"] = "4.7.0"
+    (tmp_path / MANIFEST).write_text(json.dumps(manifest))
+    (tmp_path / ".claude/skills/impeccable/SKILL.md").write_text("---\nversion: 4.7.0\n---\n")
+    installation.install(tmp_path)
+    assert installation.impeccable_version(tmp_path) == installation.IMPECCABLE and len(npx_calls(fake_node)) == 2
+
+
+def test_impeccable_failure_is_reported_after_orchi_installs(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("FAKE_NPX_FAIL", "registry unreachable")
+    assert installation.main(["--project", str(tmp_path)]) == 2
+    report = json.loads(capsys.readouterr().out)
+    assert "registry unreachable" in report["impeccable"]["error"] and report["status"] == "installed"
+    monkeypatch.delenv("FAKE_NPX_FAIL")
+    assert installation.main(["--project", str(tmp_path)]) == 0
+
+
+def test_dry_run_plans_impeccable_without_running_npx(tmp_path, fake_node):
+    planned = installation.install(tmp_path, dry=True)
+    assert planned["impeccable"] == {"version": installation.IMPECCABLE, "installed": None, "action": "install"}
+    assert not npx_calls(fake_node) and not list(tmp_path.iterdir())
+
+
+def test_design_workflow_pins_the_installed_impeccable():
+    workflow = (installation.GITHUB_ASSETS / "workflows/orchi-design.yml").read_text()
+    assert f"npx --yes impeccable@{installation.IMPECCABLE} detect --github" in workflow
+    assert "design" in installation.LABELS
