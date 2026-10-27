@@ -10,10 +10,10 @@ import tomllib
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi', 'orchi-explore', 'orchi-plan', 'orchi-deliver', 'orchi-planner', 'orchi-orchestrator')
+SKILLS = ('orchi', 'orchi-explore', 'orchi-plan', 'orchi-deliver', 'orchi-work', 'orchi-pm')
 # Only the workflow skill loads implicitly; the entry skills run when the user invokes them.
 # Skills a session may invoke itself: the entrypoint, and the worker skills a team hub asks for by message.
-IMPLICIT = {'orchi', 'orchi-explore', 'orchi-plan', 'orchi-deliver'}
+IMPLICIT = {'orchi', 'orchi-explore', 'orchi-plan', 'orchi-deliver', 'orchi-work'}
 IGNORED = {'__pycache__', '.pytest_cache', '.venv', '.git', 'reports', 'build', 'dist', 'node_modules'}
 # The npm package publishes the installed skills plus these wrapper files, and nothing else.
 WRAPPER_FILES = {'bin/orchi.js', 'tools/install.py'}
@@ -121,7 +121,7 @@ def validate(root: Path = ROOT) -> dict:
             if name in IMPLICIT and metadata.get('disable-model-invocation'):
                 errors.append('Entrypoint must allow implicit use: ' + name)
             if name not in IMPLICIT and metadata.get('disable-model-invocation') is not True:
-                errors.append('Hub skill must be explicit-only: ' + name)
+                errors.append('Entry skill must be explicit-only: ' + name)
             if (folder / 'agents').exists(): errors.append('Unexpected assistant interface metadata: ' + name)
         except (OSError, ValueError, KeyError, IndexError, TypeError) as exc: errors.append(name + ': ' + str(exc))
     for file in source_files:

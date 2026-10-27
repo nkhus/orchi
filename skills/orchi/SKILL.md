@@ -24,7 +24,7 @@ An idea that needs strategic decisions before any scope is [explored](references
 
 Agree the direction with the user before creating branches, Issues, or changes.
 Exploring a problem is not agreement to an agent-chosen scope; silence is not
-agreement; a team's [autonomy level](references/team.md#autonomy) can delegate it. Do not
+agreement; a pool's [autonomy level](references/pool.md#modes-and-autonomy) can delegate it. Do not
 re-ask agreed direction. If new evidence changes the outcome, approach, or scale, explain and agree again.
 
 ## Scope
@@ -45,8 +45,8 @@ its plan or code, from the fetched remote target; never reset another checkout. 
 ## Core rules
 
 - Parallel work happens across independent Epics, each with its own owner, branch,
-  and worktree. Tasks within an Epic run in sequence on the Epic branch and share
-  its PR.
+  and worktree. Tasks within an Epic share its branch and PR and run in sequence,
+  except a pool dev lead's Tasks on different files (see the pool reference).
 - Claim before editing and never overwrite another owner's claim. Only ready
   Epics and standalone Tasks are independent entry points.
 - Update documentation with the code, in the same branch. Never present planned
@@ -74,13 +74,13 @@ Read only the reference needed for the current stage.
 | Update Core documentation or reconcile branches | [Knowledge](references/knowledge.md) |
 | Create, relate, or close Issues; PR conventions | [GitHub conventions](references/github.md) |
 | Search or read documentation; validate links | [Retrieval](references/retrieval.md) |
-| Run planner, orchestrator, and worker sessions | [Team](references/team.md) |
+| Run Orchi, crews, and workers as a session pool | [Pool](references/pool.md) |
 
 ## Entry skills and subagents
 
-`orchi-explore` (idea → shaped Exploration), `orchi-plan` (request → ready
-Issues), `orchi-deliver` (Issue → PR), and the team hubs `orchi-planner` and
-`orchi-orchestrator` are optional entry points; the hubs run only when typed.
+`orchi-explore` (idea → Exploration), `orchi-plan` (request → ready Issues),
+`orchi-deliver` (Issue → PR), `orchi-pm` (Orchi, a session pool's entry; typed
+only), and `orchi-work` (a pool worker's task) are optional entry points.
 The rules above apply without them. The main session may delegate to the
 subagents defined in [roles](roles/README.md): `orchi-scout` retrieves,
 `orchi-researcher` researches and designs options for an exploration,

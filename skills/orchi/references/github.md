@@ -8,7 +8,7 @@ claiming are in [execution](execution.md).
 ## Setup
 
 Orchi uses the type labels `Initiative`, `Epic`, and `Task`; `in-progress` for
-claims; `Exploration` for explorations; and, in a team, `needs-planning`,
+claims; `Exploration` for explorations; and, in a session pool, `needs-planning`,
 `delivery-ready`, and `retro` for hand-offs. A project installed with `--github`
 already has them, plus issue templates, a PR template,
 and a documentation check workflow. Otherwise, create missing labels deliberately

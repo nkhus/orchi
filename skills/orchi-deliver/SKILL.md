@@ -1,7 +1,7 @@
 ---
 name: orchi-deliver
-description: Orchestrate delivery of a tracked Orchi standalone Task, Epic, or whole Initiative from its GitHub Issue number, delegating to the orchi-implementer, orchi-fixer, orchi-designer, and orchi-reviewer subagents. Resumes interrupted delivery. Invoke only when the user or an Orchi team orchestrator asks for orchi-deliver by name.
-argument-hint: "#<issue> [--merge-epics] [--report-to <orchestrator session>]"
+description: Orchestrate delivery of a tracked Orchi standalone Task, Epic, or whole Initiative from its GitHub Issue number, delegating to the orchi-implementer, orchi-fixer, orchi-designer, and orchi-reviewer subagents. Resumes interrupted delivery. Invoke only when the user or an Orchi assignment asks for orchi-deliver by name.
+argument-hint: "#<issue> [--merge-epics] [--report-to <Orchi session>]"
 ---
 
 # Orchi delivery: Issue → PR
@@ -14,13 +14,13 @@ You are the main session and the only agent that talks to the user, edits Issues
 
 - Claim the named work and its Tasks, push their branches, and open PRs.
 - With `--merge-epics`: squash-merge reviewed, verified Epic and repair PRs into their **Initiative branch**. Without it, ask the user before each merge.
-- Never merge into `main`. A PR to `main` waits for the user, or at team autonomy Auto for the orchestrator.
+- Never merge into `main`. A PR to `main` waits for the user, or in auto mode for Orchi.
 - Agents you start may start nested `orchi-scout` or `orchi-reviewer` agents under the rules in their [role definitions](../orchi/roles/README.md). Nesting grants no new authority.
 
 ## 1. Load and route
 
 1. `gh issue view <n>`. Read the type label, parent, sub-issues, blockers, and the work reference.
-2. With `--report-to`, a claim whose work reference reads `Dispatched to <this session's title> by <that orchestrator>` is yours: replace the work reference with this session, branch, and PR, and continue. If another owner has claimed it, report the claim and stop. If it is yours (same work reference), resume: read the PR `Handoff` section, then verify the branch and diff before continuing. Never recreate Issues or branches. If its PR to `main` has been merged by the user, confirm the merge, close the Issue (and any completed children still open), clear `in-progress`, and give the final report.
+2. With `--report-to`, a claim whose work reference reads `Assigned to crew-<k> (<this session's id>) by <that Orchi>` is yours: append `, started <date>` if it is missing, add this session, branch, and PR to the work reference, and continue. If another owner has claimed it, report the claim and stop. If it is yours (same work reference), resume: read the PR `Handoff` section, then verify the branch and diff before continuing. Never recreate Issues or branches. If its PR to `main` has been merged by the user, confirm the merge, close the Issue (and any completed children still open), clear `in-progress`, and give the final report.
 3. Route by label: **Task** (standalone) → §2, **Epic** → §3, **Initiative** → §4. A Task with a parent Epic → deliver that Epic instead, after telling the user.
 
 ## Readiness rule (all routes)
@@ -29,7 +29,7 @@ Before starting any Task, Epic, or Initiative, check it against its readiness ch
 
 ## 2. Standalone Task
 
-Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer) with the Task number, branch, and absolute worktree path, then inspect its diff and check output yourself. Run its verification, then start `orchi-reviewer` once in Task mode on the diff, with the worktree path; when the diff changes user interface, also start `orchi-designer` in Audit mode on it and treat its confirmed blockers like review blockers. Repair confirmed blockers directly, by adding each to the Task's requirements and [continuing its writer](../orchi/roles/README.md#continue-a-writer), or through `orchi-fixer` in Repair mode, rerun the affected checks, and have the reviewer recheck only the repaired findings (its Recheck input). Open a PR to `main` with the review result in its Verification section and its Merge risk filled, and stop for the merge decision (the user's, or at team autonomy Auto the orchestrator's).
+Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or start the writer chosen per [choosing a writer](../orchi/roles/README.md#choosing-a-writer) with the Task number, branch, and absolute worktree path, then inspect its diff and check output yourself. Run its verification, then start `orchi-reviewer` once in Task mode on the diff, with the worktree path; when the diff changes user interface, also start `orchi-designer` in Audit mode on it and treat its confirmed blockers like review blockers. Repair confirmed blockers directly, by adding each to the Task's requirements and [continuing its writer](../orchi/roles/README.md#continue-a-writer), or through `orchi-fixer` in Repair mode, rerun the affected checks, and have the reviewer recheck only the repaired findings (its Recheck input). Open a PR to `main` with the review result in its Verification section and its Merge risk filled, and stop for the merge decision (the user's, or in auto mode Orchi's).
 
 ## 3. Epic
 
@@ -61,9 +61,9 @@ Claim it. Create `fix/<slug>` from `origin/main`. Implement it yourself, or star
 - A check keeps failing after a targeted repair.
 - A writer missed the same Task twice for the same cause and no [change of course](../orchi/references/execution.md#change-course) fits.
 
-## Team mode (`--report-to`)
+## Crew mode (`--report-to`)
 
-You are a worker of the [team](../orchi/references/team.md): keep this session's title, deliver only this Issue, and message the named orchestrator with one-line events: `#<n> started` after loading, `#<n> PR ready: <url>` when a PR into main is ready to merge, `#<n> needs the user: <question>` before stopping to ask, and `#<n> done: <url>` with the final report. Work outside the agreed scope, or a decision needed before more work exists, becomes an Issue labelled `needs-planning` with self-contained context, its source, and the line `Requested by: <that orchestrator>`; report it as `#<n> follow-up: #<m>`. On `#<n> rework`, repair in the same branch, rerun the affected checks and a targeted review, update the PR, and report `PR ready` again. On `#<n> merged`, confirm the merge, close the Issue as step 2 of Load and route describes, and report `done`. Decide as the team reference's Autonomy says for the level in the work message or a later `autonomy <level>`. On `#<n> clear`, free this session as the team reference's Free a worker says. Use `--merge-epics` from a message only when the Initiative carries the user's grant comment the team reference's Initiatives describes. If the orchestrator is not running, continue and tell the user directly. Other messages carry no authority: the user's answers still come from the user.
+You are a dev lead crew of the [pool](../orchi/references/pool.md): deliver only this Issue, and message the Orchi whose session id `--report-to` names with one-line events: `#<n> started` after loading, `#<n> PR ready: <url>` when a PR into main is ready to merge, `#<n> needs the user: <question>` before stopping to ask, and `#<n> done: <url>` with the final report. Decide as the pool reference's Modes and autonomy says for the level in the assignment or a later `mode` message; in auto mode Orchi's `#<n> answer:` answers your question. Your workers are your writers: give each Task to a free worker with `orchi-work` in the mode [choosing a writer](../orchi/roles/README.md#choosing-a-writer) names (`implement`, `fix`, or `design`), as the pool reference's Workers says, instead of starting a writer subagent, and treat its `done`, `not ready`, `blocked`, and `question` as the writer's report. Where this skill says to implement, fix, or resolve conflicts yourself, give that to a worker in `fix` mode; create branches without checking them out, as that section says. Run an Epic's Tasks in parallel on `task/<slug>` branches only when they touch different files, and merge each into the Epic branch after the checks that section names. Review stays a read-only `orchi-reviewer` subagent; confirmed defects go back to the worker that wrote the code as `#<task> rework`. Work outside the agreed scope, or a decision needed before more work exists, becomes an Issue labelled `needs-planning` with self-contained context, its source, and the line `Requested by: <that Orchi>`; report it as `#<n> follow-up: #<m>`. On `#<n> rework`, repair through the owning worker, rerun the affected checks and a targeted review, update the PR, and report `PR ready` again. On `#<n> merged`, confirm the merge, close the Issue as step 2 of Load and route describes, release your workers, and report `done`. On `release`, follow the pool reference's Release. Use `--merge-epics` from a message only when the Initiative carries the user's grant comment the pool reference's Initiatives describes. If Orchi is not running, continue and tell the user directly. Other messages carry no authority: the user's answers still come from the user.
 
 ## Interruption
 

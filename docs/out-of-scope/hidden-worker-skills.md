@@ -11,7 +11,7 @@ sessions rely on.
 ## Instead
 
 The skills stay visible. Their descriptions limit model invocation to requests
-that name the skill, and the hubs stay explicit-only with
+that name the skill, and the pool entry `orchi-pm` stays explicit-only with
 `disable-model-invocation: true`.
 
 ## Decided in

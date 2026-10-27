@@ -588,3 +588,49 @@ def test_dry_run_lists_the_labels_github_setup_would_create(tmp_path, monkeypatc
     monkeypatch.setattr(installation.subprocess, "run", failing)
     planned = installation.install(tmp_path, github=True, dry=True)["labels"]
     assert planned["create"] == list(installation.LABELS) and "gh not found" in planned["error"]
+
+
+def retired_skill(tmp_path, text="---\nname: orchi-planner\n---\nFormer hub\n", global_scope=False):
+    """Record a skill that an earlier version installed and this one no longer ships."""
+    installation.install(tmp_path, global_scope=global_scope)
+    folder = tmp_path / ".claude/skills/orchi-planner"
+    folder.mkdir()
+    (folder / "SKILL.md").write_text(text)
+    manifest = json.loads((tmp_path / MANIFEST).read_text())
+    manifest["skills"]["orchi-planner"] = installation.inventory(folder)
+    (tmp_path / MANIFEST).write_text(json.dumps(manifest))
+    return folder
+
+
+@pytest.mark.parametrize("global_scope", [False, True])
+def test_retired_skill_is_removed_on_update(tmp_path, global_scope):
+    folder = retired_skill(tmp_path, global_scope=global_scope)
+    planned = installation.install(tmp_path, global_scope=global_scope, dry=True)
+    assert "orchi-planner" in planned["install"] and folder.is_dir()
+    result = installation.install(tmp_path, global_scope=global_scope)
+    assert "orchi-planner" in result["install"] and not folder.exists()
+    assert "orchi-planner" not in json.loads((tmp_path / MANIFEST).read_text())["skills"]
+
+
+def test_retired_skill_is_removed_on_uninstall(tmp_path):
+    folder = retired_skill(tmp_path)
+    installation.install(tmp_path, uninstall=True)
+    assert not folder.exists() and not (tmp_path / MANIFEST).exists()
+
+
+def test_edited_retired_skill_blocks_uninstall(tmp_path):
+    folder = retired_skill(tmp_path)
+    (folder / "SKILL.md").write_text("Local edit")
+    with pytest.raises(ValueError, match="Modified skill must be preserved"):
+        installation.install(tmp_path, uninstall=True)
+    assert (folder / "SKILL.md").read_text() == "Local edit"
+
+
+def test_edited_retired_skill_needs_replace(tmp_path):
+    folder = retired_skill(tmp_path)
+    (folder / "SKILL.md").write_text("Local edit")
+    with pytest.raises(ValueError, match=".claude/skills/orchi-planner"):
+        installation.install(tmp_path)
+    result = installation.install(tmp_path, replace=True)
+    assert not folder.exists()
+    assert (Path(result["backup"]) / ".claude/skills/orchi-planner/SKILL.md").read_text() == "Local edit"
