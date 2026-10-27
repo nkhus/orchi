@@ -23,6 +23,7 @@ to it.
 | Decisions | The decision log ([clarify](planning.md#clarify-with-the-user)); mark a decision that is hard to reverse, surprising, and a real tradeoff as a decision record candidate |
 | Requirements | Numbered requirements (R1, R2, ...) of the chosen direction, each observable at completion |
 | Shape | The chosen direction, and candidate Epics as outcomes with the result or contract each supplies to the next |
+| Product | For a product with a user interface: the product truth Impeccable's `init` records in `PRODUCT.md` (see Shape) |
 | Open questions | What is still open, with what each question blocks; questions you can only sense so far are listed as such |
 
 ## Phases
@@ -48,11 +49,18 @@ answer changes the destination or invalidates options.
    offering a menu. Done when the user has picked a direction.
 4. **Converge.** Resolve the chosen direction's decisions in rounds along their
    dependencies, as planning's clarify rules describe, and record each one at
-   once. When a question cannot be settled on paper (how a state model behaves,
-   what a screen should look like), offer a prototype. Done when no open
-   question affects the approach.
-5. **Shape.** Write the requirements and the Shape section, then read the whole
-   Issue back to the user. Done when the user confirms it is shaped. When
+   once. When a question cannot be settled on paper (how a state model
+   behaves), offer a prototype. How screens should look is not settled here:
+   it is a design Epic's work, on the real stack with Impeccable. Done when no
+   open question affects the approach.
+5. **Shape.** Write the requirements and the Shape section. For a product with
+   a user interface, also fill the Product section with what Impeccable's
+   `init` asks: the primary users and their situation, the purpose and the
+   mechanism no competitor shares, positioning, platform, stack (for a React web
+   project, Tailwind CSS 4, shadcn/ui, and SmoothUI), constraints, brand
+   commitments, evidence, and the accessibility level. The first design Epic's
+   `init` writes `PRODUCT.md` from it and asks only what is missing. Then read
+   the whole Issue back to the user. Done when the user confirms it is shaped. When
    planning continues in the same session, that confirmation also agrees the
    plan's outcome and direction; planning asks only about scope it adds.
 
