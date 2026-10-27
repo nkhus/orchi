@@ -70,8 +70,8 @@ waits for its report, and checks the result (`git log -1 origin/<default>`,
 
 1. Works in the main checkout (`git worktree list`, first entry), on the default
    branch; any other checked-out branch, or a default branch that has diverged
-   from GitHub's, stops it with a report. It fast-forwards a branch that is
-   behind.
+   from GitHub's, stops it with a report, unless Orchi's brief says the user
+   agreed to merge GitHub's branch in. It fast-forwards a branch that is behind.
 2. Before every commit, checks the files it stages for credentials, private
    keys, tokens, `.env` files, and files over 5 MB, and leaves out and reports
    any it finds instead of committing them.
@@ -93,12 +93,16 @@ waits for its report, and checks the result (`git log -1 origin/<default>`,
    anything that stopped it. It never force-pushes, rewrites history, or
    changes branch protection.
 
-Only these wait for the user, asked once in Orchi's report: no GitHub remote
-(Orchi offers to create a private repository named after the folder with
-`gh repo create`, and the setup agent does it on the user's yes), `gh` not
-authenticated (`gh auth login` is theirs), a file left out as a possible secret,
-a diverged branch, and the setup PR, which the pool waits for. Orchi builds the
-pool in the user's next turn after the PR is merged.
+Only these wait for the user, asked once in Orchi's report as a plain question
+whose yes Orchi carries out, never as a command for them to run: no GitHub remote
+(on their yes the setup agent creates a private repository named after the folder
+with `gh repo create`); `gh` not authenticated (on their yes Orchi runs
+`gh auth login --web` in the background and gives them the one-time code and the
+link, so they only sign in in their browser); a file left out as a possible
+secret (commit it or keep it out); a diverged branch (Orchi says in plain words
+what differs, and on their yes the setup agent merges GitHub's branch in, or
+stops and reports a conflict); and the setup PR (Orchi merges it on their yes).
+Orchi builds the pool in the turn of that yes, once the repository is ready.
 
 ## Build the pool
 
@@ -215,8 +219,8 @@ when it changes.
 
 | Level | Planner and researcher crews | Dev lead crews and Orchi |
 | --- | --- | --- |
-| Ask | Agree the direction, scope, breakdown, and decisions as planning says | Stop for decisions the user has not delegated; the user merges into main |
-| Decide | Agree the direction; decide reversible choices (wording, names, defaults, ordering) and the breakdown, show the plan, and proceed | Decide reversible choices within the agreed scope; the user merges into main |
+| Ask | Agree the direction, scope, breakdown, and decisions as planning says | Stop for decisions the user has not delegated; Orchi merges into main on the user's yes |
+| Decide | Agree the direction; decide reversible choices (wording, names, defaults, ordering) and the breakdown, show the plan, and proceed | Decide reversible choices within the agreed scope; Orchi merges into main on the user's yes |
 | Auto | A planner also adopts the recommended scope and approach among the researched options, and proceeds; a researcher still leaves the exploration's direction to the user | Also, Orchi merges a PR into main when its checks pass, its Verification section records no unresolved `blocker` or `major`, every repair is rechecked, and the review confirmed each exception it adds or changes |
 
 At every level, ask the user before deploying; before anything destructive or

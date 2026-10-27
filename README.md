@@ -75,7 +75,8 @@ planner  Planned: one Epic, three Tasks. Orchi takes it from here.
 orchi    A dev lead is building it with two workers.
          ... each new test fails first, then passes · every check green · one full review ...
 orchi    PR #112 is ready. Merge risk: two-way door, orders page only. Exceptions: none.
-you      merge
+         Merge it?
+you      yes
 orchi    Merged. One lesson proposed, about a missing fixture. Accept it?
 ```
 
@@ -124,9 +125,9 @@ You work on the concept, the vision, and the design; Orchi decides everything te
 | The direction of an exploration | Research, options, and recommendations |
 | Every design direction, comp, and generated asset | Building against what you approved |
 | Product constraints | The stack, tools, thresholds, exceptions, and CI |
-| Merging into `main`, unless you turn on auto mode | Review, repairs, and rechecks |
+| A yes to each merge into `main`, unless you turn on auto mode | Review, repairs, rechecks, and the merge itself |
 | Hearing, in plain words, of every exception to a check | Deciding exceptions, applying the branch ruleset, and proposing lessons after each delivery |
-| Deploys, access, money, and destructive actions | Keeping the documentation current |
+| Deploys, access, money, and destructive actions; signing in to GitHub when asked | Keeping the documentation current, and every command, Git, and GitHub step: you never open a terminal |
 
 **Modes.** Orchi starts interactive at autonomy Ask: crews ask you in their own sessions, and Orchi tells you once when a crew is waiting. Say `autonomy decide` to have crews show you each decision and carry on. Say `mode auto` to step away: Orchi answers planners and dev leads itself and merges a PR only when checks pass, no blocker or major finding is unresolved, every repair is rechecked, and the review confirmed every exception the PR adds. Researchers and designers still ask you. Say `mode interactive` to take back the questions.
 

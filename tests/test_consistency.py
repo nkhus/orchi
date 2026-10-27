@@ -1,4 +1,5 @@
 """Text, not behavior: the skills, roles, and references agree where a session follows one and not the other."""
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,3 +112,17 @@ def test_the_user_answers_only_product_questions_and_nothing_waits_needlessly():
     assert "confirmed: <yes, no change avoids it" in prose("orchi-core/roles/orchi-reviewer.md")
     assert "CI runs on every pull request, whatever its base" in prose("orchi-core/references/standards.md")
     assert "never which fix to use" in prose("orchi-core/references/execution.md")
+
+
+def test_no_session_hands_the_user_a_command_and_orchi_merges_on_their_yes():
+    assert "Never ask the user to run a command, open a terminal or GitHub, or edit a file" in prose("orchi-core/SKILL.md")
+    orchi, pool = prose("orchi/SKILL.md"), prose("orchi-core/references/pool.md")
+    assert "on their yes, confirm its checks pass and merge it yourself" in orchi
+    assert "waits for their merge" not in orchi
+    assert "the user merges into main" not in pool and "Orchi merges into main on the user's yes" in pool
+    assert "`gh auth login` is theirs" not in pool and "they only sign in in their browser" in pool
+    assert "the setup PR (Orchi merges it on their yes)" in pool
+    assert "Orchi merges a PR to `main` on the user's yes" in prose("orchi-deliver/SKILL.md")
+    for name in ("orchi", "orchi-deliver", "orchi-plan", "orchi-design", "orchi-explore", "orchi-standards"):
+        text = prose(f"{name}/SKILL.md")
+        assert not re.search(r"(?<![Nn]ever )(ask|tell) the user to (run|merge|commit|push|open a terminal)", text), name
