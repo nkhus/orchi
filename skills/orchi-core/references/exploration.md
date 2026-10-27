@@ -14,7 +14,8 @@ across sessions, and one branch, `explore/<slug>` from main, holds its working
 folder `docs/work/<slug>/` ([working documents](knowledge.md#working-documents)).
 Create both once the user agrees on the destination. The Issue body is the
 current map; detail lives in the folder's `research/` and `options/` files, and
-the body links to them.
+the body links to them by commit permalink (`/blob/<sha>/docs/work/...`), so the
+links survive when the branch moves on and the folder is later deleted.
 
 | Section | Content |
 | --- | --- |

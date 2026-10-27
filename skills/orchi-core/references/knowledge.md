@@ -59,7 +59,10 @@ with the work:
    `options/<option>.md` for each direction with its verdict.
 2. Planning creates the Initiative or Epic branch from the exploration branch,
    so the folder carries on, renamed to `docs/work/<tag>-<slug>/` when the work
-   gets a tag. It gives every exploration decision a fate (a requirement, an
+   gets a tag. When an exploration yields several top items (for a new product:
+   the foundation Epic, the design Epic, and the rest of the plan), the folder
+   goes to the first in delivery order; the others link to its files by commit
+   permalink and start their own folder when they need one. It gives every exploration decision a fate (a requirement, an
    area decision to record with its code, or none) and writes the plan as the
    folder's `README.md`. Without an exploration, planning starts the folder on
    the Initiative branch, or on the Epic branch when an Epic needs a design

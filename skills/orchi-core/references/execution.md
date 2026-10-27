@@ -43,8 +43,9 @@ boundary.
 Read the Epic issue, design, Tasks in order, branch and PR, dependency results,
 and scoped instructions. Check that the actual branch matches the issue.
 
-Implement Tasks in sequence on the Epic branch; Tasks have no separate branch or
-PR. Mark the current Task `in-progress`. Update code, tests, and owning
+Implement Tasks in sequence on the Epic branch; Tasks have no PR of their own. A
+pool dev lead's Tasks on different files run in parallel on `task/<slug>`
+branches that merge into the Epic branch ([pool](pool.md#workers)). Mark the current Task `in-progress`. Update code, tests, and owning
 documentation together, writing tests per [testing](testing.md). Run the checks
 that establish the Task's acceptance and record the result, the red evidence,
 and the commit in the shared PR. A failing check is unresolved
