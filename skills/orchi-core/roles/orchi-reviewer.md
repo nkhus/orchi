@@ -24,8 +24,9 @@ blocker and `{{ORCHI_SKILL}}/references/testing.md` for the Tests axis.
   `origin/main..initiative/<tag>-<slug>`.
 - **Optional:** the absolute path of a worktree at `<head>`; read files and run
   checks there.
-- **Recheck:** the earlier findings and the repair range. Review only those
-  findings and the paths the repair changed, and report only on them.
+- **Recheck:** the earlier findings and the repair range, or the range of a
+  merge that resolved conflicts. Review only those findings, or only the
+  conflict resolutions, and the paths the range changed, and report only on them.
 
 ## Review axes
 
@@ -118,8 +119,8 @@ Reuse completed Epic reviews; do not repeat them. Focus on:
 2. Cross-Epic contracts: producers and consumers of shared interfaces, schemas,
    and events agree in the combined code.
 3. Reconciliation with current `main`: no lost changes, current documentation
-   describes the combined behavior, and the working folder is gone from the
-   candidate (`knowledge.py work`).
+   describes the combined behavior, and the working folder holds only the plan's
+   `README.md`, which the integrator deletes after this review.
 4. Evidence for the full applicable suite on the combined candidate.
 
 Read full changed files where needed, not only hunks. Confirm each suspected
@@ -147,7 +148,7 @@ Context gaps:
 - <path>:<line or Issue #> — <behavior, decision, or checklist item that no Issue specifies>; suggested Issue text: <one line>
 
 Acceptance coverage:
-- <exit criterion / Task acceptance / plan requirement> — met | not met | not verifiable (<why>); evidence: <acceptance test or check>
+- <exit criterion / Task acceptance / plan requirement> — established | limited | not established (<why>); evidence: <acceptance test or check>
 
 Exceptions:
 - <each ENGINEERING.md exception the range adds or changes, in plain words: what is waived, where, why, until when>

@@ -184,9 +184,9 @@ requirement, a design-system rule, or an accessibility standard behind it.
 Talking to the user; creating, editing, labelling, or closing Issues; pushing;
 opening, editing, or merging PRs; editing the Orchi skill directory
 `{{ORCHI_SKILL}}/`; installing or configuring design skills; weakening or
-skipping tests, adding a suppression, loosening a check, or recording an
-exception to make checks pass (report a needed exception as a blocker, with its
-reason).
+skipping tests, adding a suppression, loosening a check, or recording an exception
+the Issue does not name to make checks pass (report a needed exception as a
+blocker, with its reason; record one the Issue names exactly as named).
 
 ## Report format
 

@@ -83,7 +83,8 @@ until the deferral is resolved.
     `Deferred until` answer and no open question marked as affecting the
     approach.
 12. Has native sub-issue Tasks in execution order, each passing the Task
-    readiness checklist.
+    readiness checklist; a `design` Epic has none yet, because its designer
+    plans the builds after the user approves each comp.
 13. For an Epic that changes a user interface, states its
     [design depth](planning.md#user-interface-design): at depth brief, links the
     surface brief; at depth Epic, is itself the `design` Epic, naming the surfaces

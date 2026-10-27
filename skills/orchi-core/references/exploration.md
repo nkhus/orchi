@@ -64,7 +64,8 @@ answer changes the destination or invalidates options.
    `init` asks: the primary users and their situation, the purpose and the
    mechanism no competitor shares, positioning, platform, stack (from the Stack
    section), constraints, brand
-   commitments, evidence, and the accessibility level. The first design Epic's
+   commitments, evidence, and the accessibility level (WCAG 2.2 AA unless the
+   user says otherwise; do not ask). The first design Epic's
    `init` writes `PRODUCT.md` from it and asks only what is missing. For a new
    product, fill the Stack section from the
    [standards defaults](standards.md#stack) and state it once; never ask the user
@@ -86,8 +87,9 @@ not the code, carries into planning.
 
 Exploration needs a Git repository with a GitHub remote, because the Issue is
 its state. If none exists, offer to create one (`git init`, `gh repo create`)
-and to install Orchi there before framing; creating a remote repository needs
-the user's agreement. Planning a new project starts with `orchi-standards`,
+and to install Orchi there with `--github` before framing, then commit and push
+the installation to `main`, because branches, crews' worktrees, and CI start
+from it; creating a remote repository needs the user's agreement. Planning a new project starts with `orchi-standards`,
 which plans the foundation Epic that every other Epic is blocked by.
 
 ## Hand off

@@ -92,7 +92,7 @@ def test_only_work_that_passed_planning_is_assigned_to_a_dev_lead():
     assert {"delivery-ready", "needs-planning", "Exploration", "retro"} <= set(installation.LABELS)
     assert "only an open, unclaimed Issue labelled `delivery-ready`" in pool
     assert "give an Issue without `delivery-ready` to a dev lead" in entry
-    assert "adds `delivery-ready` to the top item" in pool
+    assert "adds `delivery-ready` to every top item that passed it" in pool
     assert "An Initiative goes to one dev lead crew" in pool
 
 
