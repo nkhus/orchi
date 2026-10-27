@@ -27,8 +27,9 @@ worktree at a time. Start `orchi-fixer` when the change is small and fully
 determined by its Issue: a standalone Task, an Epic Task, or a confirmed review
 defect whose fix is localized, whose acceptance is directly checkable, and which
 needs no new contract, schema, migration, dependency, or design choice. Start
-`orchi-designer` for a Task whose outcome is mainly user interface design:
-layout, typography, color, motion, states, or component choice. Start
+`orchi-designer` for a Task whose outcome is mainly user interface design
+(layout, typography, color, motion, states, or component choice) and for every
+Task that builds against a surface brief or an approved comp. Start
 `orchi-implementer` for every other Task, standalone or in an Epic. A writer's
 report is a claim; inspect its diff and check output before pushing.
 
@@ -43,7 +44,9 @@ A fixer `ESCALATE` report names its cause:
   defect in its requirements.
 
 A designer `ESCALATE` is always a `decision`: it lists options and a
-recommendation. Handle it like a fixer's.
+recommendation. Handle it like a fixer's, except that a direction, a comp, or a
+generated asset goes to the user whatever they delegated and whatever the
+autonomy level.
 
 ## Continue a writer
 

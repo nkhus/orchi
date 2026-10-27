@@ -39,3 +39,21 @@ def test_designer_crew_role_routing_and_mode_agree():
     assert "you never pick for them" in design and "Continue with [orchi-deliver](../orchi-deliver/SKILL.md)" in design
     assert "Ask the user directly in both modes" in design and "adopt Orchi's claim" in design
     assert "asks for orchi-design by name" in design
+
+
+def test_exploration_records_product_truth_for_init():
+    exploration, design = prose("orchi/references/exploration.md"), prose("orchi-design/SKILL.md")
+    assert "| Product | For a product with a user interface" in exploration
+    assert "The first design Epic's `init` writes `PRODUCT.md` from it and asks only what is missing." in exploration
+    assert "How screens should look is not settled here" in exploration
+    assert "id: product" in (SKILLS / "orchi/assets/github/ISSUE_TEMPLATE/orchi-exploration.yml").read_text()
+    assert "starting from the Product section of the Exploration" in design
+
+
+def test_delivery_routes_ui_tasks_to_the_designer_and_audits_ui_changes():
+    readme = " ".join((SKILLS / "orchi/roles/README.md").read_text().split())
+    review, deliver = prose("orchi/references/review-delivery.md"), prose("orchi-deliver/SKILL.md")
+    assert "every Task that builds against a surface brief or an approved comp" in readme
+    assert "a direction, a comp, or a generated asset goes to the user whatever they delegated" in readme
+    assert "start `orchi-designer` in Audit mode on it beside the reviewer" in review
+    assert "`orchi-designer` in Audit mode" in deliver

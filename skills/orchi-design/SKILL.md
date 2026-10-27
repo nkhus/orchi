@@ -34,7 +34,9 @@ every autonomy level; you write no product code yourself.
 
 ## 2. With the user, surface by surface
 
-1. Without `PRODUCT.md`, run `/impeccable init` with the user. For a redesign
+1. Without `PRODUCT.md`, run `/impeccable init` with the user, starting from the
+   Product section of the Exploration the Epic came from, so it asks only what
+   that leaves open; commit `PRODUCT.md` on the Epic branch. For a redesign
    without `DESIGN.md`, run `/impeccable document` first, so the incumbent look
    is recorded as evidence and then replaced.
 2. For each surface the Epic names, run `/impeccable shape <surface>` with the
