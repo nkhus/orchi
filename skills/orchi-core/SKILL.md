@@ -10,16 +10,14 @@ Orchi is a development convention. Git stores code and documentation; GitHub
 Issues store ownership, hierarchy, dependencies, and status. There is no
 controller, state database, approval receipt, or mandatory command facade.
 
-Identify your role (researcher, Epic owner, Initiative integrator, or reader),
-inspect branch and worktree changes, read the relevant issue and PR, and resume
-existing work instead of duplicating it. Repository instructions (CLAUDE.md, AGENTS.md,
-scoped files) take precedence. Preserve the user's request, decisions, and edits.
+Identify your role (researcher, Epic owner, Initiative integrator, or reader), inspect branch and
+worktree changes, read the relevant issue and PR, and resume existing work instead of duplicating it.
+Repository instructions (CLAUDE.md, AGENTS.md, scoped files) take precedence. Preserve the user's request, decisions, and edits.
 
 ## Research, propose, agree
 
-Before choosing a delivery scope, read the relevant code, documentation, and
-issues. Scale research to uncertainty and ask focused questions when missing
-context would change the result ([clarify](references/planning.md#clarify-with-the-user)).
+Before choosing a delivery scope, read the relevant code, documentation, and issues. Scale research to
+uncertainty and ask focused questions when missing context would change the result ([clarify](references/planning.md#clarify-with-the-user)).
 Present findings, approaches with tradeoffs, and a recommended outcome and scope.
 An idea that needs strategic decisions before any scope is [explored](references/exploration.md) first.
 
@@ -58,6 +56,8 @@ its plan or code, from the fetched remote target; never reset another checkout. 
 - Squash-merge. Close Epics, Initiatives, and standalone Tasks only after
   confirming the merge; close Epic Tasks as the execution reference says. Do not infer merge
   or deployment permission from permission to implement.
+- Where `ENGINEERING.md` exists, its checks are the code review: run them, and never weaken one
+  without recording an exception there ([standards](references/standards.md#gate-integrity)).
 - If GitHub is unavailable, say so; never claim remote tracking or ownership that does not exist.
 
 ## Stage guidance
@@ -71,6 +71,7 @@ Read only the reference needed for the current stage.
 | Check that a Task or Epic is ready to start or delegate | [Readiness](references/readiness.md) |
 | Find ready work, claim, execute, hand off, resume | [Execution](references/execution.md) |
 | Plan, write, or review tests; diagnose a defect | [Testing](references/testing.md) |
+| Set, audit, or follow a project's engineering standards (`ENGINEERING.md`) | [Standards](references/standards.md) |
 | Review, integrate, and close | [Review and delivery](references/review-delivery.md) |
 | Update Core documentation or reconcile branches | [Knowledge](references/knowledge.md) |
 | Create, relate, or close Issues; PR conventions | [GitHub conventions](references/github.md) |
@@ -79,22 +80,21 @@ Read only the reference needed for the current stage.
 
 ## Entry skills and subagents
 
-`orchi-explore` (idea → Exploration), `orchi-plan` (request → ready Issues), `orchi-design`
-(design Epic → approved surfaces → PR), `orchi-deliver` (Issue → PR), `orchi` (Orchi, a session
-pool's entry; typed only), and `orchi-work` (a pool worker's task) are optional entry points.
-The rules above apply without them. The main session may delegate to the
-subagents defined in [roles](roles/README.md): `orchi-scout` retrieves, `orchi-researcher` researches
-and designs options for an exploration, `orchi-implementer` executes one ready Task, `orchi-fixer` makes one small,
-fully specified change (a simple Task or a confirmed defect repair),
-`orchi-designer` executes one ready UI Task or audits a UI diff with
-Impeccable, and `orchi-reviewer` reviews.
+`orchi-explore` (idea → Exploration), `orchi-plan` (request → ready Issues), `orchi-standards`
+(product constraints → foundation or standards Epic), `orchi-design` (design Epic → approved
+surfaces → PR), `orchi-deliver` (Issue → PR), `orchi` (a session pool's entry; typed only), and
+`orchi-work` (a pool worker's task) are optional entry points; the rules above apply without them.
+The main session may delegate to the subagents in [roles](roles/README.md): `orchi-scout` retrieves,
+`orchi-researcher` researches and designs options for an exploration, `orchi-implementer` executes
+one ready Task, `orchi-fixer` makes one small, fully specified change (a simple Task or a confirmed
+defect repair), `orchi-designer` executes one ready UI Task or audits a UI diff with Impeccable,
+and `orchi-reviewer` reviews.
 Subagents never talk to the user, change Issues, push, or merge; their reports
 are claims to verify. Delegation is optional; the readiness checklists are not.
 
 ## Tools
 
-Both scripts are read-only (Git, `gh`, Python standard library); run them from
-the repository root, using this skill's base directory in a user-wide install. `python3 .claude/skills/orchi-core/scripts/status.py` lists open
-Epics and standalone Tasks with owners, blockers, and readiness;
-`python3 .claude/skills/orchi-core/scripts/knowledge.py` searches documentation, reads
-exact snapshots, and checks local links.
+The scripts are read-only (Git, `gh`, Python standard library); run them from the repository
+root, using this skill's base directory in a user-wide install. `python3 .claude/skills/orchi-core/scripts/status.py`
+lists open Epics and standalone Tasks with owners, blockers, and readiness; `knowledge.py` searches
+documentation, reads exact snapshots, and checks local links; `standards.py` checks `ENGINEERING.md` against CI.

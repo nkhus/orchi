@@ -72,7 +72,7 @@ that turn; for more workers, tell them to ask in the crew, which starts its own.
 - `PR ready`: in auto mode, merge it as the autonomy level allows and tell the
   user. Otherwise tell the user it waits for their merge, with the URL and its
   Merge risk, and merge only when they tell you to, after confirming its checks
-  pass. Pass requested changes on as `#<n> rework: <what>`. After a merge, yours
+  pass. Either way, relay its Exceptions to the user in plain words. Pass requested changes on as `#<n> rework: <what>`. After a merge, yours
   or the user's, send `#<n> merged`.
 - `follow-up: #<m>`: assign a planner crew to it.
 - `done`: confirm the PR is merged and the Issue closed, then send `release`.

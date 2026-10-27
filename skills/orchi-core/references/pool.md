@@ -27,6 +27,7 @@ crew's name in claims and messages, whatever its title.
 | --- | --- | --- | --- |
 | Researcher | `orchi-explore` | One idea, with the user | The user confirms the shape, or declines |
 | Planner | `orchi-plan` | One request, Exploration, or `needs-planning` Issue | `planned` or `declined` |
+| Planner | `orchi-standards` | Setting up or auditing the project's engineering standards | `planned` or `declined` |
 | Designer | `orchi-design` | One standalone `design` Epic, with the user | Its PR into main is merged |
 | Dev lead | `orchi-deliver` | One standalone Task, standalone Epic, or Initiative | Its PR into main is merged |
 
@@ -163,6 +164,7 @@ Orchi routes each request to a role:
 | --- | --- | --- |
 | An idea, a new project, or a strategic choice | Researcher | `orchi-explore` with the idea or `#<exploration>` |
 | A clear request, a fix, a `needs-planning` Issue, or a shaped Exploration | Planner | `orchi-plan` with the request or `#<n>` |
+| Setting up or auditing the project's engineering standards | Planner | `orchi-standards` with the request, `#<exploration>`, or `audit` |
 | "Take #n" on a `delivery-ready` Epic labelled `design` | Designer | `orchi-design` with `#<n>` |
 | "Take #n" on another `delivery-ready` Issue | Dev lead | `orchi-deliver` with `#<n>` |
 

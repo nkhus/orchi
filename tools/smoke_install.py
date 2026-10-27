@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-deliver', 'orchi-work', 'orchi')
+SKILLS = ('orchi-core', 'orchi-explore', 'orchi-plan', 'orchi-design', 'orchi-standards', 'orchi-deliver', 'orchi-work', 'orchi')
 ROLES = ('orchi-designer', 'orchi-fixer', 'orchi-implementer', 'orchi-researcher', 'orchi-reviewer', 'orchi-scout')
 
 
@@ -61,8 +61,12 @@ def smoke(out: Path, installer: str, github: bool = False) -> dict:
     if [hit['path'] for hit in hits] != ['docs/guide.md']:
         raise RuntimeError('Installed knowledge search returned unexpected results')
     run([sys.executable, str(knowledge), 'lint'])
+    standards = project / '.claude/skills/orchi-core/scripts/standards.py'
+    if 'No ENGINEERING.md' not in run([sys.executable, str(standards), 'check']):
+        raise RuntimeError('Installed standards check did not report the missing ENGINEERING.md')
     if github and installer != 'skills':
-        for relative in ('.github/workflows/orchi-docs.yml', '.github/ISSUE_TEMPLATE/orchi-epic.yml'):
+        for relative in ('.github/workflows/orchi-docs.yml', '.github/workflows/orchi-standards.yml',
+                         '.github/ISSUE_TEMPLATE/orchi-epic.yml'):
             if not (project / relative).is_file():
                 raise RuntimeError('Missing GitHub setup file: ' + relative)
         template = (project / '.github/pull_request_template.md').read_text(encoding='utf-8')

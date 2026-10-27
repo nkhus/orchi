@@ -1,6 +1,8 @@
 # [STD] Project standards by default
 
-Status: proposed plan for agreement. Nothing here describes current behavior.
+Status: implemented on `feat/standards-track`. The skill, its
+[standards reference](../../../skills/orchi-core/references/standards.md), and
+`standards.py` describe current behavior; this document keeps the reasoning.
 It builds on the [design track](../entry-single-entry/design-track.md) and
 follows the same pattern: decisions in a committed document, enforced by tools.
 
@@ -162,7 +164,7 @@ is the one code-level decision the user ever sees.
    configuration, the CI workflow, the ratchet, Dependabot, and the boot
    command. It is accepted when CI passes on the empty project and fails on a
    planted violation of each blocking check, including a planted suppression.
-4. **Branch protection** is applied as [Decisions needed](#decisions-needed)
+4. **Branch protection** is applied as [Decisions](#decisions)
    item 4 settles.
 5. **Then** the design Epic and the feature plan, both blocked by the foundation
    Epic; the stack scaffold moves there from the design Epic.
@@ -234,9 +236,10 @@ session starts unattended.
 - Each claim is reported as established, limited, or not established; text
   tests do not establish live behavior.
 
-## Decisions needed
+## Decisions
 
-The defaults above are Orchi's to apply; these are the maintainer's.
+The maintainer accepted all six recommendations on 2026-10-27 ("I accept all
+six recommendations; implement STD as a separate PR on top of #43").
 
 1. **Premise**: the user is asked only product constraints, and Orchi applies
    the defaults without asking (recommended), or Orchi still confirms the stack.
@@ -253,6 +256,24 @@ The defaults above are Orchi's to apply; these are the maintainer's.
    checked only when the user asks.
 6. **Delivery**: a separate PR stacked on the design track (recommended), or
    part of it.
+
+## Implementation notes
+
+Choices made while implementing, within the accepted decisions:
+
+- Orchi ships an `ENGINEERING.md` template with the default Checks table, not
+  tool configuration files: the foundation Epic writes the configurations from
+  it with current tool versions, `standards.py check` ties them to CI, and the
+  planted-violation acceptance proves they bite. Configuration files in Orchi
+  would go stale between releases.
+- `ENGINEERING.md` lands with the checks it declares, in the foundation or
+  standards Epic, never ahead of them; `orchi-standards` only plans.
+- Static analysis defaults to Semgrep CE, with CodeQL where GitHub Code Security
+  is available, and licenses to a command-line allowlist check, so the defaults
+  work in private repositories without paid features.
+- The Checks table gains a `Config` column, which `check` and `ratchet` read.
+- The exploration gets a Stack section for the product constraints and the
+  derived stack.
 
 ## Open questions
 

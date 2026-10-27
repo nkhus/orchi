@@ -76,6 +76,10 @@ PR_TEMPLATE = """## Summary
 
 <!-- One-way door (hard to undo) or two-way door (a revert undoes it), and the blast radius if it is wrong. -->
 
+## Exceptions
+
+<!-- Each ENGINEERING.md exception this PR adds or changes, in plain words: what is waived, where, why, and until when. Otherwise: None. -->
+
 ## Documentation impact
 
 <!-- Required: the pages updated, or why no documentation changes. The Orchi documentation check fails when this is empty. -->
@@ -314,6 +318,7 @@ def instruction_blocks(root: Path, global_scope: bool, pr_template: str | None =
         "Research first and agree the outcome, approach, and scope (Task, Epic, or Initiative) with the user before creating branches, issues, or changes.\n"
         "Track work in Git branches and GitHub Issues; resume from the existing issue, branch, and PR instead of duplicating work.\n"
         "For documentation-only questions, use its retrieval guidance without creating tracking.\n"
+        "Where `ENGINEERING.md` exists, follow it and run its checks; never weaken a check without recording an exception there.\n"
         "Do not infer merge or deployment permission from permission to implement."
     )
     blocks = {instructions_path(root, global_scope): body}
@@ -619,7 +624,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--uninstall", action="store_true", help="Remove the managed bundle and instruction sections; refuse modified content")
     parser.add_argument("--github", action="store_true",
-                        help="Also install issue templates, a PR template, documentation and design check workflows, and Orchi labels")
+                        help="Also install issue templates, a PR template, documentation, design, and standards check workflows, and Orchi labels")
     workflow = parser.add_mutually_exclusive_group()
     workflow.add_argument("--no-docs-workflow", dest="docs_workflow", action="store_const", const=False,
                           help="With --github, do not install the documentation check workflow; later runs keep this choice")
