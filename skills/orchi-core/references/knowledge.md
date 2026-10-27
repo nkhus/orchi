@@ -76,8 +76,8 @@ to the changed code in the same branch, and the map itself when pages move or
 appear. Check whether examples, public contracts, runbooks, behavior pages, and
 known limitations change too. Record the result in the PR's `Documentation
 impact` section: the pages updated, or for each owning page left unchanged, the
-reason it still holds. `knowledge.py stale --since <target>` fails when owned
-code changed while its pages neither changed nor appear there with a reason.
+reason it still holds. Do not drop a row from the map to avoid updating its
+page; the review checks the map against the changed code.
 
 ## Move into current documentation
 
@@ -105,8 +105,6 @@ verified.
 
 ## Freshness
 
-`knowledge.py stale` without `--since` lists pages whose owned code has a later
-commit than the page; with `--github`, the weekly standards run adds them to its
-drift Issue. `knowledge.py behavior` fails when a behavior page names an
-acceptance test that does not exist. Neither proves a page true: the review's
-comparison of code with pages and the acceptance tests do that.
+Pages stay true because every change updates its owning pages and the review
+compares code with pages; behavior pages stay true because each criterion's
+acceptance test runs in CI. No script judges whether a page is current.

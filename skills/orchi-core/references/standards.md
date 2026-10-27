@@ -15,9 +15,10 @@ The user steers and agents write the code; nobody is expected to read it.
    product and its constraints, never about tooling; they may override any
    choice.
 3. **Gates are not lowered quietly.** Lowering a threshold, disabling a rule,
-   adding a suppression, or deleting a test fails CI unless `ENGINEERING.md`
-   records it as an exception, and every exception reaches the user in plain
-   language.
+   adding a suppression, skipping or deleting a test, or changing what a check
+   runs is a review blocker unless `ENGINEERING.md` records it as an exception,
+   and every exception reaches the user in plain language. Writers check their
+   own diffs for this, and the review checks it again; no script guesses at it.
 4. **The user accepts behavior.** Acceptance criteria say what a user can see or
    do; each has an automated acceptance test, and the PR shows the evidence.
 5. **The repository is the memory.** A decision reached in a conversation goes
@@ -54,8 +55,9 @@ checks. Pin the runtime and package manager versions in the repository.
 
 ## Checks
 
-Every check is its own CI job, named in the `CI job` column, and the blocking
-ones are required by branch protection.
+Every check runs in a CI job named in the `CI job` column (related checks may
+share one, as lint and its limits do), and the blocking jobs are required by
+branch protection.
 
 | Check | TypeScript | Python | Blocking |
 | --- | --- | --- | --- |
@@ -74,7 +76,7 @@ ones are required by branch protection.
 | Dependencies | `pnpm audit --audit-level high` | pip-audit, every known vulnerability | yes |
 | Static security analysis | Semgrep CE with `p/default`, or CodeQL where GitHub Code Security is available | same | yes, errors |
 | Licenses | license-checker-rseidelsohn `--onlyAllow` a permissive list | pip-licenses `--allow-only` the same list | yes |
-| Gate integrity | `standards.py ratchet` (the standards workflow) | same | yes |
+| Declared checks run in CI | `standards.py check` (the standards workflow) | same | yes |
 | Mutation tests | Stryker on files changed that week | mutmut on files changed that week | weekly |
 
 A custom lint rule's message says how to fix the violation: its reader is an
@@ -122,17 +124,37 @@ same commit as the checks it declares, never ahead of them.
 | Command | Does |
 | --- | --- |
 | `check` | Every declared check has its CI job in `.github/workflows/`, the job runs its command, and its configuration files exist; no exception has expired |
-| `ratchet --base <ref>` | Fails when the changes since `<ref>` remove a check, make one non-blocking, loosen a threshold, add a suppression, weaken a listed configuration, delete a test file, or remove assertions, without an exception covering it; lists the exceptions the changes add |
 | `ruleset` | Prints the GitHub ruleset that requires every blocking check |
 
-Both checks exit 1 with their findings and 0 when clean. Without
-`ENGINEERING.md` they report that and exit 0.
+`check` exits 1 with its findings and 0 when clean; without `ENGINEERING.md` it
+reports that and exits 0. It only checks structure. Whether a change weakens a
+gate is judged by the writer and the review, below. Without the documentation
+workflow (`--no-docs-workflow`), drop the documentation row from the Checks
+table. The workflows run the scripts from `.claude/skills/orchi-core/`, so they
+need a project installation committed to the repository.
 
 ## Gate integrity
 
-An exception covers a finding when its `Where` matches the file and its `Rule`
-names the suppression kind or appears in the changed line. Record one only for
-a reason the change cannot avoid, with the shortest expiry that fits. The
+A writer checks its own diff, and the review checks the whole range, for any of
+these; each is a blocker unless an exception in `ENGINEERING.md` covers it:
+
+- `ENGINEERING.md` removed, or a check removed, made non-blocking, or given a
+  looser threshold or a different command, job, or configuration;
+- a change to what a check runs: a workflow step removed, commented out, made
+  non-failing (`continue-on-error`, `|| true`, an `if:` that skips it), or a
+  package script or tool section that no longer runs the declared tool;
+- a configuration that turns a rule off, loosens a limit, or is shadowed by a
+  new configuration file;
+- a suppression in any syntax (inline disables, file-level directives, coverage
+  ignores, skip, only, or conditional-skip modifiers on tests);
+- a test deleted, moved out of the test paths, or left with fewer assertions
+  without the behavior it covered being removed.
+
+Record an exception only for a reason the change cannot avoid, with the
+shortest expiry that fits; the Task that needs it names it, and its writer
+records it exactly as named. When an exception expires, the code it waived is
+fixed or the exception renewed with the user's agreement. Removing
+`ENGINEERING.md` needs the user's agreement, like any exception. The
 delivery review lists each exception the PR adds or changes in the PR's
 Exceptions section in plain words (what is waived, where, why, until when), and
 the session that talks to the user relays them; an exception is the one
@@ -155,9 +177,10 @@ Its Tasks:
 5. The standards workflow, `standards.py check` passing, and, when the project
    is meant to last, the weekly mutation test job.
 
-Its acceptance: CI passes on the empty project and fails on a planted violation
-of each blocking check, including a planted suppression and a loosened
-threshold; the planted violations never land. After its PR merges into main,
+Its acceptance: CI passes on the empty project, and each blocking check fails
+on a planted violation. Show this by running each check's command locally
+against its planted violation and recording the command and its failing output
+in the PR; the planted violations are never committed. After its PR merges into main,
 the delivering session (`orchi-deliver`) asks the user once to apply the
 ruleset, at every autonomy level, and applies it on a yes:
 
@@ -186,8 +209,7 @@ in product terms: what becomes safer, and how much work it is.
 
 ## Drift
 
-With `--github`, the standards workflow runs `standards.py check` and
-`knowledge.py stale` weekly and keeps one open Issue, labelled
-`needs-planning`, listing what drifted, such as an expired exception, a check
-that lost its job, or a page older than its code. Planning takes it like any
+With `--github`, the standards workflow runs `standards.py check` weekly and
+keeps one open Issue, labelled `needs-planning`, listing what drifted, such as
+an expired exception or a check that lost its job. Planning takes it like any
 request; no session starts unattended.

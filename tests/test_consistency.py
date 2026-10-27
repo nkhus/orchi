@@ -11,7 +11,7 @@ def prose(path):
 
 def test_reviewer_role_carries_the_standards_and_context_checks():
     reviewer = prose("orchi-core/roles/orchi-reviewer.md")
-    for phrase in ("`ENGINEERING.md`", "`standards.py ratchet`", "`knowledge.py stale --since <target>`",
+    for phrase in ("`ENGINEERING.md`", "the gate integrity list", "the map still covers the changed code",
                    "`docs/work/`", "Exceptions:", "acceptance test that asserts it", "(`knowledge.py work`)"):
         assert phrase in reviewer, phrase
     assert "Core documentation" not in reviewer
@@ -20,7 +20,7 @@ def test_reviewer_role_carries_the_standards_and_context_checks():
 def test_delivery_steps_match_the_review_and_knowledge_references():
     deliver = prose("orchi-deliver/SKILL.md")
     assert "Exceptions from the review" in deliver and "its Exceptions filled" in deliver
-    assert "`stale --since <target>`, and `behavior`, plus `work` when the target is `main`" in deliver
+    assert "run `knowledge.py lint`, plus `work` when the target is `main`" in deliver
     assert "move the rest of the working folder into current documentation and delete it" in deliver
     assert "Core" not in deliver.replace("orchi-core", "")
     assert "ask the user once whether to apply the branch ruleset" in deliver

@@ -56,10 +56,8 @@ sensitivity; budget; proof of concept or meant to last. Link the Exploration.>
 | Dependencies | pnpm audit | `pnpm audit --audit-level high` | dependencies | - | - | yes |
 | Static analysis | Semgrep CE | `semgrep scan --config p/default --error` | sast | - | - | yes |
 | Licenses | license-checker-rseidelsohn | `pnpm licenses:check` | licenses | - | - | yes |
-| Gate integrity | Orchi `standards.py` | `standards.py ratchet` | ratchet | - | - | yes |
+| Declared checks run in CI | Orchi `standards.py` | `standards.py check` | standards | - | - | yes |
 | Documentation links | Orchi `knowledge.py` | `knowledge.py lint` | documentation | docs/README.md | - | yes |
-| Documentation freshness | Orchi `knowledge.py` | `knowledge.py stale` | documentation | docs/README.md | - | yes |
-| Behavior pages | Orchi `knowledge.py` | `knowledge.py behavior` | documentation | - | - | yes |
 | Mutation | Stryker on files changed that week | `pnpm mutation` | mutation | stryker.config.json | - | weekly |
 
 `Config` lists committed configuration files, comma-separated, or `-`.

@@ -19,16 +19,10 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: python3 .claude/skills/orchi-core/scripts/knowledge.py lint --since "origin/$BASE_REF"
       - name: Check the Documentation impact section
+        if: github.actor != 'dependabot[bot]'
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: python3 .claude/skills/orchi-core/scripts/knowledge.py impact
-      - name: Check that changed code kept its owning pages current
-        env:
-          BASE_REF: ${{ github.base_ref }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-        run: python3 .claude/skills/orchi-core/scripts/knowledge.py stale --since "origin/$BASE_REF"
-      - name: Check that behavior pages name existing acceptance tests
-        run: python3 .claude/skills/orchi-core/scripts/knowledge.py behavior
       - name: Keep working documents out of the default branch
         if: github.base_ref == github.event.repository.default_branch
         run: python3 .claude/skills/orchi-core/scripts/knowledge.py work

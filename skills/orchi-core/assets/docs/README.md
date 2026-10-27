@@ -2,8 +2,8 @@
 
 <!-- Orchi template: the map of this project's current documentation. Keep it
 short; agents read it before every Task. List each page, and assign code to the
-pages that describe it in the Ownership table, which `knowledge.py stale`
-reads: keep its columns. Working documents never appear here: they live in
+pages that describe it in the Ownership table, which the review reads to
+check that changed code kept its pages current. Working documents never appear here: they live in
 `docs/work/` on branches. -->
 
 How this product behaves and is built now. Planned work is in GitHub Issues and,
