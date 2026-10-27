@@ -18,9 +18,10 @@ result with Impeccable's audit, critique, and detector.
 | Installing Impeccable | [Impeccable](installation.md#impeccable) in the installation guide |
 
 Impeccable's steps fall into three kinds, each with one home: steps with the
-user (`init`, `shape`, the direction round, comp and asset approval) run in the
-session that talks to the user; builds (comp-led or code-led, the focused
-commands, `polish`, the documenter) run in a worker in `design` mode; checks
+user (`init`, `document`, `shape`, the direction round, comp and asset
+approval) run in the session that talks to the user; builds (comp-led or
+code-led, the focused commands, `polish`, producing an asset for approval) run in
+a worker in `design` mode; checks
 (`audit`, `critique`, `detect`) run in the dev lead's single review and, for
 `detect`, in CI.
 
@@ -30,8 +31,8 @@ commands, `polish`, the documenter) run in a worker in `design` mode; checks
   truncates ([pbakaus/impeccable#1018](https://github.com/pbakaus/impeccable/issues/1018)).
 - Several Impeccable references push small tasks into the full-cost path
   ([pbakaus/impeccable#985](https://github.com/pbakaus/impeccable/issues/985)),
-  so at design depth none the worker uses only `polish` and the review only
-  `audit`.
+  so at design depth none the designer uses only the focused commands and
+  `polish`, with no new-work flow.
 - A comp-led build needs a frontier model, and comps need image generation (a
   host tool or an API key that `impeccable context` reports); without it the
   build is code-led.
@@ -45,6 +46,10 @@ delete it when it no longer holds.
 
 | Decision | Reason | Rejected | Since |
 | --- | --- | --- | --- |
+| `DESIGN.md` is written or replaced with the user (`/impeccable document`) after the last build, never by a worker; a generated asset is committed only after the user approves it | Both bind all later work and the CI detector, so the user must see them | The documenter run unattended in the last build Task | [#50](https://github.com/nkhus/orchi/pull/50) |
+| At design depth brief, `shape`'s result is always recorded as a surface brief with a direction contract, committed on the work's branch that planning creates | The designer builds only against a committed contract, and the planner's worktree is released after planning | Leaving the brief uncommitted until delivery | [#50](https://github.com/nkhus/orchi/pull/50) |
+| The designer fixes every primary `detect` finding; one it cannot fix within the approved design is a blocker that needs an `ENGINEERING.md` exception or the user's decision | The design workflow fails on any primary finding, so a kept finding left the PR red with no way forward | Listing kept findings with a reason | [#50](https://github.com/nkhus/orchi/pull/50) |
+| Surface briefs and approved comps in `.impeccable/surfaces/` are current documentation, updated with their surface; in a redesign, the Epic's approved briefs and comps override the incumbent `DESIGN.md` until the new one lands | Later work builds against a surface as it is, and a redesign must not be pulled back to the look it replaces | Treating briefs as one-off planning files | [#50](https://github.com/nkhus/orchi/pull/50) |
 | Impeccable is the only design engine | It interviews the user, keeps `PRODUCT.md`, `DESIGN.md`, and surface briefs in the project, and its detector flags drift from `DESIGN.md` | Taste Skill, which picks a direction without the user, keeps no design system, scored below the no-skill baseline in its own blind tests, and conflicts with Impeccable's rules when combined | [#43](https://github.com/nkhus/orchi/pull/43) |
 | UI design is an Epic type (`design`) held by a designer crew with its own skill, `orchi-design`; a design Epic stays standalone, outside any Initiative, and blocks the work that builds on it | The design steps need a session that talks to the user, and an Initiative goes to one dev lead crew | None recorded | [#43](https://github.com/nkhus/orchi/pull/43) |
 | Only the user chooses a design direction and approves a comp or generated asset, in every mode and at every autonomy level | A direction is a product choice, as an exploration's shape is | An autonomy level choosing for the user | [#43](https://github.com/nkhus/orchi/pull/43) |

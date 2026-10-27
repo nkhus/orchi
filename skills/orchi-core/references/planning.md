@@ -141,8 +141,8 @@ that talks to them, and writers build only against what the user approved.
 
 | Depth | When | Planning does |
 | --- | --- | --- |
-| None | The change stays within existing components and screens | Nothing more; the writer finishes with `polish` and the review audits it |
-| Brief | A new screen or feature inside an established visual world (`DESIGN.md` exists) | Run `/impeccable shape` with the user, keep its brief as the surface brief in `.impeccable/surfaces/`, and link it; run the direction round only when the composition stays materially open |
+| None | The change stays within existing components and screens | Nothing more; a Task that is mainly UI goes to `orchi-designer`, which finishes with `polish`, and the review's design audit covers every UI range |
+| Brief | A new screen or feature inside an established visual world (`DESIGN.md` exists) | Run `/impeccable shape` with the user and record its result as the surface brief with a direction contract (`impeccable surface-brief write`) in `.impeccable/surfaces/`; run the direction round only when the composition stays materially open. Commit the brief on the work's branch, which planning creates now, and link it |
 | Epic | A new product, a redesign, or several screens whose composition is open | Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative, and make the Epic or Initiative that builds on it blocked by it |
 
 - A design Epic names the surfaces it designs, what must stay, and whether it
@@ -161,11 +161,13 @@ that talks to them, and writers build only against what the user approved.
 - Every Task that builds UI links the `DESIGN.md` sections, surface brief, and
   approved comp it builds against, and names its states, breakpoints, themes,
   and accessibility level. A brief that turns out to need a new world or a
-  redesign is raised to a design Epic, and the user is told why.
+  redesign is raised to a design Epic, and the user is told why. A UI Task that
+  reaches delivery without the brief its depth needs goes back to a planner as a
+  `needs-planning` follow-up.
 - Only the user chooses a direction and approves a comp or a generated asset,
-  at every autonomy level. In auto mode, Orchi may answer `shape` questions that
-  `PRODUCT.md`, `DESIGN.md`, or the Issues already settle; the rest wait for the
-  user.
+  at every autonomy level. The session running `shape` answers the questions
+  `PRODUCT.md`, `DESIGN.md`, or the Issues already settle itself; the rest go to
+  the user.
 
 ## Engineering standards
 
