@@ -42,7 +42,8 @@ standalone small fix.
     each with the acceptance test that checks it; in a project with
     `ENGINEERING.md`, the checks it runs come from there.
 12. States its documentation impact: the owning pages named by the project's
-    documentation routing, or why none change.
+    documentation routing (the ownership map in `docs/README.md`, by default),
+    including a behavior page for a change a user can see, or why none change.
 13. Lists no open question in the Task or its parent Epic that is marked as
     affecting this Task's approach; resolve such a question, or move it to a
     bounded investigation Task, first.

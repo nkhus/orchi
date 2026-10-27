@@ -45,10 +45,9 @@ Auto, adopt your recommendation and record it). Silence is not agreement; record
 
 ## 3. Clarify (after agreement, before tracking)
 
-Ask the questions that research gaps raise, following
-[Clarify with the user](../orchi-core/references/planning.md#clarify-with-the-user),
-and keep the decision log as you go. At design depth brief, run `/impeccable shape`
-with the user now; a design Epic leaves the direction to its designer.
+Ask the questions that research gaps raise, following [Clarify with the user](../orchi-core/references/planning.md#clarify-with-the-user),
+and keep the decision log as you go. Give each Exploration decision its [fate](../orchi-core/references/planning.md#initiative).
+At design depth brief, run `/impeccable shape` with the user now; a design Epic leaves the direction to its designer.
 
 ## 4. Create tracking
 
@@ -62,14 +61,15 @@ references for titles, tags, labels, branches, and native relationships.
   order as native sub-issues.
 - **Initiative:** create the Initiative Issue (`orchi-initiative.yml` when
   present), then the Initiative branch with the plan at
-  `docs/initiatives/<tag>-<slug>/README.md`. Create every Epic as a native
+  `docs/work/<tag>-<slug>/README.md`. Create every Epic as a native
   sub-issue with every field of the Epic readiness checklist; a field that
   depends on a predecessor's result may say `Deferred until #<n>: <reason>`.
   Add native blocked-by relationships. Split into Tasks only the Epics that are
   ready to deliver now. The rest are split during delivery.
 
-Only the Initiative branch is created during intake. Epic and fix branches are
-named in their Issues and created at delivery.
+Only the Initiative branch is created during intake, and, from an Exploration, the Epic branch: create
+either from `explore/<slug>` so its working folder carries on, then delete that branch. Other Epic and fix
+branches are named in their Issues and created at delivery.
 
 Write every Issue per [Write Issues for agents](../orchi-core/references/planning.md#write-issues-for-agents); nothing agreed may stay only in chat.
 

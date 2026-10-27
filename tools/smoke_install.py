@@ -61,6 +61,8 @@ def smoke(out: Path, installer: str, github: bool = False) -> dict:
     if [hit['path'] for hit in hits] != ['docs/guide.md']:
         raise RuntimeError('Installed knowledge search returned unexpected results')
     run([sys.executable, str(knowledge), 'lint'])
+    for command in ('stale', 'work', 'behavior'):
+        run([sys.executable, str(knowledge), command])
     standards = project / '.claude/skills/orchi-core/scripts/standards.py'
     if 'No ENGINEERING.md' not in run([sys.executable, str(standards), 'check']):
         raise RuntimeError('Installed standards check did not report the missing ENGINEERING.md')

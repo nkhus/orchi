@@ -89,8 +89,9 @@ conversation; the user must still be able to read and approve it.
 
 ## Initiative
 
-Record the plan in `docs/initiatives/<tag>-<slug>/README.md` on the Initiative branch,
-or in an existing project location that already serves this purpose. Capture the
+Record the plan in the working folder's `docs/work/<tag>-<slug>/README.md` on the
+Initiative branch ([working documents](knowledge.md#working-documents)), or in an
+existing project location that already serves this purpose. Capture the
 original request faithfully, the agreed outcome, exclusions, observable
 acceptance, constraints, major decisions, and remaining unknowns. Keep the source
 request distinguishable from later decisions. Link existing requirements and
@@ -104,6 +105,11 @@ a second child or status checklist.
 
 Check that every agreed requirement has a planned home in an Epic. A short mapping
 is enough when coverage is hard to see. Do not silently drop requirements.
+
+From an exploration, give each of its decisions (D1, D2, ...) a fate in the plan:
+a requirement it becomes, an area decision to record with the code that
+implements it (name the area page), or none. A decision without a fate is a
+gap in the plan.
 
 ## Epic design
 

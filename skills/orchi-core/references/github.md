@@ -38,7 +38,7 @@ label, not the title.
 - Keep tags stable when an issue is renamed. If an issue moves to another parent,
   update its leading tags. `status.py` reports titles whose tags do not match
   their parents. Use tags in lowercase in branch names and the
-  Initiative plan path, `docs/initiatives/<tag>-<slug>/`.
+  working folder, `docs/work/<tag>-<slug>/`.
 
 ## Hierarchy and dependencies
 

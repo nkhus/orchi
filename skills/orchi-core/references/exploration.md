@@ -9,10 +9,12 @@ reopening its decisions.
 
 ## The Exploration Issue
 
-One Issue labelled `Exploration` holds the exploration, so it survives across
-sessions. Create it once the user agrees on the destination. Its body is the
-current map; detail lives in comments and linked branches, and the body links
-to it.
+One Issue labelled `Exploration` holds the exploration's state, so it survives
+across sessions, and one branch, `explore/<slug>` from main, holds its working
+folder `docs/work/<slug>/` ([working documents](knowledge.md#working-documents)).
+Create both once the user agrees on the destination. The Issue body is the
+current map; detail lives in the folder's `research/` and `options/` files, and
+the body links to them.
 
 | Section | Content |
 | --- | --- |
@@ -20,8 +22,8 @@ to it.
 | Request | The original idea in the user's words, kept apart from later decisions |
 | Constraints and no-gos | Fixed limits, and what is explicitly out of scope |
 | Stack | For a new product: its [product constraints](standards.md#product-constraints), and the stack the standards defaults derive from them, with reasons |
-| Options | Each direction considered: its shape, what it makes easy and hard, the findings it rests on (links to research comments), and the verdict with its reason |
-| Decisions | The decision log ([clarify](planning.md#clarify-with-the-user)); mark a decision that is hard to reverse, surprising, and a real tradeoff as a decision record candidate |
+| Options | Each direction considered: its shape, what it makes easy and hard, the findings it rests on (links to research files), and the verdict with its reason; detail in `options/<option>.md` |
+| Decisions | The decision log ([clarify](planning.md#clarify-with-the-user)), each decision with an id (D1, D2, ...) and the area of the product it concerns |
 | Requirements | Numbered requirements (R1, R2, ...) of the chosen direction, each observable at completion |
 | Shape | The chosen direction, and candidate Epics as outcomes with the result or contract each supplies to the next |
 | Product | For a product with a user interface: the product truth Impeccable's `init` records in `PRODUCT.md` (see Shape) |
@@ -33,20 +35,22 @@ Each phase ends on its completion criterion. Return to an earlier phase when an
 answer changes the destination or invalidates options.
 
 1. **Frame.** Ask about the destination and its size, the original request, and
-   the constraints; for a new product, the product constraints too. Done when the user agrees on the destination; then create
-   the Issue.
+   the constraints; for a new product, the product constraints too. Done when
+   the user agrees on the destination; then create the Issue and the branch.
 2. **Research.** Facts are the agent's job. Start `orchi-researcher` in Research
    mode for each external question and `orchi-scout` for code and Issues, in
    parallel, and keep asking the user what does not depend on their answers.
-   Post each verified finding as a comment with its sources. Until options
-   exist, list it under Open questions as answered, with its link; then link it
-   from the options it shapes. Done when every option-shaping question is answered or recorded as
-   not established.
+   Write each verified finding to `research/<question>.md` with its sources,
+   keeping what the sources state apart from what is inferred, and commit and
+   push it. Until options exist, list it under Open questions as answered, with
+   its link; then link it from the options it shapes. Done when every
+   option-shaping question is answered or recorded as not established.
 3. **Diverge.** Start `orchi-researcher` in Option mode, at least three times in
    parallel, each with a different lens: minimal; most flexible; best for the
    most common case; buy or reuse rather than build; or the smallest useful
    step, including not building. Present the options one at a time, compare
-   them, and recommend one or a hybrid. Ask open questions here rather than
+   them, and recommend one or a hybrid; write each to `options/<option>.md` with
+   its verdict once the user decides. Ask open questions here rather than
    offering a menu. Done when the user has picked a direction.
 4. **Converge.** Resolve the chosen direction's decisions in rounds along their
    dependencies, as planning's clarify rules describe, and record each one at
@@ -83,14 +87,17 @@ Exploration needs a Git repository with a GitHub remote, because the Issue is
 its state. If none exists, offer to create one (`git init`, `gh repo create`)
 and to install Orchi there before framing; creating a remote repository needs
 the user's agreement. Planning a new project starts with `orchi-standards`,
-which plans the foundation Epic that every other Epic is blocked by; the
-decision record candidates land with it.
+which plans the foundation Epic that every other Epic is blocked by.
 
 ## Hand off
 
 When the user confirms the shape, end with `Plan with: /orchi-plan #<n>`.
 Planning takes the destination, requirements, decisions, and Epic candidates as
 agreed, links the Exploration as the source request, and asks only what the
-exploration left open. After the tracked work exists, close the Exploration as
+exploration left open. It creates its Initiative or Epic branch from
+`explore/<slug>`, so the working folder carries on, and gives every decision its
+fate. After the tracked work exists, close the Exploration as
 completed with a link to it. An exploration that ends in "do not build" closes
-as not planned, with the reason in its decision log.
+as not planned, with the reason in its decision log; record that decision in its
+area page, delete the working folder, and open the branch as a documentation PR
+([move into current documentation](knowledge.md#move-into-current-documentation)).
