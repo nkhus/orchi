@@ -1,8 +1,10 @@
 # E4 Design track
 
-Status: agreed plan, not implemented. Part of the
+Status: implemented on the `feat/design-track` branch. Part of the
 [single-entry Initiative](README.md); the [architecture](architecture.md) holds
-the pool this track runs in. Nothing here describes current behavior.
+the pool this track runs in. The [planning](../../../skills/orchi/references/planning.md#user-interface-design)
+and [pool](../../../skills/orchi/references/pool.md#designer-crews) references and
+`orchi-design` describe the behavior; this page keeps the reasoning.
 
 ## Request
 
@@ -20,8 +22,9 @@ The maintainer's request, translated from Russian (2026-10-27):
 ## Outcome
 
 Every project with a user interface designs through Impeccable. The product
-truth (`PRODUCT.md`) comes out of research, the visual system (`DESIGN.md`) out
-of a design Epic, and every UI Task is built against both. The user chooses
+truth comes out of research and becomes `PRODUCT.md` at the start of the first
+design Epic, the visual system (`DESIGN.md`) comes out of a design Epic, and
+every UI Task is built against both. The user chooses
 every direction and approves every comp; workers build only what was approved;
 the review checks the result with Impeccable's audit, critique, and detector.
 
@@ -82,23 +85,26 @@ Epic, and the planner tells the user why.
 
 ### 1. From scratch
 
-1. **Research.** Orchi assigns a researcher crew. At the end of the
-   exploration, when the product has a user interface, the researcher runs
-   `/impeccable init` with the user. `PRODUCT.md` (users, purpose, positioning,
-   platform, stack, constraints, brand commitments) becomes part of the vision
-   documents; the stack names SmoothUI for a React web project (D22).
-2. **Plan.** A planner crew plans an Initiative from the Exploration:
-   - Epic A, `design`: the UI prototype of the key surfaces;
+1. **Research.** Orchi assigns a researcher crew. When the product has a user
+   interface, the exploration's Product section records what Impeccable's
+   `init` asks: users, purpose, positioning, platform, stack (SmoothUI for a
+   React web project, D22), constraints, and brand commitments. Exploration
+   keeps its state in the Issue, so `PRODUCT.md` itself is written in step 3.
+2. **Plan.** A planner crew plans from the Exploration:
+   - a standalone `design` Epic for the UI prototype of the key surfaces; it
+     stays outside any Initiative, so a designer crew can hold it;
    - an Issue labelled `needs-planning` and `Requested by: <Orchi>`, blocked by
-     Epic A: detail the development plan from `PRODUCT.md`, `DESIGN.md`, the
-     surface briefs, and the prototype.
-3. **Design.** Orchi assigns a designer crew to Epic A. For each key surface the
-   designer runs `shape` and the direction round with the user, gets the comp
-   approved, and records the direction contract in the surface brief. Its workers
+     the design Epic: detail the development plan from `PRODUCT.md`,
+     `DESIGN.md`, the surface briefs, and the prototype.
+3. **Design.** Orchi assigns a designer crew (`orchi-design`) to the design Epic.
+   It runs `init` from the Product section, asking only what is missing. For
+   each key surface it runs `shape` and the direction round with the user, gets
+   the comp approved, and records the direction contract in the surface brief.
+   It then plans the builds and continues with `orchi-deliver`: its workers
    scaffold the stack and build the surfaces against the approved comps; the
-   finish reviewer gates each build and the documenter writes `DESIGN.md`. One PR
+   finish reviewer gates each build and the last Task writes `DESIGN.md`. One PR
    into main, merged per mode. The prototype stays as the first surface (D25).
-4. **Detail the plan.** When Epic A closes, its blocker is gone and Orchi assigns
+4. **Detail the plan.** When the design Epic closes, its blocker is gone and Orchi assigns
    a planner crew to the `needs-planning` Issue. The planner writes the
    development Epics; every UI Task links the `DESIGN.md` sections, surface
    brief, and comp it builds against.
@@ -187,7 +193,7 @@ In order; T5 and T6 can run in parallel after T4.
 | T2 Designer worker | `orchi-designer` uses Impeccable only: Task mode builds comp-led from an approved comp or code-led from a direction contract, runs focused commands and `polish`, and sends Impeccable's questions to its crew; Audit mode runs `audit`, `critique`, and `detect`. SmoothUI is used through the shadcn MCP server where the project's stack names it. Taste Skill is removed from the role, the roles README, and the references. |
 | T3 Planning | Planning and readiness gain design depth; a UI Task's readiness requires links to the `DESIGN.md` sections, surface brief, and comp, and the states, breakpoints, and themes it covers. The Epic and Task forms gain a design field. `orchi-plan` runs `shape` at depth brief and plans a `design` Epic with a blocked `needs-planning` Issue at depth Epic. |
 | T4 Designer crew | `orchi-design` runs a `design` Epic: `init` and `document` when missing, `shape`, the direction round, comp and asset approval with the user, builds through its workers, the finish reviewer, `DESIGN.md`, and the PR. The pool reference gains the role, its routing (a `design` Epic goes to a designer crew), its mode rule (D20), and the files it may write itself: `PRODUCT.md`, surface briefs, and approved comps. |
-| T5 Research hand-off | `orchi-explore` runs `/impeccable init` with the user at the end of an exploration of a product with a user interface, and links `PRODUCT.md` from the vision documents. |
+| T5 Research hand-off | An exploration of a product with a user interface fills a Product section with what `init` asks; the first design Epic writes `PRODUCT.md` from it. (Planned as `init` at the end of research; changed because an exploration keeps its state in the Issue and has no branch to commit `PRODUCT.md` on.) |
 | T6 Delivery and review | `orchi-deliver` gives UI Tasks to workers in `design` mode, and its single review adds `orchi-designer`'s audit for changes that touch the user interface. |
 | T7 Documentation and release | README, installation, testing (a live checklist for the three paths), and the design guide; version 0.19.0. |
 
@@ -197,8 +203,8 @@ One PR from `feat/design-track`, stacked on the pool PR.
 
 - A fresh install has Impeccable at the pinned version, without hooks, with
   telemetry off, and the ignore rules; uninstall leaves it and reports it.
-- Path 1 in a disposable repository: research ends with `PRODUCT.md`; the plan
-  has a `design` Epic and a blocked planning Issue; the designer crew gets the
+- Path 1 in a disposable repository: research ends with a Product section; the
+  plan has a standalone `design` Epic and a blocked planning Issue; the designer crew gets the
   direction and comp from the user, its workers build the prototype, and
   `DESIGN.md` is written; the detailed plan's UI Tasks link them.
 - Path 2: `DESIGN.md` is replaced after the user approves the new direction, and

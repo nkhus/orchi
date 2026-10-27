@@ -137,7 +137,7 @@ that talks to them, and writers build only against what the user approved.
 | --- | --- | --- |
 | None | The change stays within existing components and screens | Nothing more; the writer finishes with `polish` and the review audits it |
 | Brief | A new screen or feature inside an established visual world (`DESIGN.md` exists) | Run `/impeccable shape` with the user, keep its brief as the surface brief in `.impeccable/surfaces/`, and link it; run the direction round only when the composition stays materially open |
-| Epic | A new product, a redesign, or several screens whose composition is open | Plan a `design` Epic (labels `Epic` and `design`) for a designer crew, and make the Epics that build on it blocked by it |
+| Epic | A new product, a redesign, or several screens whose composition is open | Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative, and make the Epic or Initiative that builds on it blocked by it |
 
 - A design Epic names the surfaces it designs, what must stay, and whether it
   replaces `DESIGN.md`. Its Tasks are the builds of the approved surfaces; the
