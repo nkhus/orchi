@@ -139,6 +139,7 @@ def test_sessions_write_temporary_files_only_in_their_worktree():
     for role in ("orchi-designer", "orchi-researcher"):
         assert "running `rm` on a path built from a variable, glob, or braces" in prose(f"orchi-core/roles/{role}.md")
     assert ".orchi-tmp/" in installation.GITIGNORE_BODY.splitlines()
+    assert ".hallmark/" in installation.GITIGNORE_BODY.splitlines()
     assert "`.orchi-tmp/dashboard/` in your own worktree" in prose("orchi-dashboard/SKILL.md")
     for path in ("orchi-core/roles/orchi-designer.md", "orchi-core/references/exploration.md", "orchi-design/SKILL.md",
                  "orchi-core/roles/orchi-researcher.md", "orchi-core/roles/README.md"):
@@ -191,7 +192,8 @@ def test_orchi_prepares_the_repository_without_asking_the_user_to_commit():
     for label in ("Exploration", "needs-planning", "delivery-ready", "design"):
         assert label in installation.LABELS and f"`{label}`" in pool
     assert ".claude/worktrees/" in installation.GITIGNORE_BODY.splitlines()
-    assert "`.claude/worktrees/` and `.orchi-tmp/` are ignored" in pool
+    assert "`.claude/worktrees/`, `.orchi-tmp/`, and `.hallmark/` are ignored" in pool
+    assert "git check-ignore -q .claude/worktrees/x .orchi-tmp/x .hallmark/x" in pool
     assert "It never force-pushes, rewrites history, or changes branch protection." in pool
     assert "leaves out and reports any it finds instead of committing them" in pool
     assert "pool.md#prepare-the-repository" in prose("orchi-core/references/exploration.md")

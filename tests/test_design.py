@@ -183,3 +183,9 @@ def test_prototype_mode_interviews_through_a_living_prototype_and_keeps_every_la
     assert "in prototype mode, a direction in one line instead" in designer
     assert "To change a mockup, copy it into the output folder and change only what the remarks name." in designer
     assert "'prototyper': 'Prototyper'" in (SKILLS / "orchi-core/scripts/dashboard.py").read_text()
+
+
+def test_designer_runs_design_skill_scripts_from_its_worktree():
+    designer = prose("orchi-core/roles/orchi-designer.md")
+    assert "Use the copy in your own worktree, and run a skill's scripts from the worktree's root by their path" in designer
+    assert "never from the skill's own directory" in designer and "`.hallmark/`" in designer

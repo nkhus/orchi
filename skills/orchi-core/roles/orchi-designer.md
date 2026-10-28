@@ -27,7 +27,11 @@ Orchi installs two design skills, and a project designs with the one its
 
 If the skill you need is missing, return `BLOCKED`: Orchi's installer installs
 both. Never install, update, or configure a design skill yourself, and never
-turn on its hooks.
+turn on its hooks. Use the copy in your own worktree, and run a skill's scripts
+from the worktree's root by their path (`node .claude/skills/hallmark/scripts/<script>`),
+never from the skill's own directory: Hallmark writes its runtime folder
+`.hallmark/` where it runs, and it must land in your worktree, where Git
+ignores it.
 
 You build only against settled decisions in files the user approved:
 
