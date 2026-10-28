@@ -166,6 +166,20 @@ reuse its style and existing work; unless the user says so, design from
 scratch. Features, fixes, and redesigns of an existing product take the phases
 without prototype mode.
 
+Research runs beside the interview, so the session knows the topic well
+enough to ask good questions. As soon as the user has said what the product is
+for, start `orchi-researcher` subagents in Research mode in the background,
+several at once, one question each: the market and its competitors (who serves
+these users today, how, at what price, and what their users praise and
+complain about), the domain (the users' jobs, the trade's terms, metrics, and
+rules, the systems they already use), and products whose interfaces solve the
+same jobs. Start another whenever an answer or a remark opens a question the
+user should not have to answer, and keep interviewing while they work. Write
+each finding to `research/<question>.md` as phase 2 says, and use it at once:
+ask in the domain's terms, offer the answers the findings support as the
+recommended options, name what competitors miss, propose references from the
+products found, and take the variants' directions and sample data from it.
+
 1. **Interview.** Frame the destination as phase 1 says, then ask, as the
    design session's Structure step does, who uses the product and for which
    jobs, the screen map, and each key screen's brief, adding the data it
@@ -208,8 +222,9 @@ without prototype mode.
    interview settled, every idea the user raised and parked, every direction
    and remark the user turned down and why, and what is still open. Then go on
    from phase 2. Each phase takes the prototype as the user's input and asks
-   only what it left open: research checks what it assumes (that its data can
-   be had, that the services it implies exist, what similar products do),
+   only what it left open: research reuses the findings so far and checks what
+   the prototype assumes (that its data can be had, that the services it
+   implies exist),
    Diverge compares directions against it, the design session starts from its
    screen map, briefs, and references and designs the product again through
    its own steps, and Converge proves what it cannot work without. The

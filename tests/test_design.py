@@ -165,10 +165,17 @@ def test_prototype_mode_interviews_through_a_living_prototype_and_keeps_every_la
     assert "asks only what it left open" in mode and "designs the product again through its own steps" in mode
     assert "never product code or an approved comp" in mode and "plausible sample data" in mode
     assert "Picks and remarks are the user's alone, also in autonomous mode" in mode
+    research = mode[mode.index("Research runs beside the interview"):mode.index("1. **Interview.**")]
+    assert "start `orchi-researcher` subagents in Research mode in the background, several at once" in research
+    for topic in ("the market and its competitors", "the domain", "products whose interfaces solve the same jobs"):
+        assert topic in research
+    assert "ask in the domain's terms" in research and "keep interviewing while they work" in research
+    assert "research reuses the findings so far" in mode
+    assert "start `orchi-researcher` subagents on the market, the domain, and similar products" in explore
     assert "starts in [prototype mode](#prototype-mode), which runs Frame as its interview" in exploration
     assert "| Ideas | Every idea the user raised and parked" in exploration
     assert "id: ideas" in (SKILLS / "orchi-core/assets/github/ISSUE_TEMPLATE/orchi-exploration.yml").read_text()
-    assert "`Mode: prototype`" in explore and "keep interviewing while it works" in explore
+    assert "`Mode: prototype`" in explore and "keep interviewing while they work" in explore
     assert "report `<id> now researcher`" in explore and "take Orchi's `<id> remark:`" in explore
     assert "| Prototyper | `orchi-explore` with `--prototype` |" in pool and "`prototyper`" in pool
     assert "`Prototype first` and `Interview`" in pool and "goes the usual way, also when the user asks for a prototype" in pool

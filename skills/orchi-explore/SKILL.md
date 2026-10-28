@@ -43,8 +43,9 @@ Shape. Brief each `orchi-researcher` and `orchi-designer` with its mode and the 
 
 With `--prototype`, or for an Exploration whose Destination says `Mode: prototype`, run Frame in the reference's
 [prototype mode](../orchi-core/references/exploration.md#prototype-mode) (write `Mode: prototype` in the Destination):
-the interview, variant rounds, and the living prototype. Start each designer subagent in the background and keep
-interviewing while it works. Once the user says to build it, report `<id> now researcher` and run the other phases with the prototype as their input.
+the interview, variant rounds, and the living prototype. From the first answers on, start `orchi-researcher`
+subagents on the market, the domain, and similar products, and each designer subagent, in the background, and keep
+interviewing while they work. Once the user says to build it, report `<id> now researcher` and run the other phases with the prototype as their input.
 For a feature, fix, or redesign of an existing product, run the phases without it and tell the user why in one line.
 
 ## 3. Finish
