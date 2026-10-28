@@ -48,5 +48,5 @@ def test_verdicts_reach_the_pr_template():
 
 def test_researcher_clones_only_outside_the_repository_and_never_runs_them():
     researcher = prose("orchi-core/roles/orchi-researcher.md")
-    assert "into a new temporary directory outside the repository" in researcher
+    assert "into a new directory under `.orchi-tmp/` in the worktree" in researcher
     assert "never run, build, or install anything from it" in researcher

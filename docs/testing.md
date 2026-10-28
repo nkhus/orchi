@@ -28,18 +28,20 @@ Tests do not establish that Claude Code follows the workflow. When changing the 
 
 For a session pool in Claude Desktop, check that:
 
-- `/orchi` in a session that is not in bypass permissions mode stops and asks to switch; in bypass mode it starts only the dashboard; a request starts its crew in that turn, detached and filed into `Orchi pool · <repo>`; a planner continues with the first item it planned, and other ready items get start cards that start their crews with one click; a finished crew is archived;
-- "prepare autonomous development" starts 2 crews in one turn; one click on `Create workers` in each starts 2 workers nested under it, and a crew that cannot show a button proposes cards or asks for a reply;
+- `/orchi` in a session that is not in bypass permissions mode stops and asks to switch; in bypass mode it titles itself `Orchi`, files itself into `Orchi pool · <repo>`, and starts no session; a request starts its crew in that turn, detached and filed into `Orchi pool · <repo>`; a planner continues with the first item it planned, and other ready items get start cards that start their crews with one click; a finished crew is archived;
+- turning autonomous mode on, by message or with the button at the end of Orchi's report, starts the dashboard and 3 crews in one turn; one click on `Create workers` in each starts 3 workers nested under it, and a crew that cannot show a button proposes cards or asks for a reply;
+- asking for the dashboard starts it as a top-level session in the group, not nested under Orchi; its page changes only when the user clicks `Refresh` or Orchi sends `refresh` or a mode, and no timer exists;
+- a designer's or researcher's variants, wireframes, and clones land in `.orchi-tmp/` in its worktree, and no session waits for permission to write outside it;
 - `/orchi` in a second session leaves the pool to its Orchi and links to it; after that Orchi is archived, it takes the pool over and every crew accepts;
 - every crew and worker brief carries the sender's real session id;
 - no session is started in a turn a message or an event started;
-- an idea goes to a researcher crew and a request to a planner crew, each renamed after its role and topic, and the crew asks the user directly in interactive mode;
+- an idea goes to a researcher crew and a request to a planner crew, each titled `[<role>] <topic>`, and the crew asks the user directly while autonomous mode is off;
 - "take #n" on `delivery-ready` work goes to a dev lead crew, and "take #m" on work without it is refused with the reason;
 - a dev lead gives each Task to a worker, runs Tasks on different files in parallel on `task/*` branches, merges them into the Epic branch after its checks, clears each worker after its `done`, and sends a review defect, on its reopened Task, to a free worker;
 - a dev lead's follow-up goes to a planner crew and comes back planned to a dev lead without the user asking;
 - after `/compact` in Orchi, a crew, and a worker mid-task, asking "who are you and what is next?" gets the role and the next step, or the owner's re-sent message restores it;
 - an Epic with more Tasks than workers keeps moving because a worker takes the next Task after `done`, and a worker's branch is free for its dev lead's merge after `done`;
-- in auto mode a planner's question is answered by Orchi's `answer` message, and a researcher's still reaches the user;
+- with autonomous mode on, a researcher's, planner's, and designer's questions are answered by Orchi's `answer` message from the crew's recommendation, and a `(user)` question about money, access, a deploy, or a destructive action still reaches the user;
 - workers are released only after the PR with their work is merged, return to a detached default branch, and are cleared by their crew; a released pool crew clears itself and Orchi renames it back to `crew-<k>` on its `released` reply, with no other event needed; only crews started on demand are archived, and nothing is deleted;
 - a clear refused because the session is open on screen is retried later;
 - the slash-command menu offers only `/orchi`; in a session outside the pool, an implementation request gets an answer pointing to `/orchi`, not a plan or a branch, and a role skill invoked without `--report-to` stops with the same pointer;
@@ -51,7 +53,7 @@ For a session pool in Claude Desktop, check that:
 - no session asks the user a technical question: a planner shows the plan as what the user will see and do, and a dev lead pushes a writer's commit without rerunning its checks locally;
 - an exploration keeps its findings as files on `explore/<slug>`, planning continues on a branch created from it with the plan in the same folder and a fate for every decision, an Epic merge moves settled content into area and behavior pages, and the final PR into main deletes the folder and passes `knowledge.py work`; a replaced decision disappears from its area page;
 - an audit of an existing repository writes nothing by itself, sorts its `CLAUDE.md` rules, and proposes one standards Epic in product terms;
-- at autonomy Decide, a planner crew asks only about direction and scope and shows the breakdown without waiting; a crew ignores a `mode` message from any session but Orchi; in auto mode, crews ask Orchi, Orchi merges a reviewed PR with passing checks and still asks the user before any deploy, and tells each waiting question once.
+- a crew ignores an `autonomous` message from any session but Orchi; with autonomous mode on, Orchi merges a reviewed PR with passing checks, still asks the user before any deploy, lists the product and design decisions it made, and tells each waiting question once.
 
 ## Decisions
 

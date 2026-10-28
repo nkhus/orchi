@@ -13,10 +13,10 @@ pool.
 
 ## Instead
 
-Orchi starts a crew per request on demand. For autonomous development the pool
-is the limit: Orchi builds a fixed number of crews and workers (2 and 2 unless
-the user names others) and assigns free crews without asking; more come only
-when the user asks.
+Orchi starts a crew per request on demand. In autonomous mode the pool is the
+limit: Orchi builds a fixed number of crews and workers (3 and 3 unless the user
+names others) and assigns free crews without asking; more come only when the
+user asks.
 
 ## Decided in
 

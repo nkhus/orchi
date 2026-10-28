@@ -163,7 +163,7 @@ def test_standards_wording_agrees_across_planning_delivery_and_roles():
             f'skills/orchi-core/roles/{role}.md')
     standards_skill = prose('skills/orchi-standards/SKILL.md')
     assert "never ask about tools, thresholds, or layout" in standards_skill
-    assert "the product constraints are the user's, even in auto mode" in standards_skill
+    assert "the product\nconstraints are the user's, or Orchi's in autonomous mode, except money and access".replace("\n", " ") in standards_skill
     assert "| Planner | `orchi-standards` |" in prose('skills/orchi-core/references/pool.md')
 
 

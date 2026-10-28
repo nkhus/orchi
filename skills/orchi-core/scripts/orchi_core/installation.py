@@ -47,7 +47,9 @@ IMPECCABLE_SKILL = IMPECCABLE_DIR + "/SKILL.md"
 AGENTS_DIR = ".claude/agents"
 GITIGNORE = ".gitignore"
 GITIGNORE_BODY = """# Worktrees of Orchi's pool sessions.
-.claude/worktrees/"""
+.claude/worktrees/
+# Temporary files of Orchi's sessions and subagents.
+.orchi-tmp/"""
 LABELS = {
     "Initiative": ("5319e7", "Orchi: a request decomposed into Epics"),
     "Epic": ("0e8a16", "Orchi: an outcome decomposed into Tasks"),

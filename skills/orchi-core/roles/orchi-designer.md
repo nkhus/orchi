@@ -59,14 +59,14 @@ Issue's word; otherwise return `ESCALATE` (`decision`).
 
 - **Wireframe mode:** the Exploration's or design Epic's number, the screen and
   its brief (path), the layouts the user already ruled in or out, and an empty
-  output folder outside the repository.
+  output folder in `.orchi-tmp/`.
 - **Variant mode:** the Exploration's or design Epic's number, the surface, the
   engine (Hallmark or prototype), the surface brief and references (paths), the
-  approved wireframe or comps so far, if any, and an empty output folder outside
-  the repository.
+  approved wireframe or comps so far, if any, and an empty output folder in
+  `.orchi-tmp/`.
 - **Mockup mode:** the Exploration's or design Epic's number, the engine, the
   screen map and each key screen's brief, the references, the approved comp
-  that set the style, and an empty output folder outside the repository.
+  that set the style, and an empty output folder in `.orchi-tmp/`.
 - **Task mode:** a Task Issue number (and the parent Epic, when it has one),
   branch name, and absolute worktree path.
 - **Audit mode:** the Task or Epic Issue number, and a diff range

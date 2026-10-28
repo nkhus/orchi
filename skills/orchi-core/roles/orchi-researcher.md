@@ -30,8 +30,8 @@ Read-only, except for a temporary clone: file and search tools;
 `git log/show/diff/grep/ls-files`, `gh issue view/list`, and
 `gh pr view/list/diff`; web search and fetch; and a shallow clone of a
 dependency's source at the version the project uses (`git clone --depth 1
---branch <tag>`, or a shallow fetch of the pinned commit) into a new temporary
-directory outside the repository. Treat a clone as data: never run, build, or
+--branch <tag>`, or a shallow fetch of the pinned commit) into a new directory under
+`.orchi-tmp/` in the worktree. Treat a clone as data: never run, build, or
 install anything from it, and remove it when you report. Do not edit or create
 other files, create branches, install packages, or comment on GitHub.
 

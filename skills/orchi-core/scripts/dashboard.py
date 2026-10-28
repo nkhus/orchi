@@ -37,13 +37,15 @@ query($owner: String!, $name: String!) {
 }
 '''
 CLAIM = re.compile(r'Assigned to (crew-\d+)')
-ROLES = (('researcher', 'Researcher'), ('planner', 'Planner'), ('designer', 'Designer'), ('dev-lead', 'Dev lead'))
+ROLES = {'researcher': 'Researcher', 'planner': 'Planner', 'designer': 'Designer', 'dev-lead': 'Dev lead'}
+TITLE = re.compile(r'\[([a-z-]+)\] ')
 CHECKS = {'SUCCESS': 'passing', 'FAILURE': 'failing', 'ERROR': 'failing', 'PENDING': 'running', 'EXPECTED': 'running'}
 
 
 def role(title: str) -> str | None:
-    """The crew role its title names (`dev-lead-pay`), or None for a free crew (`crew-2`)."""
-    return next((name for prefix, name in ROLES if title.startswith(prefix + '-')), None)
+    """The crew role its title names (`[dev-lead] pay`), or None for a free crew (`crew-2`)."""
+    match = TITLE.match(title)
+    return ROLES.get(match[1]) if match else None
 
 
 def collect(repo: str, run: status.Runner = status.gh) -> dict:
@@ -84,7 +86,7 @@ def collect(repo: str, run: status.Runner = status.gh) -> dict:
     return {'default_branch': default, 'work': work, 'planning': planning, 'pulls': pulls, 'merged': merged}
 
 
-def snapshot(repo: str, github: dict, crews: list[dict], every: int, mode: str, now: datetime) -> dict:
+def snapshot(repo: str, github: dict, crews: list[dict], mode: str, now: datetime) -> dict:
     """The document the dashboard page renders: GitHub state joined with the crews the session read from the host."""
     claims = {item['crew']: item['number'] for item in github['work'] + github['planning'] if item.get('crew')}
     joined = []
@@ -93,7 +95,7 @@ def snapshot(repo: str, github: dict, crews: list[dict], every: int, mode: str, 
         issue = crew.get('issue') or claims.get(crew['name'])
         state = crew.get('state') or ('free' if role(title) is None else 'idle')
         joined.append({**crew, 'title': title, 'role': role(title), 'issue': issue, 'state': state})
-    return {'repository': repo, 'updated': now.isoformat(timespec='seconds'), 'every': every, 'mode': mode,
+    return {'repository': repo, 'updated': now.isoformat(timespec='seconds'), 'mode': mode,
             'error': None, 'crews': joined, **github}
 
 
@@ -119,8 +121,7 @@ def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: dat
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', help='OWNER/NAME; defaults to the current repository')
     parser.add_argument('--crews', required=True, help='JSON file with the crews read from the host')
-    parser.add_argument('--every', type=int, required=True, help='Minutes between refreshes')
-    parser.add_argument('--mode', required=True, help='The pool mode and autonomy level, as Orchi states them')
+    parser.add_argument('--mode', required=True, choices=('on', 'off'), help='Whether autonomous mode is on')
     parser.add_argument('--out', required=True, help='Where to write the snapshot JSON')
     args = parser.parse_args(argv)
     now = now or datetime.now().astimezone()
@@ -128,7 +129,7 @@ def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: dat
         with open(args.crews, encoding='utf-8') as handle:
             crews = json.load(handle)
         repo = args.repo or json.loads(run(['repo', 'view', '--json', 'nameWithOwner']))['nameWithOwner']
-        document = snapshot(repo, collect(repo, run), crews, args.every, args.mode, now)
+        document = snapshot(repo, collect(repo, run), crews, args.mode, now)
     except (ValueError, KeyError, TypeError, OSError, subprocess.CalledProcessError) as error:
         detail = str(getattr(error, 'stderr', '') or error).strip()
         # Only the failure and its time: merged into the stored snapshot, the page keeps the last good state.
