@@ -231,6 +231,7 @@ def test_the_dashboard_is_optional_separate_refreshed_on_request_and_only_reads(
     assert dashboard.summary(document).startswith("📊 15:04 · ") and "`📊 <time> · <n> active" in pool
     for script in ("http://", "<script src", "localStorage"):
         assert script not in template
+    assert 'class: "what stretch", href: url' in template and "Open session ›" in template
 
 
 def test_crews_start_on_demand_and_the_pool_only_for_autonomous_mode():

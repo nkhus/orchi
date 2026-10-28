@@ -1,6 +1,6 @@
 ---
 name: orchi-dashboard
-description: Keep an Orchi pool's dashboard - a page of the crews, the work and its progress, what waits for the user, PRs, and the planning queue - refreshed on request by a Haiku subagent from GitHub and the host's session list, and the user's questions about it answered. Read-only; it changes nothing and takes no requests. Invoke only when Orchi's brief or message, the user's Refresh button, or a dashboard subagent's task asks for orchi-dashboard by name.
+description: Keep an Orchi pool's dashboard - a page of the crews with the Initiative and Epic of their work, the backlog as a tree of Initiatives, Epics, and Tasks with their progress, what waits for the user, PRs, and the planning queue - refreshed on request by a Haiku subagent from GitHub and the host's session list, and the user's questions about it answered. Read-only; it changes nothing and takes no requests. Invoke only when Orchi's brief or message, the user's Refresh button, or a dashboard subagent's task asks for orchi-dashboard by name.
 argument-hint: "start --report-to <Orchi session> --mode <on or off> | refresh | collect --page <url> --mode <on or off> --dir <path> --skip <session id>"
 user-invocable: false
 ---

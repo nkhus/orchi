@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a control-room board. Summary strip, then what waits for the user, then crews, work, PRs, and history. */
+/* Layout: a control-room board. Summary strip, then what waits for the user, then crews, the backlog tree, PRs, and history. */
 :root {
   --bg: #f3f4f1; --panel: #ffffff; --ink: #1b1f1c; --muted: #5d665f; --line: #d9ddd5;
   --accent: #2f5d50; --accent-soft: #e2ece7;
@@ -55,6 +55,14 @@ h2 { font: 600 13px/1.3 var(--body); letter-spacing: 0.08em; text-transform: upp
 .list { display: grid; gap: 8px; }
 .row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 10px; padding: 12px 16px; }
 .row.merge { border-left-color: var(--ok); }
+.row.go { position: relative; cursor: pointer; transition: background 0.15s ease; }
+.row.go:hover { background: var(--warn-soft); }
+.row .stretch { text-decoration: none; }
+.row .stretch::after { content: ""; position: absolute; inset: 0; border-radius: 10px; }
+.row .stretch:focus-visible { outline: none; }
+.row.go:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row.go .muted a { position: relative; z-index: 1; }
+.row .open { font-size: 13px; font-weight: 600; color: var(--warn); white-space: nowrap; align-self: center; }
 .row p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .row .what { font-weight: 600; }
 .crews { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; }
@@ -79,11 +87,37 @@ th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.06em
 td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 tr:last-child td { border-bottom: 0; }
 td.title { min-width: 220px; }
-td.child { padding-left: 34px; }
 td .bar { min-width: 120px; }
+.tree { display: grid; gap: 12px; }
+.group { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 16px; }
+details > summary { list-style: none; cursor: pointer; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.node { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 10px 0; }
+.node + .node, .node + details, details + .node, details + details { border-top: 1px solid var(--line); }
+.node p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.node .side { display: flex; gap: 8px; align-items: center; justify-content: end; flex-wrap: wrap; font-size: 13px; }
+.node .bar { grid-column: 1 / -1; max-width: 360px; }
+.twisty { display: inline-block; width: 14px; color: var(--muted); transition: transform 0.15s ease; }
+details[open] > summary .twisty { transform: rotate(90deg); }
+.lvl-0 > p { font: 600 16px/1.35 var(--display); }
+.lvl-1 > p { font-weight: 600; }
+.lvl-2 > p { font-size: 14px; }
+.children { margin: 0 0 8px 6px; padding-left: 16px; border-left: 2px solid var(--line); }
+.kind { display: inline-block; font: 600 11px/1.6 var(--body); letter-spacing: 0.06em; text-transform: uppercase; padding: 0 7px; border-radius: 5px; margin-right: 6px; vertical-align: 2px; }
+.kind.Initiative { background: var(--accent); color: var(--panel); }
+.kind.Epic { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--accent); }
+.kind.Task { background: var(--track); color: var(--muted); }
+.loose { font: 600 12px/1.3 var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 0; }
+.loose + .node { border-top: 0; }
+.path { display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.path .sep { opacity: 0.6; }
+.now { display: grid; gap: 4px; font-size: 13.5px; }
+.now b { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 28px; }
 .empty { padding: 14px 16px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 14px; }
 footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+@media (max-width: 560px) { .node { grid-template-columns: minmax(0, 1fr); } .node .side { justify-content: start; } .children { margin-left: 2px; padding-left: 10px; } }
 @media (prefers-reduced-motion: no-preference) { .bar .fill { transition: width 0.4s ease; } }
 </style>
 
@@ -101,7 +135,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   </div>
   <section id="waiting-section" hidden><h2>Waits for you</h2><div class="list" id="waiting"></div></section>
   <section><h2>Crews</h2><div class="crews" id="crews"><div class="empty">The dashboard session fills this in on its first refresh. Crews, their work, and their workers appear here.</div></div></section>
-  <section><h2>Work</h2><div id="work"><div class="empty">Open Initiatives, Epics, and Tasks appear here with their progress.</div></div></section>
+  <section><h2>Backlog</h2><div id="work"><div class="empty">Open Initiatives, their Epics, and their Tasks appear here as a tree with their progress.</div></div></section>
   <div class="cols">
     <section><h2>Pull requests</h2><div id="pulls"><div class="empty">No data yet.</div></div></section>
     <section><h2>Planning queue</h2><div id="planning"><div class="empty">No data yet.</div></div></section>
@@ -137,10 +171,13 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       el("small", {}, `${progress.done} of ${progress.total} ${unit} · ${share}%`));
   };
   const STATES = {working: ["Working", "ok"], waiting: ["Waits for you", "warn"], idle: ["Idle", ""], free: ["Free", "free"]};
-  const STATUS = {claimed: ["In progress", "accent"], ready: ["Ready", "ok"], check: ["Check blockers", "warn"], blocked: ["Blocked", ""]};
+  const STATUS = {claimed: ["In progress", "accent"], ready: ["Ready", "ok"], check: ["Check blockers", "warn"], blocked: ["Blocked", ""], todo: ["To do", "plain"]};
   const CHECKS = {passing: ["Checks pass", "ok"], failing: ["Checks fail", "bad"], running: ["Checks running", "warn"], none: ["No checks", ""]};
   const unitOf = (kind) => kind === "Initiative" ? "Epics" : "Tasks";
   const empty = (text) => el("div", {class: "empty"}, text);
+  const kind = (item) => el("span", {class: "kind " + item.kind}, item.kind);
+  // Initiatives and Epics the user folded stay folded across refreshes while the page is open.
+  const folded = new Set();
 
   let last = null;
   function render(doc) {
@@ -172,43 +209,58 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       }
       const crew = crews.find((c) => c.name === item.crew) || {};
       const issue = byNumber.get(item.issue);
-      return el("div", {class: "row"}, pill("Question", "warn"),
-        el("p", {}, el("span", {class: "what"}, crew.title || item.crew), issue ? el("span", {class: "muted"}, " · ", link(issue.url, "#" + issue.number)) : null, el("br"), item.text || "Asked you something in its session."),
-        crew.link ? link(crew.link, "Open session") : el("span", {}));
+      // The whole row opens the crew's session, where the question waits; the Issue link stays its own target.
+      const url = safeUrl(crew.link);
+      return el("div", {class: "row" + (url ? " go" : "")}, pill("Question", "warn"),
+        el("p", {}, url ? el("a", {class: "what stretch", href: url, target: "_blank", rel: "noopener"}, crew.title || item.crew) : el("span", {class: "what"}, crew.title || item.crew),
+          issue ? el("span", {class: "muted"}, " · ", link(issue.url, "#" + issue.number)) : null, el("br"), item.text || "Asked you something in its session."),
+        url ? el("span", {class: "open", "aria-hidden": "true"}, "Open session ›") : el("span", {}));
     }));
 
     $("crews").replaceChildren(...(crews.length ? crews.map((crew) => {
       const [stateText, tone] = STATES[crew.state] || [crew.state, ""];
       const issue = byNumber.get(crew.issue);
       const pr = crew.issue ? pulls.find((p) => (p.closes || []).includes(crew.issue)) : null;
+      const path = (crew.path || []).map((n) => byNumber.get(n)).filter(Boolean);
+      const under = (item) => { for (let n = item.parent; n; n = (byNumber.get(n) || {}).parent) if (n === crew.issue) return true; return false; };
+      const now = issue ? work.filter((item) => item.status === "claimed" && under(item)) : [];
       const workers = crew.workers || {};
       const dots = Array.from({length: Number(workers.total) || 0}, (_, i) => el("i", {class: i < (Number(workers.busy) || 0) ? "busy" : ""}));
       return el("article", {class: "crew" + (crew.state === "free" ? " free" : "")},
         el("div", {class: "crew-head"}, el("div", {class: "crew-title"}, crew.link ? link(crew.link, crew.title) : crew.title, el("small", {}, [crew.role, crew.name].filter(Boolean).join(" · "))), pill(stateText, tone)),
-        issue ? el("div", {class: "crew-work"}, link(issue.url, "#" + issue.number), " ", issue.title) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
+        path.length ? el("div", {class: "path", "aria-label": "Part of"}, path.flatMap((item, i) => [i ? el("span", {class: "sep"}, "›") : null, el("span", {}, item.kind + " ", link(item.url, "#" + item.number), " " + item.title)])) : null,
+        issue ? el("div", {class: "crew-work"}, kind(issue), link(issue.url, "#" + issue.number), " ", issue.title) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
         crew.stage ? el("div", {class: "muted", style: "font-size:13.5px"}, crew.stage) : null,
         issue ? bar(issue.progress, unitOf(issue.kind)) : null,
+        now.length ? el("div", {class: "now"}, el("b", {}, "In progress now"), now.slice(0, 3).map((item) => el("div", {}, kind(item), link(item.url, "#" + item.number), " ", item.title, item.parent !== crew.issue && byNumber.get(item.parent) ? el("span", {class: "muted"}, " · in " + byNumber.get(item.parent).kind + " #" + item.parent) : null)), now.length > 3 ? el("span", {class: "muted"}, `and ${now.length - 3} more`) : null) : null,
         crew.question && crew.state === "waiting" ? el("div", {class: "question"}, crew.question) : null,
         pr ? el("div", {style: "display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13.5px"}, link(pr.url, "PR #" + pr.number), pill(pr.draft ? "Draft" : "Ready", pr.draft ? "plain" : "accent"), pill(...CHECKS[pr.checks] || [pr.checks, ""])) : null,
         dots.length ? el("div", {class: "workers", "aria-label": `${workers.busy || 0} of ${workers.total} workers busy`}, dots, el("span", {}, `${workers.busy || 0}/${workers.total} workers busy`)) : null);
     }) : [empty("No crews found in the pool's sidebar group.")]));
 
-    const order = {claimed: 0, ready: 1, check: 2, blocked: 3};
-    const tops = work.filter((item) => !item.parent || !byNumber.has(item.parent)).sort((a, b) => (order[a.status] - order[b.status]) || a.number - b.number);
-    const rows = [];
-    for (const item of tops) {
-      rows.push([item, false]);
-      for (const child of work.filter((w) => w.parent === item.number)) rows.push([child, true]);
-    }
-    $("work").replaceChildren(rows.length ? el("div", {class: "table-wrap"}, el("table", {},
-      el("thead", {}, el("tr", {}, el("th", {}, "Item"), el("th", {}, "Status"), el("th", {}, "Progress"), el("th", {}, "Crew"))),
-      el("tbody", {}, rows.map(([item, child]) => {
-        const [text, tone] = STATUS[item.status] || [item.status, ""];
-        const crew = crews.find((c) => c.name === item.crew);
-        return el("tr", {}, el("td", {class: "title" + (child ? " child" : "")}, el("span", {class: "mono muted"}, item.kind + " "), link(item.url, "#" + item.number), " ", item.title),
-          el("td", {}, pill(text, tone)), el("td", {}, bar(item.progress, unitOf(item.kind)) || el("span", {class: "muted"}, "—")),
-          el("td", {}, crew ? crew.title : item.crew || el("span", {class: "muted"}, "—")));
-      })))) : empty("No open Initiatives, Epics, or Tasks."));
+    const order = {claimed: 0, ready: 1, check: 2, blocked: 3, todo: 4};
+    const sorted = (items) => items.sort((a, b) => (order[a.status] - order[b.status]) || a.number - b.number);
+    const childrenOf = (item) => sorted(work.filter((w) => w.parent === item.number));
+    const node = (item, level) => {
+      const [text, tone] = STATUS[item.status] || [item.status, ""];
+      const crew = crews.find((c) => c.name === item.crew);
+      const kids = childrenOf(item);
+      const row = el(kids.length ? "summary" : "div", {class: "node lvl-" + level},
+        el("p", {}, kids.length ? el("span", {class: "twisty", "aria-hidden": "true"}, "▸") : null, kind(item), link(item.url, "#" + item.number), " ", item.title),
+        el("span", {class: "side"}, pill(text, tone), crew ? el("span", {class: "muted"}, crew.title) : item.crew ? el("span", {class: "muted mono"}, item.crew) : null),
+        bar(item.progress, unitOf(item.kind)));
+      if (!kids.length) return row;
+      const box = el("details", {open: !folded.has(item.number)}, row, el("div", {class: "children"}, kids.map((kid) => node(kid, level + 1))));
+      box.addEventListener("toggle", () => { box.open ? folded.delete(item.number) : folded.add(item.number); });
+      return box;
+    };
+    // Initiatives, then Epics outside any Initiative, each in its own card; Tasks outside any Epic share one card.
+    const tops = work.filter((item) => !item.parent || !byNumber.has(item.parent));
+    const level = {Initiative: 0, Epic: 1, Task: 2};
+    const cards = ["Initiative", "Epic"].flatMap((k) => sorted(tops.filter((item) => item.kind === k)).map((item) => el("div", {class: "group"}, node(item, level[k]))));
+    const loose = sorted(tops.filter((item) => item.kind === "Task"));
+    if (loose.length) cards.push(el("div", {class: "group"}, el("h3", {class: "loose"}, "Tasks outside any Epic"), loose.map((item) => node(item, 2))));
+    $("work").replaceChildren(cards.length ? el("div", {class: "tree"}, cards) : empty("No open Initiatives, Epics, or Tasks."));
 
     $("pulls").replaceChildren(pulls.length ? el("div", {class: "list"}, pulls.map((pr) => el("div", {class: "row", style: "border-left-color:var(--line)"},
       el("span", {class: "mono"}, "#" + pr.number), el("p", {}, link(pr.url, pr.title), el("br"), el("span", {class: "muted mono"}, "into " + pr.base)),

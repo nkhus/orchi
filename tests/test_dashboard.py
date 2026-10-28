@@ -12,12 +12,18 @@ def labels(*names):
     return {'nodes': [{'name': name} for name in names]}
 
 
-def epic(number, *children, extra=()):
+def epic(number, *children, extra=(), parent=None):
     return {'number': number, 'title': f'[E{number}] Epic', 'url': f'https://example.invalid/{number}',
-            'labels': labels('Epic', *extra), 'assignees': {'nodes': []}, 'parent': None,
+            'labels': labels('Epic', *extra), 'assignees': {'nodes': []},
+            'parent': {'number': parent, 'title': '[INI] Payments'} if parent else None,
             'subIssues': {'totalCount': len(children), 'nodes': [{'number': 90 + i, 'title': f'[E{number}] Task',
                                                                    'state': s} for i, s in enumerate(children)]},
             'blockedBy': {'nodes': []}}
+
+
+def task(number, state, *extra):
+    return {'number': number, 'title': f'[E2] Task {number}', 'url': f'https://example.invalid/{number}',
+            'state': state, 'labels': labels('Task', *extra)}
 
 
 def pull(number, draft=False, base='main', rollup='SUCCESS'):
@@ -33,10 +39,14 @@ REPOSITORY = {
                                'labels': labels('Initiative', 'in-progress'),
                                'subIssues': {'totalCount': 3, 'nodes': [{'state': 'CLOSED'}, {'state': 'OPEN'},
                                                                         {'state': 'OPEN'}]}}]},
+    'epics': {'nodes': [{'number': 2, 'subIssues': {'nodes': [task(90, 'CLOSED'), task(92, 'OPEN', 'in-progress'),
+                                                              task(93, 'OPEN')]}},
+                        {'number': 99, 'subIssues': {'nodes': [task(98, 'OPEN')]}}]},
     'planning': {'nodes': [{'number': 5, 'title': 'Hotel control center', 'url': 'https://example.invalid/5',
                             'labels': labels('Exploration')}]},
     'claimed': {'nodes': [{'number': 2, 'body': 'Work reference: Assigned to crew-2 (local_x) by Orchi on 2026-10-27'},
-                          {'number': 5, 'body': 'Assigned to crew-1 (local_y) by Orchi'}]},
+                          {'number': 5, 'body': 'Assigned to crew-1 (local_y) by Orchi'},
+                          {'number': 92, 'body': 'Assigned to crew-2 (local_x), worker-1, by Orchi'}]},
     'open': {'nodes': [pull(10), pull(11, draft=True), pull(12, base='epic/x'), pull(13, rollup='FAILURE')]},
     'merged': {'nodes': [{'number': 7, 'title': 'PR 7', 'url': 'u', 'mergedAt': '2026-10-27T10:00:00Z',
                           'baseRefName': 'main'}]},
@@ -50,7 +60,7 @@ def runner(args):
     if query == 'query=' + dashboard.QUERY:
         return json.dumps({'data': {'repository': REPOSITORY}})
     assert query == 'query=' + status.QUERY
-    issues = [epic(2, 'CLOSED', 'CLOSED', 'OPEN', extra=['in-progress']), epic(3)]
+    issues = [epic(2, 'CLOSED', 'CLOSED', 'OPEN', extra=['in-progress'], parent=1), epic(3)]
     return json.dumps({'data': {'repository': {'issues': {'pageInfo': {'hasNextPage': False}, 'nodes': issues}}}})
 
 
@@ -97,3 +107,17 @@ def test_a_failure_keeps_only_its_time_and_reason(tmp_path, capsys):
     code, document = run(tmp_path, [], fail='gh: not logged in')
     assert code == 2 and document == {'updated': '2026-10-27T15:04:00+00:00', 'error': 'gh: not logged in'}
     assert capsys.readouterr().out.strip() == '📊 15:04 · refresh failed'
+
+
+def test_work_is_a_tree_and_a_crew_knows_its_initiative_and_epic(tmp_path):
+    crews = [{'name': 'crew-2', 'title': '[dev-lead] pay', 'state': 'working'}]
+    code, document = run(tmp_path, crews)
+    work = {item['number']: item for item in document['work']}
+    assert work[2]['parent'] == 1
+    assert (work[92]['kind'], work[92]['parent'], work[92]['status'], work[92]['crew']) == ('Task', 2, 'claimed', 'crew-2')
+    assert (work[93]['status'], work[93]['crew']) == ('todo', None)
+    assert 90 not in work and 98 not in work
+    crew = document['crews'][0]
+    assert (crew['issue'], crew['path']) == (2, [1])
+    assert dashboard.lineage(document['work'], 92) == [1, 2] and dashboard.lineage(document['work'], 1) == []
+    assert document['crews'][0]['state'] == 'working' and code == 0

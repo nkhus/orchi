@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only snapshot of an Orchi pool for its dashboard: work with progress, PRs, recent merges, and the crews."""
+"""Read-only snapshot of an Orchi pool for its dashboard: the work tree, PRs, recent merges, and the crews."""
 from __future__ import annotations
 
 import argparse
@@ -17,6 +17,9 @@ query($owner: String!, $name: String!) {
     defaultBranchRef { name }
     initiatives: issues(first: 50, states: OPEN, labels: ["Initiative"], orderBy: {field: CREATED_AT, direction: ASC}) {
       nodes { number title url labels(first: 20) { nodes { name } } subIssues(first: 100) { totalCount nodes { state } } }
+    }
+    epics: issues(first: 100, states: OPEN, labels: ["Epic"]) {
+      nodes { number subIssues(first: 100) { nodes { number title url state labels(first: 20) { nodes { name } } } } }
     }
     planning: issues(first: 50, states: OPEN, labels: ["needs-planning", "Exploration"],
                      orderBy: {field: CREATED_AT, direction: ASC}) {
@@ -69,6 +72,17 @@ def collect(repo: str, run: status.Runner = status.gh) -> dict:
                      'status': entry['status'], 'parent': entry['parent'], 'crew': crews.get(entry['number']),
                      'progress': ({'done': entry['tasks']['closed'], 'total': entry['tasks']['total']}
                                   if entry['tasks'] else None)})
+    # An Epic's open Tasks, nested under it; status.py lists only Tasks without a parent.
+    shown = {item['number'] for item in work}
+    for node in data['epics']['nodes']:
+        if node['number'] not in shown:
+            continue
+        for child in node['subIssues']['nodes']:
+            if child['state'] != 'OPEN' or child['number'] in shown:
+                continue
+            work.append({'number': child['number'], 'kind': 'Task', 'title': child['title'], 'url': child['url'],
+                         'status': 'claimed' if status.claimed(status.names(child['labels'], 'name')) else 'todo',
+                         'parent': node['number'], 'crew': crews.get(child['number']), 'progress': None})
     planning = [{'number': node['number'], 'title': node['title'], 'url': node['url'],
                  'kind': 'Exploration' if status.labelled(status.names(node['labels'], 'name'), 'Exploration')
                  else 'needs-planning', 'crew': crews.get(node['number'])}
@@ -87,15 +101,30 @@ def collect(repo: str, run: status.Runner = status.gh) -> dict:
     return {'default_branch': default, 'work': work, 'planning': planning, 'pulls': pulls, 'merged': merged}
 
 
+def lineage(work: list[dict], number: int | None) -> list[int]:
+    """The Initiative and Epic an item sits in, outermost first: `[1, 2]` for Task 9 of Epic 2 of Initiative 1."""
+    parents = {item['number']: item.get('parent') for item in work}
+    chain = []
+    while number in parents and parents[number] and parents[number] not in chain:
+        number = parents[number]
+        chain.insert(0, number)
+    return chain
+
+
 def snapshot(repo: str, github: dict, crews: list[dict], mode: str, now: datetime) -> dict:
     """The document the dashboard page renders: GitHub state joined with the crews the session read from the host."""
-    claims = {item['crew']: item['number'] for item in github['work'] + github['planning'] if item.get('crew')}
+    # A crew's own claim is its outermost one: a dev lead's Epic, not the Tasks of it that also name its crew.
+    claims = {}
+    for item in github['work'] + github['planning']:
+        if item.get('crew') and item['crew'] not in claims:
+            claims[item['crew']] = item['number']
     joined = []
     for crew in crews:
         title = crew.get('title') or crew['name']
         issue = crew.get('issue') or claims.get(crew['name'])
         state = crew.get('state') or ('free' if role(title) is None else 'idle')
-        joined.append({**crew, 'title': title, 'role': role(title), 'issue': issue, 'state': state})
+        joined.append({**crew, 'title': title, 'role': role(title), 'issue': issue, 'state': state,
+                       'path': lineage(github['work'], issue)})
     return {'repository': repo, 'updated': now.isoformat(timespec='seconds'), 'mode': mode,
             'error': None, 'crews': joined, **github}
 
