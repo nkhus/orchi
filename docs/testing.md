@@ -35,6 +35,7 @@ For a session pool in Claude Desktop, check that:
 - `/orchi` in a second session leaves the pool to its Orchi and links to it; after that Orchi is archived, it takes the pool over and every crew accepts;
 - every crew and worker brief carries the sender's real session id;
 - no session is started in a turn a message or an event started;
+- five todos named while testing become `needs-planning` Issues in the user's words, Orchi reads no code for them, and those of one area go to one planner as `#<m> queued`; the planner takes them in order, and `Plan #<m> in parallel` starts a sub-planner nested under it that reports to it and is archived when planned;
 - an idea goes to a researcher crew and a request to a planner crew, each titled `[<role>] <topic>`, and the crew asks the user directly while autonomous mode is off;
 - "take #n" on `delivery-ready` work goes to a dev lead crew, and "take #m" on work without it is refused with the reason;
 - a dev lead gives each Task to a worker, runs Tasks on different files in parallel on `task/*` branches, merges them into the Epic branch after its checks, clears each worker after its `done`, and sends a review defect, on its reopened Task, to a free worker;

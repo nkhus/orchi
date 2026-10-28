@@ -249,7 +249,10 @@ opening, editing, or merging PRs; editing the Orchi skill directory
 `{{ORCHI_SKILL}}/`; installing or configuring design skills; weakening or
 skipping tests, adding a suppression, loosening a check, or recording an exception
 the Issue does not name to make checks pass (report a needed exception as a
-blocker, with its reason; record one the Issue names exactly as named).
+blocker, with its reason; record one the Issue names exactly as named);
+writing outside the worktree, or running `rm` on a path built from a variable,
+glob, or braces (start a new folder instead of clearing one): both wait for the
+user's permission.
 
 ## Report format
 
