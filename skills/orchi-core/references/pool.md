@@ -62,8 +62,8 @@ so on every `/orchi` Orchi first checks, read-only, that:
   included, its files, and its instruction files);
 - the labels the pool uses exist (`Exploration`, `needs-planning`,
   `delivery-ready`, `design`);
-- `.claude/worktrees/` and `.orchi-tmp/` are ignored
-  (`git check-ignore -q .claude/worktrees/x .orchi-tmp/x`).
+- `.claude/worktrees/`, `.orchi-tmp/`, and `.hallmark/` are ignored
+  (`git check-ignore -q .claude/worktrees/x .orchi-tmp/x .hallmark/x`).
 
 When all hold, it goes on. Otherwise it fixes them in the same turn
 without asking the user: it starts one general-purpose subagent, the setup
@@ -82,7 +82,7 @@ waits for its report, and checks the result (`git log -1 origin/<default>`,
    `python3 .claude/skills/orchi-core/scripts/orchi_install.py --project <path> --github`,
    which creates them and adds the GitHub files an installation without
    `--github` lacks.
-4. When `.claude/worktrees/` or `.orchi-tmp/` is not ignored, adds it to
+4. When `.claude/worktrees/`, `.orchi-tmp/`, or `.hallmark/` is not ignored, adds it to
    `.gitignore` outside the section between `# orchi:begin` and `# orchi:end`.
 5. In a repository without commits, commits every file Git does not ignore as
    `Initial Orchi setup`, pushes the default branch with an upstream, and makes

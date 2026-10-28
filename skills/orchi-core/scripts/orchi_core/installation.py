@@ -49,7 +49,9 @@ GITIGNORE = ".gitignore"
 GITIGNORE_BODY = """# Worktrees of Orchi's pool sessions.
 .claude/worktrees/
 # Temporary files of Orchi's sessions and subagents.
-.orchi-tmp/"""
+.orchi-tmp/
+# Runtime files of the Hallmark design skill.
+.hallmark/"""
 LABELS = {
     "Initiative": ("5319e7", "Orchi: a request decomposed into Epics"),
     "Epic": ("0e8a16", "Orchi: an outcome decomposed into Tasks"),
