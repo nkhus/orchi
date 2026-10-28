@@ -254,3 +254,17 @@ def test_orchi_takes_a_stream_of_requests_in_and_planners_queue_them():
     assert "never continues into delivery, and starts no session" in pool
     assert "a planner's sub-planners" in pool and "except a planner's queued ones" in pool
     assert "or has a queue" in entry and "Planner queue and sub-planners" in plan and "not a sub-planner" in plan
+
+
+def test_orchi_updates_itself_and_moves_every_session_to_the_new_version():
+    pool, entry = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md")
+    assert "## Update Orchi" in (SKILLS / "orchi-core/references/pool.md").read_text()
+    assert "every Issue, branch, PR, worktree file, and session conversation stays" in pool
+    assert "orchi_install.py --version" in pool and "with an `Update Orchi` reply button" in pool
+    assert "commits `Install Orchi <version>`" in pool and "`--replace-orchi`, which keeps a backup" in pool
+    assert "`git switch --detach origin/<default>`), reads this skill and the pool reference again" in pool
+    assert "which a session on any earlier version can follow" in pool
+    assert "Then invoke your skill again with your assignment; the skill text earlier in this conversation is out of date" in pool
+    assert "A question waiting for the user keeps waiting. Reply <name> updated to <version>." in pool
+    assert "look for a newer Orchi as its Update Orchi says" in entry and "To update Orchi, follow its Update Orchi" in entry
+    assert "`updated to <version>`: nothing to do" in entry
