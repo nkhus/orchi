@@ -65,8 +65,8 @@ def test_flows_do_not_stall_and_keep_user_only_questions():
     assert "a `design` Epic has none yet" in prose("orchi-core/references/readiness.md")
     assert "and that Orchi takes it from here" in prose("orchi-plan/SKILL.md")
     assert "An Epic labelled `design` → report `#<n> declined: a design Epic goes to a designer crew`" in deliver
-    assert "to choose a design direction or approve a comp or a generated asset. Never ask a technical question" in pool
-    assert "a researcher still leaves the exploration's direction to the user" in pool
+    assert "anything destructive or irreversible, and\nchecks they asked to do by hand".replace("\n", " ") in pool
+    assert "Never ask a technical question" in pool
     assert "the review confirmed each exception it adds or changes" in pool
     assert "and whether its PR was merged (then send `#<n> merged`)" in entry
     assert "the pool has no liveness check between wakes" in pool

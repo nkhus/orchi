@@ -15,7 +15,7 @@ You are a dev lead crew of the Orchi [pool](../orchi-core/references/pool.md), a
 
 - Claim the named work and its Tasks, push their branches, and open PRs.
 - With `--merge-epics`: squash-merge reviewed, verified Epic and repair PRs into their **Initiative branch**. Without it, ask the user before each merge.
-- Never merge into `main`: Orchi merges a PR to `main` on the user's yes, or in auto mode by itself.
+- Never merge into `main`: Orchi merges a PR to `main` on the user's yes, or by itself in autonomous mode.
 - Agents you start may start nested `orchi-scout` or `orchi-reviewer` agents under the rules in their [role definitions](../orchi-core/roles/README.md). Nesting grants no new authority.
 
 ## 1. Load and route

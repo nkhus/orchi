@@ -32,9 +32,11 @@ npx --yes github:nkhus/orchi --github
 /orchi
 ```
 
-That session becomes Orchi. You don't commit or push anything: it commits and pushes the installation to `main` first, because its sessions, branches, and CI start from there. There is nothing more to set up: from now on, just tell Orchi what you want, and it starts a crew session for each request when it needs one and archives it when the work is done. When you want work to go on while you are away (auto mode, or steering from your phone over Remote Control), say **prepare autonomous development**: Orchi then builds a pool of 2 crews, you click **`Create workers`** once in each, and each starts 2 workers; pool crews are cleared and reused instead of archived.
+That session becomes Orchi. You don't commit or push anything: it commits and pushes the installation to `main` first, because its sessions, branches, and CI start from there. There is nothing more to set up: from now on, just tell Orchi what you want, and it starts a crew session for each request when it needs one and archives it when the work is done. Orchi is a persona: its session is always titled `Orchi`, and it files itself and every session it starts into one sidebar section, `Orchi pool · <repo>`. A crew's title names its role in brackets, such as `[planner] csv-export`.
 
-Orchi also starts a **dashboard** session on Sonnet at low effort, which answers your questions about the pool. Every 10 minutes a Haiku subagent refreshes its live page with the crews and what each holds, the progress of every Initiative and Epic, what waits for you, PRs and their checks, and the planning queue, and its sidebar title sums it up (`📊 15:04 · 3 active · 1 wait for you · 2 PRs`). Orchi sends you the page's link and otherwise tells you only what needs you.
+When you want work to go on while you are away, turn on **autonomous mode** (say so, or click the button at the end of Orchi's report). Orchi then builds a pool of 3 crews and a dashboard, you click **`Create workers`** once in each crew, and each starts 3 workers; pool crews are cleared and reused instead of archived. From then on crews ask only Orchi, and Orchi takes the decisions and sends them as instructions. Turn it off to take the questions back.
+
+The **dashboard** is optional: ask Orchi for one, and it comes with autonomous mode. It is a session of its own on Sonnet at low effort, which answers your questions about the pool. Click **`Refresh`** at the end of its turn, and a Haiku subagent updates its page with the crews and what each holds, the progress of every Initiative and Epic, what waits for you, PRs and their checks, and the planning queue, and its sidebar title sums it up (`📊 15:04 · 3 active · 1 wait for you · 2 PRs`). Orchi otherwise tells you only what needs you.
 
 > **Needs** Git, an authenticated GitHub CLI (`gh`), Python 3.11+, and `uv`, on macOS, Linux, or WSL, and network access to GitHub: the installer also installs two design skills, [Hallmark](https://github.com/Nutlope/hallmark) and Emil Kowalski's [prototype](https://github.com/emilkowalski/skills), at pinned commits. Hallmark's own scripts use Node.js 18+ when it is there.
 
@@ -99,7 +101,7 @@ flowchart LR
     O -->|merge?| U
 ```
 
-**Orchi routes; it never does the work itself.** Each request gets its own crew session, named after its role and topic (for example `planner-csv-export`), which talks to you there. A crew hands repository work to writer subagents, or in autonomous development to its workers. When the work is done, Orchi archives the crew; a pool crew is cleared and returns to the pool instead.
+**Orchi routes; it never does the work itself.** Each request gets its own crew session, named after its role and topic (for example `[planner] csv-export`), which talks to you there. A crew hands repository work to writer subagents, or in autonomous mode to its workers. When the work is done, Orchi archives the crew; a pool crew is cleared and returns to the pool instead.
 
 **Work moves forward on its own.** A researcher who finishes shaping an idea continues as its planner in the same session. A finished plan goes on without you asking: the planner continues with the first item, and each other ready item gets a crew, or a start button when Orchi cannot start one itself. The design Epic starts with you while the first run is still being built; a merged first run unblocks the rest, and a merged design Epic the parts that build on its surfaces. If a session stops, Orchi sends the same assignment again, and the new session picks up from Git and GitHub.
 
@@ -121,15 +123,15 @@ You work on the concept, the vision, and the design; Orchi decides everything te
 
 | Always yours | Orchi and its crews handle |
 | --- | --- |
-| What to build, the scope, and the order you see results in (at Ask) | Code, tests, branches, Issues, labels, PRs, and how work splits into them |
-| The direction of an exploration | Research, options, and recommendations |
-| Design references, the design engine, every direction, comp, and generated asset | Variants to choose from, and building against what you approved |
+| What to build, the scope, and the order you see results in (with autonomous mode off) | Code, tests, branches, Issues, labels, PRs, and how work splits into them |
+| The direction of an exploration (with autonomous mode off) | Research, options, and recommendations |
+| Design references, the design engine, every direction, comp, and generated asset (with autonomous mode off) | Variants to choose from, and building against what you approved |
 | Product constraints | The stack, tools, thresholds, exceptions, and CI |
-| A yes to each merge into `main`, unless you turn on auto mode | Review, repairs, rechecks, and the merge itself |
+| A yes to each merge into `main`, unless you turn on autonomous mode | Review, repairs, rechecks, and the merge itself |
 | Hearing, in plain words, of every exception to a check | Deciding exceptions, applying the branch ruleset, and proposing lessons after each delivery |
 | Deploys, access, money, and destructive actions; signing in to GitHub when asked | Keeping the documentation current, and every command, Git, and GitHub step: you never open a terminal |
 
-**Modes.** Orchi starts interactive at autonomy Ask: crews ask you in their own sessions, and Orchi tells you once when a crew is waiting. Say `autonomy decide` to have crews show you each decision and carry on. Say `mode auto` to step away, after asking Orchi to prepare autonomous development so it can start work without you: Orchi answers planners and dev leads itself and merges a PR only when checks pass, no blocker or major finding is unresolved, every repair is rechecked, and the review confirmed every exception the PR adds. Researchers and designers still ask you. Say `mode interactive` to take back the questions.
+**Autonomous mode.** It starts off: crews ask you in their own sessions, and Orchi tells you once when a crew is waiting. With it on, crews ask only Orchi, which decides what you would (an exploration's direction, the scope and breakdown, design references, directions, and comps, and what only you know, as stated assumptions) from each crew's recommendation, sends the decision as an instruction, and lists the product and design decisions in its report so you can revisit them. It merges a PR into `main` only when checks pass, no blocker or major finding is unresolved, every repair is rechecked, and the review confirmed every exception the PR adds. Money, access and credentials, deploys, and anything destructive or irreversible stay yours in both modes.
 
 ## The gates
 
@@ -153,14 +155,14 @@ Orchi is a set of Claude Code skills and subagents. Git and GitHub are its only 
 
 | Skill | Run by | Does |
 | --- | --- | --- |
-| `orchi` | You (`/orchi [request]`) | Makes a session Orchi: starts a crew per request, builds the pool for autonomous development, routes requests, assigns, releases, and archives crews, and tells you only about decisions, merges, and waiting questions |
+| `orchi` | You (`/orchi [request]`) | Makes a session Orchi: starts a crew per request, builds the pool for autonomous mode, routes requests, assigns, releases, and archives crews, and tells you only about decisions, merges, and waiting questions |
 | `orchi-explore` | Researcher crew | Shapes an idea with you in an `Exploration` Issue and an `explore/<slug>` branch, then continues into planning |
 | `orchi-plan` | Planner crew | Proposes a scope, clarifies in rounds, shows the breakdown, creates ready Issues, and labels them `delivery-ready` |
 | `orchi-standards` | Planner crew | Audits an existing project's checks and plans a standards Epic, or plans hardening when a project becomes meant to last |
 | `orchi-design` | Designer crew | Runs a `design` Epic with you: references, the engine round between Hallmark and prototype in a project's first design Epic, a direction round and an approved comp per surface; builds go to writer subagents or workers |
 | `orchi-deliver` | Dev lead crew | Delivers a Task, Epic, or Initiative through writer subagents or workers, one review, and a PR; never merges into `main` itself |
 | `orchi-work` | Worker | Implements, fixes, or designs one Task, or answers one research question, as the matching subagent role |
-| `orchi-dashboard` | Dashboard session | Refreshes the pool's live status page on a timer through a Haiku subagent and answers questions about it; reads only, changes nothing |
+| `orchi-dashboard` | Dashboard session | Refreshes the pool's status page through a Haiku subagent when you click `Refresh`, and answers questions about it; reads only, changes nothing |
 | `orchi-core` | Every pool session | The workflow: scope, readiness, execution, testing, review, knowledge, standards, and the pool |
 
 </details>

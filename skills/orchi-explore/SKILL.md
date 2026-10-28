@@ -44,16 +44,16 @@ Shape. Brief each `orchi-researcher` and `orchi-designer` with its mode and the 
 ## 3. Finish
 
 - Shaped, and the user confirms: continue with [orchi-plan](../orchi-plan/SKILL.md)
-  `#<n> --report-to <Orchi>` in this session, at the same mode and autonomy
-  level, and report `<id> now planner`.
+  `#<n> --report-to <Orchi>` in this session, in the same mode, and report
+  `<id> now planner`.
 - The user decides not to build: close the Issue as not planned, with the
   reason in its decisions, and report `<id> declined: <reason>`.
 
 ## As a crew
 
 Adopt Orchi's claim as the pool's Assign a crew says, follow its Planner and
-researcher crews section and, on `release`, its Release section. Ask the user
-directly in both modes. Write the research
+researcher crews and Autonomous mode sections and, on `release`, its Release
+section. Ask the user directly while autonomous mode is off, and Orchi while it is on. Write the research
 and option files yourself. Start `orchi-researcher` subagents for research questions and option
 lenses, and `orchi-designer` subagents in Wireframe, Variant, and Mockup modes for the design session, in parallel, as the
 reference says; publish the design board and read its ratings yourself; build a prototype yourself on `prototype/<slug>`, and, when you

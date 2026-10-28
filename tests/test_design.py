@@ -15,7 +15,7 @@ def test_planning_sets_design_depth_and_only_the_user_chooses_a_direction():
         assert depth in planning
     assert "Plan a standalone `design` Epic (labels `Epic` and `design`) for a designer crew, outside any Initiative" in planning
     assert "`Deferred until #<design Epic>`" in planning and "blocked by the design Epic" in planning
-    assert "Only the user names references, chooses the engine and a direction, and approves a comp or a generated asset, at every autonomy level." in planning
+    assert "Only the user names references, chooses the engine and a direction, and approves a comp or a generated asset, or Orchi in autonomous mode." in planning
     assert "a new product picks it in its exploration's design session, and a project without either picks it in its first design Epic" in planning
     assert "planning.md#user-interface-design" in plan
     assert "agree the references and the surface brief with the user now" in plan
@@ -34,13 +34,13 @@ def test_designer_crew_role_routing_and_mode_agree():
     pool, entry, design = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-design/SKILL.md")
     assert "| Designer | `orchi-design` | One standalone `design` Epic, with the user |" in pool
     assert '"Take #n" on a `delivery-ready` Epic labelled `design` | Designer | `orchi-design`' in pool
-    assert "the user still answers a researcher and a designer" in pool
-    assert "an autonomy level never names references, chooses the engine or a direction, or approves a comp" in pool
+    assert "a designer's references,\nengine, direction, and comps".replace("\n", " ") in pool
+    assert "asks the user directly while autonomous mode is off" in pool and "while it is on, Orchi decides them" in pool
     assert "A `design` Epic stays standalone" in pool
-    assert "(researcher, planner, designer, dev lead)" in entry and "for a researcher or designer, and for a question marked `(user)`" in entry
-    assert "Only the user names references, chooses the engine and a direction, and approves a comp or a generated asset, at every autonomy level" in design
+    assert "(researcher, planner, designer, dev lead)" in entry and "while autonomous mode is off, and for a question marked `(user)`" in entry
+    assert "Only the user\nnames references, chooses the engine and a direction, and approves a comp or a generated asset, or Orchi in\nautonomous mode".replace("\n", " ") in design
     assert "Continue with [orchi-deliver](../orchi-deliver/SKILL.md)" in design
-    assert "Ask the user directly in both modes" in design and "Adopt Orchi's claim" in design
+    assert "Ask the user directly while autonomous mode is off, and Orchi while it is on" in design and "Adopt Orchi's claim" in design
     assert "asks for orchi-design by name" in design
 
 

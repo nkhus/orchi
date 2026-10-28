@@ -9,12 +9,12 @@ user-invocable: false
 Orchi is a development convention. Git stores code and documentation; GitHub Issues store ownership, hierarchy,
 dependencies, and status. There is no controller, state database, approval receipt, or mandatory command facade.
 
-The user types only `/orchi`: Orchi routes every request to a crew of its session pool, and crews give repository
-work to their workers. A session that is none of these answers questions and documentation lookups only; for
-anything to plan, build, or change it tells the user to bring it to Orchi with `/orchi`. Identify your role (Orchi,
-a crew, a worker, or a reader), inspect branch and worktree changes, read the relevant issue and PR, and resume
-existing work instead of duplicating it. Repository instructions (CLAUDE.md, AGENTS.md, scoped files) take
-precedence. Preserve the user's request, decisions, and edits.
+The user types only `/orchi`: Orchi routes every request to a crew of its session pool, and crews give repository work
+to their workers. A session that is none of these answers questions and documentation lookups only; for anything to
+plan, build, or change it tells the user to bring it to Orchi with `/orchi`. Identify your role (Orchi, a crew, a
+worker, or a reader), inspect branch and worktree changes, read the relevant issue and PR, and resume existing work
+instead of duplicating it. Repository instructions (CLAUDE.md, AGENTS.md, scoped files) take precedence. Preserve the
+user's request, decisions, and edits.
 
 ## Research, propose, agree
 
@@ -28,9 +28,9 @@ credentials, money). Decide the rest and record why; when it changes what the us
 about that consequence, never the mechanism. Never ask the user to run a command, open a terminal or GitHub, or edit a
 file: ask for their yes and do it yourself, merging included; only signing in is theirs.
 
-Agree the direction with the user before creating branches, Issues, or changes; exploring a problem or silence is
-not agreement, and a pool's [autonomy level](references/pool.md#modes-and-autonomy) can delegate it. Do not re-ask
-agreed direction; if new evidence changes the outcome or scale, explain and agree again.
+Agree the direction with the user before creating branches, Issues, or changes; exploring a problem or silence is not
+agreement, and in a pool's [autonomous mode](references/pool.md#autonomous-mode) Orchi agrees it instead. Do not
+re-ask agreed direction; if new evidence changes the outcome or scale, explain and agree again.
 
 ## Scope
 
@@ -48,11 +48,9 @@ plan or code, from the fetched remote target; never reset another checkout. Do n
 
 ## Core rules
 
-- Parallel work happens across independent Epics, each with its own owner, branch, and worktree. Tasks within an
-  Epic share its branch and PR and run in sequence, except a pool dev lead's Tasks on different files (see the pool
-  reference).
-- Claim before editing and never overwrite another owner's claim. Only ready Epics and standalone Tasks are
-  independent entry points.
+- Parallel work happens across independent Epics, each with its own owner, branch, and worktree. Tasks within an Epic
+  share its branch and PR and run in sequence, except a pool dev lead's Tasks on different files (pool reference).
+- Claim before editing and never overwrite another owner's claim. Only ready Epics and standalone Tasks are independent entry points.
 - Update documentation with the code, in the same branch. Never present planned behavior as current behavior.
 - Show each new test failing before the change, and record checks, outcomes, and the candidate commit in the PR.
   Review each standalone Task and each assembled Epic once, unless it only configures tools, then repair
@@ -61,6 +59,8 @@ plan or code, from the fetched remote target; never reset another checkout. Do n
   the execution reference says. Do not infer merge or deployment permission from permission to implement.
 - Where `ENGINEERING.md` exists, its checks are the code review: run them, and never weaken one without recording
   an exception there ([standards](references/standards.md#gate-integrity)).
+- Write only inside your own worktree: temporary files (output folders, clones, screenshots) go in its ignored
+  `.orchi-tmp/<purpose>/`, never in a system or scratchpad directory, where a write waits for the user's permission.
 - If GitHub is unavailable, say so; never claim remote tracking or ownership that does not exist.
 
 ## Stage guidance
@@ -94,7 +94,7 @@ reports are claims to verify. Delegation is optional; the readiness checklists a
 
 ## Tools
 
-The scripts are read-only (Git, `gh`, Python standard library); run them from the repository root, using this
-skill's base directory in a user-wide install. `python3 .claude/skills/orchi-core/scripts/status.py` lists open
-Epics and standalone Tasks with owners, blockers, and readiness; `knowledge.py` searches documentation, reads exact
-snapshots, and checks local links; `standards.py` checks `ENGINEERING.md` against CI.
+The scripts are read-only (Git, `gh`, Python standard library); run them from the repository root, using this skill's
+base directory in a user-wide install. `python3 .claude/skills/orchi-core/scripts/status.py` lists open Epics and
+standalone Tasks with owners, blockers, and readiness; `knowledge.py` searches documentation, reads exact snapshots,
+and checks local links; `standards.py` checks `ENGINEERING.md` against CI.

@@ -14,7 +14,7 @@ command is a manual step a message can replace.
 
 By default Orchi starts a crew per request and archives it when its work is
 done; archiving is reversible, and the user may still reopen the crew. For
-autonomous development Orchi builds a pool once and reuses it: a finished worker
+autonomous mode Orchi builds a pool once and reuses it: a finished worker
 or crew returns its worktree to the default branch and is cleared, and Orchi
 renames a crew back to `crew-<k>`. Work is given by message, and the session
 invokes the skill itself.

@@ -60,14 +60,14 @@ def run(tmp_path, crews, fail=None):
 
     def broken(args):
         raise OSError(fail)
-    code = dashboard.main(['--crews', str(tmp_path / 'crews.json'), '--every', '10', '--mode', 'interactive, Ask',
+    code = dashboard.main(['--crews', str(tmp_path / 'crews.json'), '--mode', 'off',
                            '--out', str(out)], run=broken if fail else runner, now=NOW)
     return code, json.loads(out.read_text())
 
 
 def test_work_progress_claims_and_pull_checks(tmp_path):
     code, document = run(tmp_path, [])
-    assert code == 0 and document['repository'] == 'o/r' and document['every'] == 10
+    assert code == 0 and document['repository'] == 'o/r' and document['mode'] == 'off'
     work = {item['number']: item for item in document['work']}
     assert work[1]['kind'] == 'Initiative' and work[1]['progress'] == {'done': 1, 'total': 3}
     assert work[1]['status'] == 'claimed'
@@ -81,8 +81,8 @@ def test_work_progress_claims_and_pull_checks(tmp_path):
 
 
 def test_crews_get_roles_and_claims_and_waiting_lists_questions_and_merges(tmp_path, capsys):
-    crews = [{'name': 'crew-1', 'title': 'researcher-hotel', 'state': 'waiting', 'question': 'Which scale?'},
-             {'name': 'crew-2', 'title': 'dev-lead-pay', 'state': 'working', 'workers': {'busy': 2, 'total': 3}},
+    crews = [{'name': 'crew-1', 'title': '[researcher] hotel', 'state': 'waiting', 'question': 'Which scale?'},
+             {'name': 'crew-2', 'title': '[dev-lead] pay', 'state': 'working', 'workers': {'busy': 2, 'total': 3}},
              {'name': 'crew-3', 'title': 'crew-3'}]
     code, document = run(tmp_path, crews)
     roles = {crew['name']: (crew['role'], crew['issue'], crew['state']) for crew in document['crews']}

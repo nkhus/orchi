@@ -43,7 +43,7 @@ continues that agent with the answers.
   repeated; a later report says only who waits.
 - **Decide what the user delegated.** When the user lets the main session decide
   a class of questions (in this conversation, the repository's instructions, or
-  a pool's [autonomy level](pool.md#modes-and-autonomy)), decide them instead of
+  a pool's [autonomous mode](pool.md#autonomous-mode)), decide them instead of
   asking, and record each with the delegation (who, when, their words, its
   limits), the options, and the reason. A delegation never covers merge or
   deployment authority the user has not granted separately.
@@ -159,7 +159,7 @@ against what the user approved.
   its UI fields `Deferred until #<design Epic>`, resolved from `PRODUCT.md`,
   `DESIGN.md`, the surface briefs, and the built surfaces, which are kept. When
   the rest is one Epic that builds on them, plan it instead as an Issue labelled
-  `needs-planning`, with `Requested by: <Orchi's title>`, blocked by the design
+  `needs-planning`, with `Requested by: Orchi`, blocked by the design
   Epic, for a planner once the design merges.
 - Without `PRODUCT.md`, the design Epic starts by writing it with the user; for
   a redesign without `DESIGN.md`, by recording the incumbent look in it as
@@ -174,7 +174,7 @@ against what the user approved.
   reaches delivery without the brief its depth needs goes back to a planner as a
   `needs-planning` follow-up.
 - Only the user names references, chooses the engine and a direction, and
-  approves a comp or a generated asset, at every autonomy level. The session
+  approves a comp or a generated asset, or Orchi in autonomous mode. The session
   writing a brief answers the questions `PRODUCT.md`, `DESIGN.md`, or the Issues
   already settle itself; the rest go to the user.
 
@@ -225,8 +225,8 @@ see or do after each piece, in delivery order. Ask whether that content and
 order serve them, and revise until they agree; a list is cheaper to change than
 Issues. The split into Tasks, Epics, and an Initiative and the blockers between
 them are yours. When the breakdown is already known while the scope is
-proposed, agree both in one question. At pool autonomy Decide or Auto, show the
-plan and proceed.
+proposed, agree both in one question. In a pool's autonomous mode, Orchi agrees
+them instead.
 
 Check every Task against the [Task readiness checklist](readiness.md#task-readiness-checklist)
 and every Epic against the [Epic readiness checklist](readiness.md#epic-readiness-checklist)

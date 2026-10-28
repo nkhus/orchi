@@ -107,7 +107,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     <section><h2>Planning queue</h2><div id="planning"><div class="empty">No data yet.</div></div></section>
   </div>
   <section><h2>Recently merged</h2><div id="merged"><div class="empty">No data yet.</div></div></section>
-  <footer id="footer">Read-only view of the Orchi pool, refreshed by its dashboard session from GitHub and the pool's sessions. Ask Orchi for anything else.</footer>
+  <footer id="footer">Read-only view of the Orchi pool from GitHub and the pool's sessions. Click Refresh in the dashboard session to update it; ask Orchi for anything else.</footer>
 </div>
 
 <script>
@@ -151,16 +151,12 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     $("repo").textContent = repoName;
     document.title = repoName + " pool";
 
-    const every = Number(doc.every) || 10;
-    const age = (Date.now() - new Date(doc.updated)) / 60000;
     const meta = [pill("Updated " + time(doc.updated) + " · " + ago(doc.updated), "plain")];
-    if (doc.mode) meta.push(pill(doc.mode, "accent"));
-    meta.push(pill("Every " + every + " min", "plain"));
+    if (doc.mode) meta.push(pill("Autonomous mode " + doc.mode, doc.mode === "on" ? "accent" : "plain"));
     $("meta").replaceChildren(...meta);
 
     const banner = $("banner");
     if (doc.error) { banner.className = "banner"; banner.textContent = "The last refresh failed: " + doc.error + ". The page shows the refresh before it."; banner.hidden = false; }
-    else if (age > 2 * every + 2) { banner.className = "banner warn"; banner.textContent = "No refresh for " + Math.round(age) + " minutes. The dashboard session may have stopped; Orchi restarts it on its next wake, or tell Orchi \"refresh the dashboard\"."; banner.hidden = false; }
     else banner.hidden = true;
 
     const active = crews.filter((crew) => crew.role && crew.state !== "free").length;
@@ -172,7 +168,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     $("waiting").replaceChildren(...waiting.map((item) => {
       if (item.kind === "merge") {
         const pr = pulls.find((p) => p.number === item.pull) || {};
-        return el("div", {class: "row merge"}, pill("Merge", "ok"), el("p", {}, el("span", {class: "what"}, link(pr.url, "#" + item.pull + " " + item.text)), el("br"), el("span", {class: "muted"}, "Ready to merge into " + (pr.base || "main") + ". Tell Orchi to merge it, or merge it yourself.")), el("span", {class: "mono muted"}, ""));
+        return el("div", {class: "row merge"}, pill("Merge", "ok"), el("p", {}, el("span", {class: "what"}, link(pr.url, "#" + item.pull + " " + item.text)), el("br"), el("span", {class: "muted"}, "Ready to merge into " + (pr.base || "main") + ". Orchi merges it on your yes.")), el("span", {class: "mono muted"}, ""));
       }
       const crew = crews.find((c) => c.name === item.crew) || {};
       const issue = byNumber.get(item.issue);
@@ -227,10 +223,10 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     $("merged").replaceChildren(merged.length ? el("div", {class: "table-wrap"}, el("table", {}, el("tbody", {}, merged.map((pr) => el("tr", {},
       el("td", {class: "mono muted"}, time(pr.merged_at)), el("td", {class: "title"}, link(pr.url, "#" + pr.number), " ", pr.title), el("td", {class: "mono muted"}, "into " + pr.base)))))) : empty("No merges yet."));
 
-    $("footer").textContent = "Read-only view of " + (doc.repository || "the repository") + ", refreshed every " + every + " minutes by the pool's dashboard session from GitHub and the pool's sessions. Ask Orchi for anything else.";
+    $("footer").textContent = "Read-only view of " + (doc.repository || "the repository") + " from GitHub and the pool's sessions. Click Refresh in the dashboard session to update it; ask Orchi for anything else.";
   }
 
-  // Keep "x min ago" and the stale warning current between snapshots.
+  // Keep "x min ago" current between snapshots.
   setInterval(() => { if (last) render(last); }, 60000);
 
   (async () => {

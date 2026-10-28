@@ -89,7 +89,7 @@ at from its middle on. Work through it in four steps, returning to an earlier
 one whenever an answer changes it; record each decision in the Design section
 at once and keep the approved files in the working folder's `design/`.
 `orchi-designer` subagents build what the user looks at, in parallel where they
-can, each with its own empty output folder outside the repository, and you show
+can, each with its own empty output folder in `.orchi-tmp/`, and you show
 their files on the design board.
 
 1. **Structure.** Ask who uses the product and for which jobs, and draw the
@@ -130,7 +130,7 @@ output folders enters the repository.
 ### The design board
 
 The user sees, rates, and picks variants on one page, the design board. Copy
-[`assets/design-board.html`](../assets/design-board.html) to your scratchpad, replace
+[`assets/design-board.html`](../assets/design-board.html) to `.orchi-tmp/board/`, replace
 `{{PRODUCT}}` with the product's name, and publish it with the Artifact tool:
 `capabilities` `{"db": {}}`, `icon` `layout`, and each round's files under
 `v/<round>/`. After each publish, write the rounds to the db document

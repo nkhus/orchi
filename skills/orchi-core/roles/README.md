@@ -18,7 +18,7 @@ allowed.
 | [`orchi-implementer`](orchi-implementer.md) | opus / medium | one commit per run |
 | [`orchi-fixer`](orchi-fixer.md) | sonnet / medium | one commit per run (Task or repair) |
 | [`orchi-reviewer`](orchi-reviewer.md) | opus / high | nothing |
-| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task run; files outside the repository in Wireframe, Variant, and Mockup modes; nothing in Audit mode |
+| [`orchi-designer`](orchi-designer.md) | opus / medium | one commit per UI Task run; files in `.orchi-tmp/` in Wireframe, Variant, and Mockup modes; nothing in Audit mode |
 
 ## Choosing a writer
 
@@ -45,8 +45,8 @@ A fixer `ESCALATE` report names its cause:
 
 A designer `ESCALATE` is always a `decision`: it lists options and a
 recommendation. Handle it like a fixer's, except that a direction, a comp, or a
-generated asset goes to the user whatever they delegated and whatever the
-autonomy level.
+generated asset goes to the user whatever they delegated, or to Orchi in
+autonomous mode.
 
 ## Continue a writer
 

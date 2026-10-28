@@ -194,7 +194,7 @@ To replace it, pipe the same output to
 ## Hardening
 
 For a project meant to last, planning adds an Issue labelled `needs-planning`
-with `Requested by: <Orchi>`, blocked by the first run, so a planner plans the
+with `Requested by: Orchi`, blocked by the first run, so a planner plans the
 hardening Epic once there is code to check. It blocks nothing, and a dev lead
 runs it beside the product work: one Task per group of the non-core checks the
 code needs, with Dependabot, each fixing what its checks find on main; an open
