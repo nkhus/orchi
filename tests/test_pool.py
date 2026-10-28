@@ -113,8 +113,11 @@ def test_autonomous_mode_is_one_switch_in_which_orchi_decides():
     assert "`autonomous <on or off>`" in pool and "Autonomous mode: <on or off>, set by the user on <date>." in pool
     assert "one reply button that switches it (`Autonomous mode on` or `off`)" in entry
     assert "Running this command turns autonomous mode off." in entry
-    for text in (pool, entry, prose("orchi-core/SKILL.md"), prose("orchi-core/references/planning.md")):
-        assert "autonomy" not in text.lower() and "auto mode" not in text and "interactive" not in text
+    for path in sorted(SKILLS.glob("*/**/*.md")):
+        text = " ".join(path.read_text().split())
+        assert "autonomy" not in text.lower() and "auto mode" not in text.lower() and "interactive" not in text, path
+        assert "`mode` message" not in text and "Modes and" not in text, path
+    assert "a later `autonomous <on or off>` message" in prose("orchi-deliver/SKILL.md")
     assert "pool.md#autonomous-mode" in prose("orchi-core/SKILL.md")
     assert "pool.md#autonomous-mode" in prose("orchi-core/references/planning.md")
 

@@ -1,6 +1,6 @@
 {
   "name": "@nkhus/orchi",
-  "version": "0.39.1",
+  "version": "0.39.2",
   "description": "Install the Orchi development workflow skills and subagents for Claude Code.",
   "type": "module",
   "bin": {

@@ -142,7 +142,8 @@ same commit as the checks it declares, never ahead of them.
 reports that and exits 0. It only checks structure. Whether a change weakens a
 gate is judged by the writer and the review, below. Without the documentation
 workflow (`--no-docs-workflow`), drop the documentation row from the Checks
-table. The workflows run the scripts from `.claude/skills/orchi-core/`, so they
+table; without the standards workflow (`--no-standards-workflow`), drop the
+`standards` row. The workflows run the scripts from `.claude/skills/orchi-core/`, so they
 need a project installation committed to the repository.
 
 ## Gate integrity
@@ -219,7 +220,7 @@ rules in `CLAUDE.md`, `AGENTS.md`, and scoped instruction files. Sort each rule:
 
 ## Drift
 
-With `--github`, the standards workflow runs `standards.py check` weekly and
+With `--github` and the standards workflow, `standards.py check` runs weekly and
 keeps one open Issue, labelled `needs-planning`, listing what drifted, such as
 an expired exception or a check that lost its job. Planning takes it like any
 request; no session starts unattended.

@@ -52,6 +52,7 @@ npx --yes github:nkhus/orchi --global
 | `--project <path>` | Install into another directory instead of the current one |
 | `--github` | Also add Issue forms, a PR template, the documentation and standards check workflows, and Orchi labels (project scope) |
 | `--no-docs-workflow` | With `--github`, skip the documentation check workflow; `--docs-workflow` restores it |
+| `--no-standards-workflow` | With `--github`, skip the standards check workflow; `--standards-workflow` restores it |
 | `--dry-run` | Show planned file changes, conflicts, and the labels `--github` would create, without writing |
 | `--replace-orchi` | Back up and replace locally edited Orchi files and design skills |
 | `--version` | Show the installed and bundled versions and the upgrade command |

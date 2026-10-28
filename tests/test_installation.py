@@ -314,7 +314,8 @@ def test_shared_layout_migrates_to_claude_code_only(tmp_path):
     assert claude.startswith("Claude rules\n\n<!-- orchi:begin -->\n## Orchi workflow") and "@AGENTS.md" not in claude
     assert (tmp_path / ".codex/config.toml").read_text() == 'model = "operator-model"\n'
     manifest = json.loads((tmp_path / MANIFEST).read_text())
-    assert set(manifest) == {"version", "scope", "github", "docs_workflow", "skills", "instructions", "files"}
+    assert set(manifest) == {"version", "scope", "github", "docs_workflow", "standards_workflow", "skills", "instructions",
+                             "files"}
     assert list(manifest["instructions"]) == [".gitignore", "CLAUDE.md"]
     assert (Path(result["backup"]) / ".agents/skills/orchi-work/SKILL.md").read_text() == "Shared orchi-work"
     assert installation.install(tmp_path)["status"] == "unchanged"
@@ -570,6 +571,68 @@ def test_cli_docs_workflow_flags(tmp_path, labels, capsys):
     with pytest.raises(SystemExit):
         installation.main(["--project", str(tmp_path), "--docs-workflow", "--no-docs-workflow"])
 
+
+
+def test_standards_workflow_opt_out_persists_and_can_be_reenabled(tmp_path, labels):
+    workflow = tmp_path / ".github/workflows/orchi-standards.yml"
+    result = installation.install(tmp_path, github=True, standards_workflow=False)
+    assert result["standards_workflow"] is False and result["docs_workflow"] is True and not workflow.exists()
+    assert (tmp_path / ".github/workflows/orchi-docs.yml").is_file()
+    manifest = json.loads((tmp_path / MANIFEST).read_text())
+    assert manifest["standards_workflow"] is False and ".github/workflows/orchi-standards.yml" not in manifest["files"]
+    # Later runs, such as an update, keep the choice until it is reversed explicitly.
+    assert installation.install(tmp_path)["standards_workflow"] is False and not workflow.exists()
+    assert installation.install(tmp_path)["status"] == "unchanged"
+    installation.install(tmp_path, standards_workflow=True)
+    assert "standards.py check" in workflow.read_text()
+    assert installation.install(tmp_path)["standards_workflow"] is True
+
+
+def test_standards_workflow_opt_out_removes_an_unmodified_installed_workflow(tmp_path, labels):
+    installation.install(tmp_path, github=True)
+    workflow = tmp_path / ".github/workflows/orchi-standards.yml"
+    assert workflow.is_file()
+    result = installation.install(tmp_path, standards_workflow=False)
+    assert ".github/workflows/orchi-standards.yml" in result["changes"] and not workflow.exists()
+    assert (tmp_path / ".github/workflows/orchi-docs.yml").is_file()
+
+
+def test_both_workflow_opt_outs_together(tmp_path, labels):
+    result = installation.install(tmp_path, github=True, docs_workflow=False, standards_workflow=False)
+    assert result["docs_workflow"] is False and result["standards_workflow"] is False
+    assert not (tmp_path / ".github/workflows").exists()
+    assert (tmp_path / ".github/ISSUE_TEMPLATE/orchi-task.yml").is_file()
+
+
+def test_manifest_without_standards_workflow_field_keeps_the_workflow(tmp_path, labels):
+    installation.install(tmp_path, github=True)
+    manifest_path = tmp_path / MANIFEST
+    manifest = json.loads(manifest_path.read_text())
+    del manifest["standards_workflow"]
+    manifest_path.write_text(json.dumps(manifest))
+    result = installation.install(tmp_path)
+    assert result["standards_workflow"] is True and (tmp_path / ".github/workflows/orchi-standards.yml").is_file()
+
+
+def test_manifest_with_a_non_boolean_workflow_choice_is_rejected(tmp_path):
+    installation.install(tmp_path)
+    manifest_path = tmp_path / MANIFEST
+    manifest = json.loads(manifest_path.read_text())
+    manifest["standards_workflow"] = "no"
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="standards_workflow"):
+        installation.install(tmp_path)
+
+
+def test_cli_standards_workflow_flags(tmp_path, labels, capsys):
+    assert installation.main(["--project", str(tmp_path), "--github", "--no-standards-workflow"]) == 0
+    assert json.loads(capsys.readouterr().out)["standards_workflow"] is False
+    assert not (tmp_path / ".github/workflows/orchi-standards.yml").exists()
+    assert installation.main(["--project", str(tmp_path), "--standards-workflow"]) == 0
+    assert json.loads(capsys.readouterr().out)["standards_workflow"] is True
+    assert (tmp_path / ".github/workflows/orchi-standards.yml").is_file()
+    with pytest.raises(SystemExit):
+        installation.main(["--project", str(tmp_path), "--standards-workflow", "--no-standards-workflow"])
 
 def test_clean_update_leaves_no_backup(tmp_path):
     installation.install(tmp_path)
