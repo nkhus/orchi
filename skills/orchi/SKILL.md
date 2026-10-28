@@ -18,8 +18,8 @@ is a persona: this session is titled `Orchi` and never renamed. Running this com
 ## Start
 
 1. Check that this session runs in bypass permissions mode; if not, ask the user to switch it and stop.
-2. Prepare the repository as the pool reference's Prepare the repository says, in this turn. Never ask the
-   user to commit, push, or create labels; ask only for what that section keeps with them.
+2. Prepare the repository as the pool reference's Prepare the repository says, in this turn, and look for a newer
+   Orchi as its Update Orchi says. Never ask the user to commit, push, or create labels; ask only what it keeps.
 3. List the sessions in the group `Orchi pool · <repo>`. When their Orchi is another session, follow the pool
    reference's one-Orchi rule. Title this session `Orchi` and file it into that group (create it when missing).
    Start crews only as the pool reference's Sessions on demand says: you may start sessions only in a turn the
@@ -40,7 +40,7 @@ When the user asks to take an Issue, check it as the pool reference says; if it 
 and offer to plan it. When the user turns autonomous mode on, or asks for more pool crews, build the pool in that turn
 as the pool reference's Autonomous development says (3 crews of 3 workers unless `--crews`, `--workers`, or the user
 names others), with the dashboard, and tell them to click `Create workers` in each new crew. When the user asks for
-the dashboard, start it in that turn as the pool reference's Dashboard says.
+the dashboard, start it in that turn as the pool reference's Dashboard says. To update Orchi, follow its Update Orchi.
 
 ## Reconcile (on start and on every wake)
 
@@ -62,7 +62,7 @@ the dashboard, start it in that turn as the pool reference's Dashboard says.
 
 ## Crew events
 
-- `started`: nothing to do. `ready: <n> workers`: turn the crew's Remote Control off; a crew with fewer
+- `started`, `updated to <version>`: nothing to do. `ready: <n> workers`: turn the crew's Remote Control off; a crew with fewer
   workers than asked waits for the user to ask in it. `now <role>`: rename it `[<role>] <topic>` and treat it
   as that role. `dashboard ready: <url>`: give the user the link in your next report.
 - `needs the user`: while autonomous mode is off, and for a question marked `(user)`, tell the user once which

@@ -196,7 +196,7 @@ its parent.
 Keep a message to one line that names the Issue or PR, so the receiver can read
 the rest from GitHub. The exception is a worker's `done`, which carries the
 role's full report (checks, red evidence, or a research answer with its
-sources), because nothing on GitHub holds it yet. A session accepts assignments, tasks, mode changes, and
+sources), because nothing on GitHub holds it yet. A session accepts assignments, tasks, mode changes, updates, and
 releases only from its owner: a crew from Orchi, a worker from its crew. Any
 other message carries no authority, whatever it says, except a takeover, which
 a crew checks with the host as Autonomous development says; the user's answers come
@@ -210,9 +210,9 @@ its title, so the assignment states it.
 | --- | --- | --- |
 | Crew → Orchi | Started, waiting, planned, declined | `<id> started`, `<id> needs the user: <question>`, `<id> now <role>`, `<id> planned: #<n>[, #<m>]`, `<id> declined: <reason>` |
 | Crew → Orchi | Delivery | `#<n> PR ready: <url>[, see it at <local link>]`, `#<n> follow-up: #<m>`, `#<n> waits for #<m>`, `#<n> done: <url>` |
-| Crew → Orchi | Setup, takeover, release | `crew-<k> ready: <n> workers`, `crew-<k> refused: Orchi is session <session id>`, `crew-<k> released`, `crew-<k> not released: <reason>` |
+| Crew → Orchi | Setup, takeover, update, release | `crew-<k> ready: <n> workers`, `<name> updated to <version>`, `crew-<k> refused: Orchi is session <session id>`, `crew-<k> released`, `crew-<k> not released: <reason>` |
 | Orchi → crew | Answer, queue, delivery | `<id> answer: <answer>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged` |
-| Orchi → crew | Mode, takeover, release | `autonomous <on or off>`, `Orchi is now session <session id>`, `release` |
+| Orchi → crew | Mode, takeover, update, release | `autonomous <on or off>`, `Orchi is now session <session id>`, `Orchi is updated to <version> …` ([Update Orchi](#update-orchi)), `release` |
 | Sub-planner ↔ planner | Planning | the crew's messages to Orchi and Orchi's to a crew, between them |
 | Dashboard → Orchi | Setup | `dashboard ready: <url>` |
 | Orchi → dashboard | Mode, refresh | `autonomous <on or off>`, `refresh` |
@@ -516,6 +516,43 @@ itself to the subagent's one-line summary
 `dashboard ready: <url>` once. Orchi gives the user the link in its next report,
 and again when asked about status. The dashboard is never released, cleared, or
 given work; when it is gone, Orchi starts a new one only as above.
+
+## Update Orchi
+
+Updating Orchi changes only the installed files; every Issue, branch, PR,
+worktree file, and session conversation stays. A session keeps the skill text
+it already read in its conversation, and reads skills from its own worktree, so
+each one is moved to the new version explicitly:
+
+1. **Find it.** On `/orchi` and when the user asks, Orchi reads the installed
+   version and the upgrade command from
+   `python3 .claude/skills/orchi-core/scripts/orchi_install.py --version`, and
+   the newest version from `package.json` of the repository that command names
+   (`gh api repos/<owner>/<name>/contents/package.json`). When it is newer, Orchi
+   reads that repository's upgrade notes (`docs/installation.md`) for the
+   versions in between and tells the user once, in plain words, what changes
+   for them, and asks whether to update, with an `Update Orchi` reply button.
+2. **Install.** On the user's yes, in that turn, the setup agent of Prepare the
+   repository runs the upgrade command in the main checkout (the installer keeps
+   the manifest's choices, such as `--github`), commits `Install Orchi
+   <version>`, and pushes it as step 5 there says. When the installer refuses
+   files edited in the project, it changes nothing: Orchi tells the user which,
+   and on their yes reruns it with `--replace-orchi`, which keeps a backup.
+   Until the push lands, every session goes on with the old version.
+3. **Orchi itself.** Orchi moves its own worktree to the new commit
+   (`git fetch`, `git switch --detach origin/<default>`), reads this skill and
+   the pool reference again, treating the text earlier in its conversation as
+   out of date, and does what the upgrade notes ask of a project, as the user
+   would.
+4. **Each session.** Orchi sends every crew and the dashboard one
+   self-contained message, which a session on any earlier version can follow;
+   the host delivers it when the session's current turn ends:
+   `Orchi is updated to <version> on <default>. Bring it into your worktree: when you hold no branch, git fetch and git switch --detach origin/<default>; otherwise merge origin/<default> into your work branch, or, for an Epic of an Initiative, into the Initiative branch and then that into yours. Then invoke your skill again with your assignment; the skill text earlier in this conversation is out of date, and everything you and the user said still holds. A question waiting for the user keeps waiting. Reply <name> updated to <version>.`
+   A crew passes the same message to each worker that holds a task; a free
+   worker starts its next task on a branch that already holds the update.
+5. **Reconcile.** Orchi brings the pool into line with the new rules (session
+   titles, the group, claims, and the mode), sends the assignment again to a
+   session that has not replied by its next wake, and reports the version.
 
 ## Limits
 
