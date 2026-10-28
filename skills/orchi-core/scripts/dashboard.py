@@ -37,7 +37,8 @@ query($owner: String!, $name: String!) {
 }
 '''
 CLAIM = re.compile(r'Assigned to (crew-\d+)')
-ROLES = {'researcher': 'Researcher', 'planner': 'Planner', 'designer': 'Designer', 'dev-lead': 'Dev lead'}
+ROLES = {'researcher': 'Researcher', 'prototyper': 'Prototyper', 'planner': 'Planner', 'designer': 'Designer',
+         'dev-lead': 'Dev lead'}
 TITLE = re.compile(r'\[([a-z-]+)\] ')
 CHECKS = {'SUCCESS': 'passing', 'FAILURE': 'failing', 'ERROR': 'failing', 'PENDING': 'running', 'EXPECTED': 'running'}
 

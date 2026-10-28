@@ -51,8 +51,8 @@ autonomous mode; you write no product code yourself.
 4. **Engine round** (first design Epic, or one that replaces `DESIGN.md`). On the first surface, start two
    `orchi-designer` subagents in Variant mode at once, one per engine, each with the brief, the references, and its
    own empty output folder in `.orchi-tmp/`: Hallmark builds one variant on each of the three themes it deals,
-   prototype its three divergent variants. Show all six to the user side by side, without saying which engine made
-   which until they have chosen. The variant the user picks sets the design engine for the project: record it in the
+   prototype its three divergent variants. Show all six to the user side by side, each labelled by its idea, never by
+   the skill that made it. The variant the user picks sets the design engine for the project: record it in the
    Epic. The user may instead ask for another round around a variant they liked; run it with that variant's engine.
 5. **Direction round** (every other surface whose composition is open). Start one `orchi-designer` subagent in
    Variant mode with the project's engine, the brief, the references, and the approved comps so far, and show its

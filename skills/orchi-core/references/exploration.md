@@ -29,12 +29,16 @@ links survive when the branch moves on and the folder is later deleted.
 | Design | For a product with a user interface: the screen map, the approved wireframe of each key screen, the references, the design engine, the approved comp, and the clickable mockup, each linked to its file in `design/`, and the design board's link (see [Design](#design-session)) |
 | Shape | The chosen direction, and candidate Epics as outcomes with the result or contract each supplies to the next |
 | Product | For a product with a user interface: the product truth the first design Epic records in `PRODUCT.md` (see Shape) |
+| Ideas | Every idea the user raised and parked, and every direction, variant, or remark they turned down, with why |
 | Open questions | What is still open, with what each question blocks; questions you can only sense so far are listed as such |
 
 ## Phases
 
 Each phase ends on its completion criterion. Return to an earlier phase when an
-answer changes the destination or invalidates options.
+answer changes the destination or invalidates options. A request for a
+prototype of something entirely new starts in
+[prototype mode](#prototype-mode), which runs Frame as its interview; the other
+phases follow once the user says to build it.
 
 1. **Frame.** Ask about the destination and its size, the original request, and
    the constraints; for a new product, the product constraints too. Done when
@@ -112,8 +116,9 @@ their files on the design board.
    subagents in Variant mode at once, one per design skill, each with the
    approved wireframe, its brief, and the references: Hallmark builds one
    variant on each of its three dealt themes, prototype its three divergent
-   variants. Show all six blind. The variant the user picks sets the style and
-   the project's design engine; the user may instead ask for another round
+   variants. Show all six side by side, each labelled by its idea, never by
+   the skill that made it: the user picks a look, not a tool. The variant the
+   user picks sets the style and the project's design engine; the user may instead ask for another round
    around a variant they liked. Skip this step when `DESIGN.md` already names
    the engine, and run a direction round with that engine instead.
 4. **The whole system.** Start `orchi-designer` in Mockup mode with the engine,
@@ -135,14 +140,83 @@ The user sees, rates, and picks variants on one page, the design board. Copy
 `capabilities` `{"db": {}}`, `icon` `layout`, and each round's files under
 `v/<round>/`. After each publish, write the rounds to the db document
 `board/items` with `ArtifactData` (`set`): `{"rounds": [{"id", "title",
-"question", "blind", "items": [{"id", "file", "label", "notes"}]}]}`, every
-round so far, pinned to the version the last write returned; a blind round
-hides each item's label and notes until the user reveals them.
+"question", "items": [{"id", "file", "label", "notes"}]}]}`, every round so
+far, pinned to the version the last write returned.
 Send the user the link and say what to look at. When the user says they have
 rated, read the collection `ratings` with `ArtifactData` (`list`): each
 document, named by an item's id, holds `score` (1 to 5), `note`, and `pick`.
 Record what they picked and why in the Design section. Without the Artifact
 tool, open the files in the browser and ask in the conversation instead.
+
+## Prototype mode
+
+For an entirely new product, site, or interface built from scratch, the user
+may ask for a prototype: a detailed interview, then a living prototype the user
+reacts to while the interview goes on, as in a prompt-to-app builder, but asked
+before it is guessed. The prototype is the interview's richest result, not a
+decision: prototype mode runs the Frame phase, and the phases after it all run
+once the user says to build it, with the prototype as the user's input. The
+Issue, the branch, and the decision log work as for any exploration; tell the
+user what they can look at and decide, never about Issues or files. Picks and
+remarks are the user's alone, also in autonomous mode: mark each such question
+`(user)`.
+
+In a repository that already has a product, ask once at the start whether to
+reuse its style and existing work; unless the user says so, design from
+scratch. Features, fixes, and redesigns of an existing product take the phases
+without prototype mode.
+
+1. **Interview.** Frame the destination as phase 1 says, then ask, as the
+   design session's Structure step does, who uses the product and for which
+   jobs, the screen map, and each key screen's brief, adding the data it
+   shows. Ask for the sites it should feel like and propose five to seven, as
+   its Style step says. Ask every question with the host's question tool, its
+   recommended answer first, and answer yourself what the request settles.
+   Done when the screen map and the key screens' briefs are agreed.
+2. **Variants.** Ask how many variants to build (three unless the user says
+   otherwise). Name that many directions that differ in one line each (what
+   leads, density, tone), and start one `orchi-designer` subagent in Mockup
+   mode per direction, at once, each with the screen map, the briefs, the
+   references, its direction, the design skill you choose for it (split them
+   between the two skills), and its own empty output folder in `.orchi-tmp/`.
+   Show the mockups on the design board, each labelled by its direction, never
+   by the skill that made it. After the round, ask whether to run another
+   (around a variant the user liked, or new directions) or go on with one, and
+   record the pick and why.
+3. **Living prototype.** Commit the picked mockup to the working folder's
+   `prototype/`, publish it as an artifact of its own (its screens as the
+   page's files, updated in place so its link stays), record the link in the
+   Design section, and give it to the user to open beside the conversation or
+   on a phone. From here, each remark is a change: one the user types, a
+   comment they leave on the page (read them with `ArtifactComments`), or an
+   answer of the interview. Give changes to an `orchi-designer` subagent in
+   Mockup mode, with the current prototype and the remarks, and keep asking
+   while it works: states (empty, loading, error, many items), edge cases,
+   roles, the flows between screens, and what each rule is. Remarks that
+   arrive meanwhile wait and go to the next subagent in one batch. When the
+   user asks for options for a screen, ask how many and run a round on the
+   board as step 2 does, for that screen.
+4. **Before showing a change,** open the prototype in the browser, go through
+   the flows it changed at the widths the briefs name, and give any breakage
+   back to the subagent. After two failed repairs of the same thing, change the
+   approach or ask the user instead of repairing it a third time. Commit and
+   publish each change the user sees: every commit is a version, and to go back
+   you commit an earlier version's files as a new one.
+5. **Build it.** When the user says to build it, make sure the Issue holds
+   every finding of the conversation and the prototype: each decision, a
+   requirement for each behavior the prototype shows and each rule the
+   interview settled, every idea the user raised and parked, every direction
+   and remark the user turned down and why, and what is still open. Then go on
+   from phase 2. Each phase takes the prototype as the user's input and asks
+   only what it left open: research checks what it assumes (that its data can
+   be had, that the services it implies exist, what similar products do),
+   Diverge compares directions against it, the design session starts from its
+   screen map, briefs, and references and designs the product again through
+   its own steps, and Converge proves what it cannot work without. The
+   prototype's pages are never product code or an approved comp.
+
+A prototype holds only plausible sample data in its pages: no sign-in,
+database, or outside service, which planning plans for the product.
 
 ## Prototypes
 
