@@ -1,6 +1,6 @@
 ---
 name: orchi-explore
-description: Research and shape an idea with the user before planning - a new project, module, or feature that needs strategic decisions - or, with --prototype, interview the user and grow a living prototype they react to. Keeps the exploration in a GitHub Exploration Issue and its findings on an explore branch. Invoke only when an Orchi pool assignment asks for orchi-explore by name.
+description: Research and shape an idea with the user before planning - a new project, module, or feature that needs strategic decisions - or, with --prototype for something entirely new, start by interviewing the user through a living prototype they react to. Keeps the exploration in a GitHub Exploration Issue and its findings on an explore branch. Invoke only when an Orchi pool assignment asks for orchi-explore by name.
 argument-hint: "<idea in plain words> | #<exploration> [--prototype] --report-to <Orchi session>"
 user-invocable: false
 ---
@@ -41,10 +41,11 @@ branch with `docs/work/<slug>/`, once the user agrees on the destination), Resea
 Shape. Brief each `orchi-researcher` and `orchi-designer` with its mode and the inputs its role lists; when one returns
 `NOT READY`, supply what it names and start it again.
 
-With `--prototype`, or for an Exploration whose Destination says `Route: fast prototyping`, take the reference's
-[fast route](../orchi-core/references/exploration.md#fast-prototyping) instead: Frame (write `Route: fast prototyping`
-in the Destination), the interview, variant rounds, and the living prototype, then Shape once the user says to build
-it. Start each designer subagent in the background and keep interviewing while it works.
+With `--prototype`, or for an Exploration whose Destination says `Mode: prototype`, run Frame in the reference's
+[prototype mode](../orchi-core/references/exploration.md#prototype-mode) (write `Mode: prototype` in the Destination):
+the interview, variant rounds, and the living prototype. Start each designer subagent in the background and keep
+interviewing while it works. Once the user says to build it, report `<id> now researcher` and run the other phases with the prototype as their input.
+For a feature, fix, or redesign of an existing product, run the phases without it and tell the user why in one line.
 
 ## 3. Finish
 
@@ -58,7 +59,8 @@ it. Start each designer subagent in the background and keep interviewing while i
 
 Adopt Orchi's claim as the pool's Assign a crew says, follow its Planner and
 researcher crews and Autonomous mode sections and, on `release`, its Release
-section. Ask the user directly while autonomous mode is off, and Orchi while it is on. Write the research
+section. Ask the user directly while autonomous mode is off, and Orchi while it is on, except prototype mode's picks
+and remarks, which wait for the user; take Orchi's `<id> remark:` as a remark of the user's. Write the research
 and option files yourself. Start `orchi-researcher` subagents for research questions and option
 lenses, and `orchi-designer` subagents in Wireframe, Variant, and Mockup modes for the design session, in parallel, as the
 reference says; publish the design board and the prototype's page and read their ratings and comments yourself; build a prototype yourself on `prototype/<slug>`, and, when you

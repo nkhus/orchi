@@ -29,7 +29,7 @@ itself after a request. A free crew is titled `crew-<k>`; an assigned one
 | Role | Skill a crew invokes | Holds | Done when |
 | --- | --- | --- | --- |
 | Researcher | `orchi-explore` | One idea, with the user | The user confirms the shape, or declines |
-| Prototyper | `orchi-explore` with `--prototype` | One idea, with the user, grown into a living prototype | The user says to build it and confirms the shape, or declines |
+| Prototyper | `orchi-explore` with `--prototype` | One entirely new product, site, or interface, with the user, first interviewed through a living prototype | The user confirms the shape, or declines |
 | Planner | `orchi-plan` | One request, Exploration, or `needs-planning` Issue | `planned` or `declined` |
 | Planner | `orchi-standards` | Setting up or auditing the project's engineering standards | `planned` or `declined` |
 | Designer | `orchi-design` | One standalone `design` Epic, with the user | Its PR into main is merged |
@@ -212,7 +212,7 @@ its title, so the assignment states it.
 | Crew → Orchi | Started, waiting, planned, declined | `<id> started`, `<id> needs the user: <question>`, `<id> now <role>`, `<id> planned: #<n>[, #<m>]`, `<id> declined: <reason>` |
 | Crew → Orchi | Delivery | `#<n> PR ready: <url>[, see it at <local link>]`, `#<n> follow-up: #<m>`, `#<n> waits for #<m>`, `#<n> done: <url>` |
 | Crew → Orchi | Setup, takeover, update, release | `crew-<k> ready: <n> workers`, `<name> updated to <version>`, `crew-<k> refused: Orchi is session <session id>`, `crew-<k> released`, `crew-<k> not released: <reason>` |
-| Orchi → crew | Answer, queue, delivery | `<id> answer: <answer>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged` |
+| Orchi → crew | Answer, queue, delivery | `<id> answer: <answer>`, `<id> remark: <the user's words>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged` |
 | Orchi → crew | Mode, takeover, update, release | `autonomous <on or off>`, `Orchi is now session <session id>`, `Orchi is updated to <version> …` ([Update Orchi](#update-orchi)), `release` |
 | Sub-planner ↔ planner | Planning | the crew's messages to Orchi and Orchi's to a crew, between them |
 | Dashboard → Orchi | Setup | `dashboard ready: <url>` |
@@ -281,17 +281,19 @@ Orchi routes each request to a role:
 | Request | Role | Assignment |
 | --- | --- | --- |
 | An idea, a new project, or a strategic choice | Researcher | `orchi-explore` with the idea or `#<exploration>` |
-| A prototype of an idea ("prototype: <idea>") | Prototyper | `orchi-explore` with the idea and `--prototype` |
+| A prototype of an entirely new product, site, or interface ("prototype: <idea>") | Prototyper | `orchi-explore` with the idea and `--prototype` |
 | A clear request, a fix, a `needs-planning` Issue, or a shaped Exploration | Planner | `orchi-plan` with the request or `#<n>` |
 | Setting up or auditing the project's engineering standards | Planner | `orchi-standards` with the request, `#<exploration>`, or `audit` |
 | "Take #n" on a `delivery-ready` Epic labelled `design` | Designer | `orchi-design` with `#<n>` |
 | "Take #n" on another `delivery-ready` Issue | Dev lead | `orchi-deliver` with `#<n>` |
 
-When the user brings an idea for a product or a feature with a user interface
-and names neither route, Orchi asks once which one, with two reply buttons,
-`Fast prototype` and `Full exploration`, and starts the crew in the turn of the
-click: the fast route grows a living prototype from a detailed interview, the
-full one also researches and compares directions first.
+When the user brings an idea for an entirely new product, site, or interface
+and does not say how to start, Orchi asks once, with two reply buttons,
+`Prototype first` and `Interview`, and starts the crew in the turn of the click:
+prototype mode interviews the user through a living prototype, the other
+through questions alone; the research and every later phase follow either way.
+A feature, fix, or redesign of an existing product goes the usual way, also when
+the user asks for a prototype of it, and Orchi says so in one line.
 
 Before giving a pool crew an Issue, Orchi claims it: `in-progress`, the
 assignee, and the work reference
@@ -343,9 +345,10 @@ guesses a cause, or proposes a solution:
 1. It files each defect or request the user names as an Issue labelled
    `needs-planning`, in the user's words, with where they saw it when they say,
    and `Requested by: Orchi`, so nothing waits only in chat. An idea that needs
-   strategic decisions goes to a researcher as Assign a crew says, and a remark
+   strategic decisions goes to a researcher as Assign a crew says, a remark
    on a PR that waits for the user's merge goes to its dev lead as
-   `#<n> rework:`.
+   `#<n> rework:`, and a remark on a prototype goes to its prototyper as
+   `<id> remark: <the user's words>`.
 2. It groups them by nature: one area of the product, design feedback, a defect
    in existing behavior. Each group goes to one planner: the one that already
    holds that area, as a [queued request](#planner-queue-and-sub-planners), or
@@ -380,7 +383,8 @@ since it is never reused.
 
 ## Planner and researcher crews
 
-A prototyper is a researcher crew on the fast route. A planner or researcher crew holds one request until it is planned or declined,
+A prototyper is a researcher crew whose exploration starts in prototype mode;
+once the user says to build it, it reports `<id> now researcher`. A planner or researcher crew holds one request until it is planned or declined,
 and asks the user directly, with the host's question tool when it has one;
 while autonomous mode is on, it asks Orchi instead. It takes no other request,
 except a planner's queued ones, and:

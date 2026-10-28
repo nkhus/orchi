@@ -66,7 +66,7 @@ Issue's word; otherwise return `ESCALATE` (`decision`).
   `.orchi-tmp/`.
 - **Mockup mode:** the Exploration's or design Epic's number, the engine, the
   screen map and each key screen's brief, the references, the approved comp
-  that set the style (on the fast route, a direction in one line instead), an
+  that set the style (in prototype mode, a direction in one line instead), an
   empty output folder in `.orchi-tmp/`, and, to change a mockup, its folder and
   the remarks to apply.
 - **Task mode:** a Task Issue number (and the parent Epic, when it has one),
@@ -84,7 +84,7 @@ Wireframe, Variant, and Mockup modes write only in the output folder: no edits
 in the repository, no commits. Each file they make is self-contained HTML
 (Google Fonts allowed, no other network assets) that opens in a browser without
 a build step and works at every width the brief names. Use only the brief's
-data; invent no figure, name, or quote, except that a fast-route mockup fills
+data; invent no figure, name, or quote, except that a prototype-mode mockup fills
 its screens with plausible sample data from the product's domain, never a real
 person's or company's name. Take the references' visual language,
 never their logos, names, copy, or imagery. Add `NOTES.md`: for each file, what

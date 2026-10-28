@@ -145,25 +145,34 @@ def test_design_board_template_reads_rounds_and_saves_ratings():
     assert "[`assets/design-board.html`](../assets/design-board.html)" in exploration
 
 
-def test_fast_route_interviews_then_grows_a_living_prototype():
+def test_prototype_mode_interviews_through_a_living_prototype_and_keeps_every_later_phase():
     exploration, explore = prose("orchi-core/references/exploration.md"), prose("orchi-explore/SKILL.md")
     pool, designer = prose("orchi-core/references/pool.md"), prose("orchi-core/roles/orchi-designer.md")
-    route = exploration[exploration.index("## Fast prototyping"):exploration.index("## Prototypes")]
+    mode = exploration[exploration.index("## Prototype mode"):exploration.index("## Prototypes")]
     steps = ("1. **Interview.**", "2. **Variants.**", "3. **Living prototype.**", "4. **Before showing a change,**",
              "5. **Build it.**")
-    assert [route.index(step) for step in steps] == sorted(route.index(step) for step in steps)
-    assert "Ask how many variants to build (three unless the user says otherwise)." in route
-    assert "ask whether to run another" in route and "never by the skill that made it" in route
-    assert "read them with `ArtifactComments`" in route and "keep asking while it works" in route
-    assert "After two failed repairs of the same thing, change the approach or ask the user" in route
-    assert "every idea the user raised and parked" in route and "The prototype's code is never product code" in route
-    assert "plausible sample data" in route
-    assert "A request for a prototype takes the [fast route](#fast-prototyping) instead of phases 2 to 4." in exploration
+    assert [mode.index(step) for step in steps] == sorted(mode.index(step) for step in steps)
+    assert "For an entirely new product, site, or interface built from scratch" in mode
+    assert "The prototype is the interview's richest result, not a decision" in mode
+    assert "Features, fixes, and redesigns of an existing product take the phases without prototype mode." in mode
+    assert "ask once at the start whether to reuse its style and existing work" in mode
+    assert "Ask how many variants to build (three unless the user says otherwise)." in mode
+    assert "ask whether to run another" in mode and "never by the skill that made it" in mode
+    assert "read them with `ArtifactComments`" in mode and "keep asking while it works" in mode
+    assert "record the link in the Design section" in mode
+    assert "After two failed repairs of the same thing, change the approach or ask the user" in mode
+    assert "every idea the user raised and parked" in mode and "Then go on from phase 2." in mode
+    assert "asks only what it left open" in mode and "designs the product again through its own steps" in mode
+    assert "never product code or an approved comp" in mode and "plausible sample data" in mode
+    assert "Picks and remarks are the user's alone, also in autonomous mode" in mode
+    assert "starts in [prototype mode](#prototype-mode), which runs Frame as its interview" in exploration
     assert "| Ideas | Every idea the user raised and parked" in exploration
     assert "id: ideas" in (SKILLS / "orchi-core/assets/github/ISSUE_TEMPLATE/orchi-exploration.yml").read_text()
-    assert "`Route: fast prototyping`" in explore and "keep interviewing while it works" in explore
-    assert "| Prototyper | `orchi-explore` with `--prototype` |" in pool
-    assert "`Fast prototype` and `Full exploration`" in pool and "`prototyper`" in pool
-    assert "on the fast route, a direction in one line instead" in designer
+    assert "`Mode: prototype`" in explore and "keep interviewing while it works" in explore
+    assert "report `<id> now researcher`" in explore and "take Orchi's `<id> remark:`" in explore
+    assert "| Prototyper | `orchi-explore` with `--prototype` |" in pool and "`prototyper`" in pool
+    assert "`Prototype first` and `Interview`" in pool and "goes the usual way, also when the user asks for a prototype" in pool
+    assert "a remark on a prototype goes to its prototyper as `<id> remark: <the user's words>`" in pool
+    assert "in prototype mode, a direction in one line instead" in designer
     assert "To change a mockup, copy it into the output folder and change only what the remarks name." in designer
     assert "'prototyper': 'Prototyper'" in (SKILLS / "orchi-core/scripts/dashboard.py").read_text()

@@ -7,10 +7,10 @@ settled with the user in its exploration, before anything is planned: a design
 session goes from the screen map and grey wireframes of the panels, through
 references, to an engine round, in which both skills design the first key
 screen independently and the variant the user picks decides the engine, and
-ends with a clickable mockup of the whole system. On the fast route, asked for
-as a prototype, a detailed interview leads straight to variant mockups of the
-whole system and a living prototype the user changes by remark while the
-interview goes on. The product truth is `PRODUCT.md`, the visual
+ends with a clickable mockup of the whole system. An entirely new product
+can start in prototype mode instead: the interview runs through variant
+mockups of the whole system and a living prototype the user changes by remark,
+and the design session later designs the product again from it. The product truth is `PRODUCT.md`, the visual
 system, with the engine and the references, is `DESIGN.md`, and every UI Task is
 built against both. The user names references, chooses every direction, and
 approves every comp; workers build only what was approved; the review checks the
@@ -21,7 +21,7 @@ result against `DESIGN.md`, the surface brief, the comp, and accessibility.
 | Part | Defined in |
 | --- | --- |
 | Design depth and UI readiness in planning | `skills/orchi-core/references/planning.md` (User interface design), `references/readiness.md` |
-| The design session in an exploration, and the fast route's living prototype | `skills/orchi-core/references/exploration.md` (Design session, Fast prototyping), `skills/orchi-explore/SKILL.md` |
+| The design session in an exploration, and prototype mode's living prototype | `skills/orchi-core/references/exploration.md` (Design session, Prototype mode), `skills/orchi-explore/SKILL.md` |
 | The design board, where the user rates and picks variants | `skills/orchi-core/assets/design-board.html` |
 | A `design` Epic run with the user | `skills/orchi-design/SKILL.md`; in a pool, the designer crew in `references/pool.md` |
 | Wireframes, variants, mockups, builds, and audits with the engine | `skills/orchi-core/roles/orchi-designer.md` (Wireframe, Variant, Mockup, Task, and Audit modes) |
@@ -65,7 +65,7 @@ delete it when it no longer holds.
 
 | Decision | Reason | Rejected | Since |
 | --- | --- | --- | --- |
-| On the fast route, each variant round asks the user how many variants to build (three unless they say otherwise) and, after it, whether to run another or go on; each variant is a clickable mockup of every key screen in its own direction, with plausible sample data, built in Mockup mode with a design skill the session chooses; the pick sets the project's engine without asking; the picked mockup becomes the living prototype and, once the user says to build it, the approved mockup the design Epic's builds repeat on the product's stack | The user wants results over routine and decides by looking at whole products, not at grey panels or engines; the prototype's pages are not product code, so the design is built again on the stack | Grey wireframes and a separate engine round on the fast route; growing the prototype's code into the product | [#64](https://github.com/nkhus/orchi/pull/64) |
+| In prototype mode, each variant round asks the user how many variants to build (three unless they say otherwise) and, after it, whether to run another or go on; each variant is a clickable mockup of every key screen in its own direction, with plausible sample data, built in Mockup mode with a design skill the session chooses; the picked mockup becomes the living prototype; it is neither product code nor an approved comp, and the design session designs the product again through its own steps from its screen map, briefs, and references | The user wants results over routine and reacts best to whole products, but a prototype is the richest result of the interview, not a design decision, so it must not cancel the design work after it | Grey wireframes before any styled variant in prototype mode; taking the prototype as the approved mockup; growing its code into the product | [#64](https://github.com/nkhus/orchi/pull/64) |
 | A new product's exploration runs a design session with the user after the direction is picked: the screen map and each key screen's brief, grey wireframes of its panels, references, the engine round, and a clickable mockup of the whole system; the design Epic then builds what the user approved on the stack and designs only what the session left out | The user needs to see how the product will look early, and the panels and style settle best in one long conversation, with things to look at from its middle on | Settling the look only in a design Epic after planning | [#60](https://github.com/nkhus/orchi/pull/60) |
 | Variants are shown on a design board the session publishes as an artifact, each labelled by its idea and never by the design skill that made it; the user rates, notes, and picks there, and the session reads the ratings from the board's store | The user compared variants best side by side, and said blind rounds and skill names do not matter to them, since they pick a look, not a tool; and copying ratings into the conversation is a needless step | Variants shown one by one in the conversation; ratings pasted by the user; blind rounds | [#60](https://github.com/nkhus/orchi/pull/60), [#64](https://github.com/nkhus/orchi/pull/64) |
 | Orchi installs Hallmark and prototype; the engine round runs both on the first key screen, independently, from the same wireframe and references, in the exploration's design session or, without one, in the first design Epic; the variant the user picks sets the project's design engine, which `DESIGN.md` records and all later design work uses; a redesign that replaces `DESIGN.md` runs the engine round again | In blind tests on a real POC screen, Hallmark led without references and prototype with them, and each project's taste decides which fits; one engine per project keeps every later screen in one system | Impeccable (all five comps scored 1 of 5, below Claude without a skill); choosing the engine by surface type; Taste Skill, huashu-design, and frontend-design (lower or less stable scores) | [#59](https://github.com/nkhus/orchi/pull/59) |
