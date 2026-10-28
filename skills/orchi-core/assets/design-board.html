@@ -75,7 +75,6 @@ textarea { width: 100%; min-height: 60px; resize: vertical; font: 14px var(--san
         <input type="radio" name="w" id="w720" value="720"><label for="w720">720 px</label>
       </span>
       <button id="fullBtn" type="button">Full screen</button>
-      <button id="revealBtn" type="button" aria-pressed="false">Reveal names</button>
     </div>
   </header>
   <nav id="nav" aria-label="Variants"></nav>
@@ -103,12 +102,11 @@ textarea { width: 100%; min-height: 60px; resize: vertical; font: 14px var(--san
 const $ = id => document.getElementById(id);
 const local = { get() { try { return JSON.parse(localStorage.getItem("board") || "{}") } catch { return {} } },
   set(v) { try { localStorage.setItem("board", JSON.stringify(v)) } catch {} } };
-const S = Object.assign({ cur: null, w: 1440, reveal: false }, local.get());
+const S = Object.assign({ cur: null, w: 1440 }, local.get());
 let rounds = [], items = [], ratings = {}, db = null, noteTimer = null;
 const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const save = () => local.set({ cur: S.cur, w: S.w, reveal: S.reveal });
-const named = it => !it.round.blind || S.reveal;
-const label = it => named(it) && it.label ? `${it.id} · ${it.label}` : it.id;
+const save = () => local.set({ cur: S.cur, w: S.w });
+const label = it => it.label ? `${it.id} · ${it.label}` : it.id;
 
 function load(data) {
   rounds = Array.isArray(data?.rounds) ? data.rounds : [];
@@ -135,7 +133,6 @@ function render() {
   renderNav();
   const it = items.find(i => i.id === S.cur);
   $("empty").hidden = !!it; $("view").hidden = !it;
-  $("revealBtn").setAttribute("aria-pressed", S.reveal);
   $("w" + S.w).checked = true;
   if (!it) return;
   if ($("frame").getAttribute("src") !== it.file) $("frame").setAttribute("src", it.file);
@@ -148,7 +145,7 @@ function render() {
   $("stars").querySelectorAll("[data-s]").forEach(b => b.onclick = () => rate({ score: +b.dataset.s }));
   $("pickBtn").onclick = () => rate({ pick: !v.pick });
   if (document.activeElement !== $("note")) $("note").value = v.note || "";
-  $("notes").hidden = !(named(it) && it.notes);
+  $("notes").hidden = !it.notes;
   $("notes").innerHTML = `<p>${esc(it.notes)}</p>`;
   fit();
 }
@@ -164,7 +161,6 @@ async function rate(change) {
 }
 $("note").addEventListener("input", e => { clearTimeout(noteTimer); const t = e.target.value; noteTimer = setTimeout(() => rate({ note: t }), 700) });
 document.querySelectorAll('input[name="w"]').forEach(r => r.onchange = () => { S.w = +r.value; save(); render() });
-$("revealBtn").onclick = () => { S.reveal = !S.reveal; save(); render() };
 $("fullBtn").onclick = () => { const it = items.find(i => i.id === S.cur); if (!it) return; $("fframe").src = it.file; $("ftitle").textContent = label(it); $("full").hidden = false; $("closeFull").focus() };
 $("closeFull").onclick = () => { $("full").hidden = true; $("fframe").removeAttribute("src") };
 addEventListener("keydown", e => {

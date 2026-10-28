@@ -37,7 +37,7 @@ def test_designer_crew_role_routing_and_mode_agree():
     assert "a designer's references,\nengine, direction, and comps".replace("\n", " ") in pool
     assert "asks the user directly while autonomous mode is off" in pool and "while it is on, Orchi decides them" in pool
     assert "A `design` Epic stays standalone" in pool
-    assert "(researcher, planner, designer, dev lead)" in entry and "while autonomous mode is off, and for a question marked `(user)`" in entry
+    assert "(researcher, prototyper, planner, designer, dev lead)" in entry and "while autonomous mode is off, and for a question marked `(user)`" in entry
     assert "Only the user\nnames references, chooses the engine and a direction, and approves a comp or a generated asset, or Orchi in\nautonomous mode".replace("\n", " ") in design
     assert "Continue with [orchi-deliver](../orchi-deliver/SKILL.md)" in design
     assert "Ask the user directly while autonomous mode is off, and Orchi while it is on" in design and "Adopt Orchi's claim" in design
@@ -82,7 +82,7 @@ def test_design_outputs_that_bind_later_work_pass_the_user():
 def test_first_design_epic_runs_both_engines_and_the_user_picks_one():
     design, designer = prose("orchi-design/SKILL.md"), prose("orchi-core/roles/orchi-designer.md")
     assert "start two `orchi-designer` subagents in Variant mode at once, one per engine" in design
-    assert "without saying which engine made which until they have chosen" in design
+    assert "each labelled by its idea, never by the skill that made it" in design
     assert "The variant the user picks sets the design engine for the project" in design
     assert "propose three to five of your own that fit the product" in design
     assert "`docs/design/references/`" in design and "`docs/design/surfaces/<surface>/`" in design
@@ -136,8 +136,34 @@ def test_design_board_template_reads_rounds_and_saves_ratings():
     assert board.startswith("<title>{{PRODUCT}} design board</title>")
     assert 'db.doc("board/items").onSnapshot' in board and 'db.collection("ratings").onSnapshot' in board
     assert 'db.doc("ratings/" + id).set' in board
-    for field in ("score", "note", "pick", "blind", "label", "notes", "file", "question"):
+    for field in ("score", "note", "pick", "label", "notes", "file", "question"):
         assert field in board
+    assert "blind" not in board and "Reveal names" not in board
+    assert "blind" not in exploration
     assert "`capabilities` `{\"db\": {}}`" in exploration and "`board/items`" in exploration
     assert "read the collection `ratings` with `ArtifactData` (`list`)" in exploration
     assert "[`assets/design-board.html`](../assets/design-board.html)" in exploration
+
+
+def test_fast_route_interviews_then_grows_a_living_prototype():
+    exploration, explore = prose("orchi-core/references/exploration.md"), prose("orchi-explore/SKILL.md")
+    pool, designer = prose("orchi-core/references/pool.md"), prose("orchi-core/roles/orchi-designer.md")
+    route = exploration[exploration.index("## Fast prototyping"):exploration.index("## Prototypes")]
+    steps = ("1. **Interview.**", "2. **Variants.**", "3. **Living prototype.**", "4. **Before showing a change,**",
+             "5. **Build it.**")
+    assert [route.index(step) for step in steps] == sorted(route.index(step) for step in steps)
+    assert "Ask how many variants to build (three unless the user says otherwise)." in route
+    assert "ask whether to run another" in route and "never by the skill that made it" in route
+    assert "read them with `ArtifactComments`" in route and "keep asking while it works" in route
+    assert "After two failed repairs of the same thing, change the approach or ask the user" in route
+    assert "every idea the user raised and parked" in route and "The prototype's code is never product code" in route
+    assert "plausible sample data" in route
+    assert "A request for a prototype takes the [fast route](#fast-prototyping) instead of phases 2 to 4." in exploration
+    assert "| Ideas | Every idea the user raised and parked" in exploration
+    assert "id: ideas" in (SKILLS / "orchi-core/assets/github/ISSUE_TEMPLATE/orchi-exploration.yml").read_text()
+    assert "`Route: fast prototyping`" in explore and "keep interviewing while it works" in explore
+    assert "| Prototyper | `orchi-explore` with `--prototype` |" in pool
+    assert "`Fast prototype` and `Full exploration`" in pool and "`prototyper`" in pool
+    assert "on the fast route, a direction in one line instead" in designer
+    assert "To change a mockup, copy it into the output folder and change only what the remarks name." in designer
+    assert "'prototyper': 'Prototyper'" in (SKILLS / "orchi-core/scripts/dashboard.py").read_text()

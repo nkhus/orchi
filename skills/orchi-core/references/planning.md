@@ -165,8 +165,8 @@ against what the user approved.
   a redesign without `DESIGN.md`, by recording the incumbent look in it as
   evidence. A design Epic without a design session behind it then agrees
   references with the user, and one without `DESIGN.md`, or one that replaces
-  it, runs the engine round, in which the user picks the project's engine from
-  variants both skills built.
+  it, runs the engine round, in which the variant the user picks, from those
+  both skills built, sets the project's engine.
 - Every Task that builds UI links the `DESIGN.md` sections, surface brief, and
   approved comp it builds against, and names its states, breakpoints, themes,
   and accessibility level. A brief that turns out to need a new world or a

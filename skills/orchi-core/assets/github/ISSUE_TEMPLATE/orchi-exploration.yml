@@ -67,6 +67,13 @@ body:
     validations:
       required: false
   - type: textarea
+    id: ideas
+    attributes:
+      label: Ideas
+      description: Every idea the user raised and parked, and every direction, variant, or remark they turned down, each with why, so planning loses none.
+    validations:
+      required: false
+  - type: textarea
     id: questions
     attributes:
       label: Open questions
