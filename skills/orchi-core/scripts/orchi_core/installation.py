@@ -30,6 +30,7 @@ CONFIG_START = "# orchi:begin"
 CONFIG_END = "# orchi:end"
 GITHUB_ASSETS = SOURCE / "orchi-core/assets/github"
 DOCS_WORKFLOW = ".github/workflows/orchi-docs.yml"
+STANDARDS_WORKFLOW = ".github/workflows/orchi-standards.yml"
 # Third-party design skills, installed as published at these commits and managed like Orchi's own skills.
 # A project's first design Epic chooses one of them, so both are installed.
 DESIGN_SKILLS = {
@@ -246,8 +247,9 @@ def load_manifest(path: Path, global_scope: bool) -> dict:
     for field in ("skills", "links", "instructions", "files", "config"):
         if not isinstance(previous.get(field, {}), dict):
             raise ValueError("Invalid installation manifest field: " + field)
-    if not isinstance(previous.get("docs_workflow", True), bool):
-        raise ValueError("Invalid installation manifest field: docs_workflow")
+    for field in ("docs_workflow", "standards_workflow"):
+        if not isinstance(previous.get(field, True), bool):
+            raise ValueError("Invalid installation manifest field: " + field)
     if not isinstance(previous.get("impeccable", ""), str):
         raise ValueError("Invalid installation manifest field: impeccable")
     return previous
@@ -330,18 +332,20 @@ def instruction_blocks(root: Path, global_scope: bool, pr_template: str | None =
 
 
 def install(project: Path, replace: bool = False, dry: bool = False, global_scope: bool = False,
-            uninstall: bool = False, github: bool = False, docs_workflow: bool | None = None) -> dict:
+            uninstall: bool = False, github: bool = False, docs_workflow: bool | None = None,
+            standards_workflow: bool | None = None) -> dict:
     """Install, update, or remove Orchi; the design skills are fetched first, into a workspace removed afterwards."""
     workspace = None if uninstall else Path(tempfile.mkdtemp(prefix="orchi-design-"))
     try:
-        return install_from(project, workspace, replace, dry, global_scope, uninstall, github, docs_workflow)
+        return install_from(project, workspace, replace, dry, global_scope, uninstall, github, docs_workflow,
+                            standards_workflow)
     finally:
         if workspace:
             shutil.rmtree(workspace, ignore_errors=True)
 
 
 def install_from(project: Path, workspace: Path | None, replace: bool, dry: bool, global_scope: bool,
-                 uninstall: bool, github: bool, docs_workflow: bool | None) -> dict:
+                 uninstall: bool, github: bool, docs_workflow: bool | None, standards_workflow: bool | None) -> dict:
     if project.is_symlink():
         raise ValueError("Installation root must not be a symlink")
     root = project.resolve()
@@ -437,11 +441,15 @@ def install_from(project: Path, workspace: Path | None, replace: bool, dry: bool
     github = bool(github or previous.get("github") or shared.get("github"))
     if github and global_scope:
         raise ValueError("--github applies to a project installation, not --global")
-    # The documentation check is on by default; an opt-out is kept until explicitly re-enabled.
+    # The documentation and standards checks are on by default; an opt-out is kept until explicitly re-enabled.
     if docs_workflow is None:
         docs_workflow = (previous or shared).get("docs_workflow", True)
+    if standards_workflow is None:
+        standards_workflow = (previous or shared).get("standards_workflow", True)
+    skipped = {relative for relative, kept in ((DOCS_WORKFLOW, docs_workflow), (STANDARDS_WORKFLOW, standards_workflow))
+               if not kept}
     github_wanted = {relative: content for relative, content in github_files().items()
-                     if docs_workflow or relative != DOCS_WORKFLOW} if github else {}
+                     if relative not in skipped} if github else {}
     # Rendered subagents are managed like GitHub files: hash-tracked, replaced only when unmodified.
     wanted = {} if uninstall else {**github_wanted, **agent_files(skill_path(root, global_scope))}
     old_files = {**shared.get("files", {}), **previous.get("files", {})}
@@ -522,7 +530,7 @@ def install_from(project: Path, workspace: Path | None, replace: bool, dry: bool
             notes.append(note)
 
     manifest = {"version": VERSION, "scope": "user" if global_scope else "project", "github": github,
-                "docs_workflow": docs_workflow, "skills": desired, "instructions": managed, "files": managed_files}
+                "docs_workflow": docs_workflow, "standards_workflow": standards_workflow, "skills": desired, "instructions": managed, "files": managed_files}
     encoded = (json.dumps(manifest, indent=2) + "\n").encode()
     if uninstall:
         if previous:
@@ -532,6 +540,7 @@ def install_from(project: Path, workspace: Path | None, replace: bool, dry: bool
     if shared:
         replacements[SHARED_MANIFEST] = ("remove", None)
     report = {"project": str(root), "scope": manifest["scope"], "github": github, "docs_workflow": docs_workflow,
+              "standards_workflow": standards_workflow,
               "version": {"installed": (previous or shared).get("version"), "bundle": VERSION}, "install": skill_changes,
               "changes": list(replacements), "preserved": ["unmanaged instruction content", "non-Orchi skills and agents"],
               "prerequisites": {tool: shutil.which(tool) for tool in ("git", "gh", "node", "npx")}, "notes": notes}
@@ -640,6 +649,11 @@ def main(argv: list[str] | None = None) -> int:
                           help="With --github, do not install the documentation check workflow; later runs keep this choice")
     workflow.add_argument("--docs-workflow", dest="docs_workflow", action="store_const", const=True,
                           help="Install the documentation check workflow again after --no-docs-workflow")
+    standards = parser.add_mutually_exclusive_group()
+    standards.add_argument("--no-standards-workflow", dest="standards_workflow", action="store_const", const=False,
+                           help="With --github, do not install the standards check workflow; later runs keep this choice")
+    standards.add_argument("--standards-workflow", dest="standards_workflow", action="store_const", const=True,
+                           help="Install the standards check workflow again after --no-standards-workflow")
     parser.add_argument("--version", action="store_true", help="Show installed and bundled versions and the upgrade command")
     args = parser.parse_args(argv)
     if args.version:
@@ -652,7 +666,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         root = Path.home() if args.global_scope else args.project or Path.cwd()
         result = install(root, args.replace_orchi, args.dry_run, args.global_scope, args.uninstall, args.github,
-                         args.docs_workflow)
+                         args.docs_workflow, args.standards_workflow)
         print(json.dumps(result, indent=2))
         return 0
     except (ValueError, OSError) as exc:

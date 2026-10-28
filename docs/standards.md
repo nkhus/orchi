@@ -16,7 +16,7 @@ from being lowered quietly.
 | New-project and audit routes | `skills/orchi-standards/SKILL.md` |
 | The `ENGINEERING.md` template with the default Checks table | `skills/orchi-core/assets/standards/ENGINEERING.md` |
 | `check` and `ruleset` | `skills/orchi-core/scripts/standards.py` |
-| Checks on pull requests and the weekly drift run | `skills/orchi-core/assets/github/workflows/orchi-standards.yml`, installed with `--github` |
+| Checks on pull requests and the weekly drift run | `skills/orchi-core/assets/github/workflows/orchi-standards.yml`, installed with `--github` unless `--no-standards-workflow` |
 
 ## Decisions
 
