@@ -50,18 +50,18 @@ plan or code, from the fetched remote target; never reset another checkout. Do n
 
 - Parallel work happens across independent Epics, each with its own owner, branch, and worktree. Tasks within an Epic
   share its branch and PR and run in sequence, except a pool dev lead's Tasks on different files (pool reference).
-- Claim before editing and never overwrite another owner's claim. Only ready Epics and standalone Tasks are independent entry points.
-- Update documentation with the code, in the same branch. Never present planned behavior as current behavior.
-- Show each new test failing before the change, and record checks, outcomes, and the candidate commit in the PR.
-  Review each standalone Task and each assembled Epic once, unless it only configures tools, then repair
-  demonstrated blockers with a targeted follow-up.
+- Claim before editing and never overwrite another owner's claim. Only ready Epics and standalone Tasks are independent
+  entry points. Update documentation with the code, in the same branch; never present planned behavior as current.
+- Show each new test failing before the change, and record checks, outcomes, and the candidate commit in the PR. Review
+  each standalone Task and each assembled Epic once, unless it only configures tools; repair demonstrated blockers with
+  a targeted follow-up.
 - Squash-merge. Close Epics, Initiatives, and standalone Tasks only after confirming the merge; close Epic Tasks as
   the execution reference says. Do not infer merge or deployment permission from permission to implement.
 - Where `ENGINEERING.md` exists, its checks are the code review: run them, and never weaken one without recording
-  an exception there ([standards](references/standards.md#gate-integrity)).
+  an exception there ([standards](references/standards.md#gate-integrity)). If GitHub is unavailable, say so; never claim remote tracking or ownership that does not exist.
 - Write only inside your own worktree: temporary files (output folders, clones, screenshots) go in its ignored
-  `.orchi-tmp/<purpose>/`, never in a system or scratchpad directory, where a write waits for the user's permission.
-- If GitHub is unavailable, say so; never claim remote tracking or ownership that does not exist.
+  `.orchi-tmp/<purpose>/`, never in a system or scratchpad directory. Never `rm` a path built from a variable, glob, or
+  braces; use a new folder instead of clearing one. Both wait for the user's permission even in bypass mode.
 
 ## Stage guidance
 

@@ -13,7 +13,7 @@ every other skill runs as a crew's or worker's assignment.
 | Session | Created by | In the sidebar | Talks to | Never |
 | --- | --- | --- | --- | --- |
 | Orchi (`/orchi`) | the user | top level, in the group `Orchi pool · <repo>` | the user; crews | Plans, researches, edits code, or merges into main without the user's yes while autonomous mode is off |
-| Crew | Orchi, on demand or when it builds the pool for autonomous mode | top level, in the group `Orchi pool · <repo>` | Orchi; the user while autonomous mode is off; its workers | Writes code itself, takes a second assignment, or starts sessions after setup |
+| Crew | Orchi, on demand or when it builds the pool for autonomous mode | top level, in the group `Orchi pool · <repo>` | Orchi; the user while autonomous mode is off; its workers | Writes code itself, takes a second assignment (a planner queues one), or starts sessions other than its workers and a planner's sub-planners |
 | Worker (`orchi-work`) | its crew, in the user's turn, for autonomous mode | nested under its crew | its crew only | Talks to the user, pushes, or opens PRs |
 | Dashboard (`orchi-dashboard`) | Orchi, as a session of its own, when the user asks for it and when autonomous mode turns on | top level, in the group `Orchi pool · <repo>`, never nested under Orchi | Orchi, once, with its page's link; the user who opens it | Messages crews or workers, changes Issues, PRs, branches, or files, or takes a request |
 
@@ -211,8 +211,9 @@ its title, so the assignment states it.
 | Crew → Orchi | Started, waiting, planned, declined | `<id> started`, `<id> needs the user: <question>`, `<id> now <role>`, `<id> planned: #<n>[, #<m>]`, `<id> declined: <reason>` |
 | Crew → Orchi | Delivery | `#<n> PR ready: <url>[, see it at <local link>]`, `#<n> follow-up: #<m>`, `#<n> waits for #<m>`, `#<n> done: <url>` |
 | Crew → Orchi | Setup, takeover, release | `crew-<k> ready: <n> workers`, `crew-<k> refused: Orchi is session <session id>`, `crew-<k> released`, `crew-<k> not released: <reason>` |
-| Orchi → crew | Answer, delivery | `<id> answer: <answer>`, `#<n> rework: <what the user asked>`, `#<n> merged` |
+| Orchi → crew | Answer, queue, delivery | `<id> answer: <answer>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged` |
 | Orchi → crew | Mode, takeover, release | `autonomous <on or off>`, `Orchi is now session <session id>`, `release` |
+| Sub-planner ↔ planner | Planning | the crew's messages to Orchi and Orchi's to a crew, between them |
 | Dashboard → Orchi | Setup | `dashboard ready: <url>` |
 | Orchi → dashboard | Mode, refresh | `autonomous <on or off>`, `refresh` |
 | Worker → crew | Setup, task | `worker-<n> ready`, `#<task> question: <question>`, `#<task> done: <commit>` and the role's report, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
@@ -325,11 +326,56 @@ offers to plan it. When it can neither start a crew nor find a free one, it
 comments `Queued for delivery at the user's request` and gives the Issue a crew
 at the first chance.
 
+## A stream of requests
+
+While the user tests or brainstorms, requests arrive faster than crews plan
+them. Orchi takes each one in and routes it; it never reads code for one,
+guesses a cause, or proposes a solution:
+
+1. It files each defect or request the user names as an Issue labelled
+   `needs-planning`, in the user's words, with where they saw it when they say,
+   and `Requested by: Orchi`, so nothing waits only in chat. An idea that needs
+   strategic decisions goes to a researcher as Assign a crew says, and a remark
+   on a PR that waits for the user's merge goes to its dev lead as
+   `#<n> rework:`.
+2. It groups them by nature: one area of the product, design feedback, a defect
+   in existing behavior. Each group goes to one planner: the one that already
+   holds that area, as a [queued request](#planner-queue-and-sub-planners), or
+   else a new planner with the group's first Issue and the rest queued.
+3. It tells the user in one line per group which crew has it, with a link.
+
+## Planner queue and sub-planners
+
+A planner works on one request at a time and queues the rest Orchi gives it.
+Orchi claims a queued Issue with the planner's work reference followed by
+`, queued after #<n>`, and sends `#<m> queued`. The planner takes queued Issues
+in order once its current one is planned or declined: it removes the
+`, queued after #<n>` note and reports `#<m> started`. While its queue is not
+empty, it continues into no delivery item and is not released.
+
+When a queued Issue does not depend on the one in progress and the user waits
+for it (they asked about it, or it is a defect that blocks their test), the
+planner offers to plan it in parallel with one reply button,
+`Plan #<m> in parallel`, in the host's next-step box. In the turn of that click
+(or of the user's typed yes) it starts a sub-planner nested under itself, with
+its own worktree, the title `[planner] <topic>`, and the brief
+`You are a sub-planner of <title> (<planner's session id>). Invoke the orchi-plan skill with: #<m> --report-to <planner's session id>. Autonomous mode: <on or off>, set by the user on <date>.`,
+and rewrites the queued claim to the sub-planner's session id.
+
+A sub-planner is a planner whose owner is its parent. It asks the user directly
+while autonomous mode is off, and its parent while it is on, which passes the
+question to Orchi and the answer back. It reports `planned` or `declined` to
+its parent, never continues into delivery, and starts no session. The parent
+reports `#<m> planned: #<n>[, #<k>]` to Orchi as its own, sends the sub-planner
+`release`, and archives it on `released`; a sub-planner stops after its release,
+since it is never reused.
+
 ## Planner and researcher crews
 
 A planner or researcher crew holds one request until it is planned or declined,
 and asks the user directly, with the host's question tool when it has one;
-while autonomous mode is on, it asks Orchi instead. It takes no other request, and:
+while autonomous mode is on, it asks Orchi instead. It takes no other request,
+except a planner's queued ones, and:
 
 - reports `<id> started` after loading, and `<id> needs the user: <question>`
   whenever it waits for an answer;

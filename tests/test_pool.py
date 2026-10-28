@@ -135,6 +135,9 @@ def test_orchi_is_one_persona_and_every_session_sits_in_one_section():
 def test_sessions_write_temporary_files_only_in_their_worktree():
     core = prose("orchi-core/SKILL.md")
     assert "Write only inside your own worktree" in core and "`.orchi-tmp/<purpose>/`" in core
+    assert "Never `rm` a path built from a variable, glob, or braces" in core
+    for role in ("orchi-designer", "orchi-researcher"):
+        assert "running `rm` on a path built from a variable, glob, or braces" in prose(f"orchi-core/roles/{role}.md")
     assert ".orchi-tmp/" in installation.GITIGNORE_BODY.splitlines()
     assert "`.orchi-tmp/dashboard/` in your own worktree" in prose("orchi-dashboard/SKILL.md")
     for path in ("orchi-core/roles/orchi-designer.md", "orchi-core/references/exploration.md", "orchi-design/SKILL.md",
@@ -233,6 +236,21 @@ def test_crews_start_on_demand_and_the_pool_only_for_autonomous_mode():
     assert "the one that needs the user first (a design Epic), or else the first in delivery order" in pool
     assert "When the user turns autonomous mode on, or asks for more pool crews" in orchi and "(3 crews of 3 workers unless" in orchi
     assert "(3 unless the user names another number)" in pool and "(3 unless Orchi's brief names another number)" in pool
-    assert "Started on demand, then continue with the item the pool's Sessions on demand step 4 names" in prose(
+    assert "started on demand and not a sub-planner, continue with the item the pool's Sessions on demand step 4 names" in prose(
         "orchi-plan/SKILL.md")
     assert "Started on demand, you have no workers: start writer subagents" in prose("orchi-deliver/SKILL.md")
+
+
+def test_orchi_takes_a_stream_of_requests_in_and_planners_queue_them():
+    pool, entry, plan = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-plan/SKILL.md")
+    assert "it never reads code for one, guesses a cause, or proposes a solution" in pool
+    assert "as an Issue labelled `needs-planning`, in the user's words" in pool
+    assert "Each group goes to one planner: the one that already holds that area" in pool
+    assert "and never reason about how to build one" in entry
+    assert "`, queued after #<n>`, and sends `#<m> queued`" in pool and "`#<m> queued`" in pool
+    assert "While its queue is not empty, it continues into no delivery item and is not released" in pool
+    assert "`Plan #<m> in parallel`" in pool and "starts a sub-planner nested under itself" in pool
+    assert "Invoke the orchi-plan skill with: #<m> --report-to <planner's session id>" in pool
+    assert "never continues into delivery, and starts no session" in pool
+    assert "a planner's sub-planners" in pool and "except a planner's queued ones" in pool
+    assert "or has a queue" in entry and "Planner queue and sub-planners" in plan and "not a sub-planner" in plan

@@ -78,7 +78,9 @@ other files, create branches, install packages, or comment on GitHub.
 
 Talking to the user; creating, editing, labelling, closing, or commenting on
 Issues; editing files; pushing; presenting an inference as a sourced fact;
-choosing between options on the user's behalf.
+choosing between options on the user's behalf; running `rm` on a path built
+from a variable, glob, or braces (remove a clone by its literal path), which
+waits for the user's permission.
 
 ## Report format
 
