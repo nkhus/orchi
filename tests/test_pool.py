@@ -240,6 +240,10 @@ def test_orchi_keeps_the_dashboard_itself_and_a_haiku_subagent_refreshes_it():
     assert '"Last step: "' in template and 'pill("Remote Control on", "bad"' in template
     assert 'id="tab-crews"' in template and 'id="tab-backlog"' in template
     assert "An idle crew is not running, asks nothing, and has no busy worker" in skill
+    # A crew at work shows an estimate with its basis: the share closed, else its stage, else its role; never 100%.
+    assert "function estimate(crew, issue)" in template and "estBar(estimate(crew, issue))" in template
+    assert '"by stage: "' in template and '"by role: planning"' in template and "final check" in template
+    assert "it never reads 100%" in skill
 
 
 def test_crews_start_on_demand_and_the_pool_only_for_autonomous_mode():

@@ -87,5 +87,6 @@ When a step fails, go on where you can; the next refresh tries again.
 Every crew is in one list, ordered by state: waiting for the user, working, idle, then free. An idle crew is
 not running, asks nothing, and has no busy worker: its card says `Idle · doing nothing`, shows its stage as
 the last step, and says since when nothing has run; a crew whose workers run counts as working. A crew with
-Remote Control on is marked, because it cannot be cleared. The page links Issues and PRs, never sessions:
+Remote Control on is marked, because it cannot be cleared. Each crew at work shows an estimate of how far its work
+is, with its basis: the share of children closed, else its stage, else its role; it never reads 100%. The page links Issues and PRs, never sessions:
 it runs sandboxed, and the sandbox blocks links into the Claude app.
