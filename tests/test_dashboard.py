@@ -84,7 +84,7 @@ def test_work_progress_claims_and_pull_checks(tmp_path):
     assert work[2]['progress'] == {'done': 2, 'total': 3} and work[2]['crew'] == 'crew-2'
     assert work[3]['status'] == 'ready' and work[3]['crew'] is None
     assert document['planning'] == [{'number': 5, 'title': 'Hotel control center', 'url': 'https://example.invalid/5',
-                                     'kind': 'Exploration', 'crew': 'crew-1'}]
+                                     'kind': 'Exploration', 'crew': 'crew-1', 'waits_for': None}]
     checks = {item['number']: (item['checks'], item['into_default']) for item in document['pulls']}
     assert checks == {10: ('passing', True), 11: ('passing', True), 12: ('passing', False), 13: ('failing', True)}
     assert document['merged'][0]['merged_at'] == '2026-10-27T10:00:00Z'
@@ -108,7 +108,8 @@ def test_crews_get_roles_and_claims_and_waiting_lists_questions_and_merges(tmp_p
 
 def test_a_failure_keeps_only_its_time_and_reason(tmp_path, capsys):
     code, document = run(tmp_path, [], fail='gh: not logged in')
-    assert code == 2 and document == {'updated': '2026-10-27T15:04:00+00:00', 'error': 'gh: not logged in'}
+    assert code == 2 and document == {'updated': '2026-10-27T15:04:00+00:00', 'error': 'gh: not logged in',
+                                      'attention': [], 'background_since': {}}
     assert capsys.readouterr().out.strip() == '📊 15:04 · refresh failed'
 
 
@@ -124,3 +125,64 @@ def test_work_is_a_tree_and_a_crew_knows_its_initiative_and_epic(tmp_path):
     assert (crew['issue'], crew['path']) == (2, [1])
     assert dashboard.lineage(document['work'], 92) == [1, 2] and dashboard.lineage(document['work'], 1) == []
     assert document['crews'][0]['state'] == 'working' and code == 0
+
+
+def test_a_quiet_crew_on_its_work_or_an_hours_long_background_run_needs_a_look(tmp_path, capsys):
+    from datetime import timedelta
+    # Claims: crew-6 holds Epic 3; crew-7 holds Exploration 5, which waits for #2. PR 10 (ready) closes Epic 2.
+    REPOSITORY['claimed']['nodes'].append({'number': 3, 'body': 'Assigned to crew-6 (local_z) by Orchi'})
+    REPOSITORY['claimed']['nodes'][1]['body'] = 'Assigned to crew-7 (local_y) by Orchi, waits for #2'
+    try:
+        crews = [
+            # Holds Epic 3, quiet 40 minutes, nothing running: stalled.
+            {'name': 'crew-3', 'title': '[dev-lead] audit', 'state': 'idle', 'issue': 3, 'stage': 'Suites passed',
+             'last_activity': '2026-10-27T14:24:00Z', 'workers': {'busy': 0, 'total': 3}},
+            # Holds Epic 2, whose PR waits to merge: not stalled.
+            {'name': 'crew-2', 'title': '[dev-lead] pay', 'state': 'idle', 'last_activity': '2026-10-27T12:00:00Z'},
+            # A question to Orchi in autonomous mode is listed; this one is for the user, so it is not.
+            {'name': 'crew-1', 'title': '[researcher] hotel', 'state': 'waiting', 'question': 'Which scale? (user)',
+             'last_activity': '2026-10-27T10:00:00Z'},
+            # A named run of 20 minutes on held work, and one of 4 hours.
+            {'name': 'crew-5', 'title': '[planner] csv', 'state': 'idle', 'issue': 3, 'background': 'research subagents',
+             'last_activity': '2026-10-27T14:44:00Z'},
+            {'name': 'crew-6', 'title': '[dev-lead] audit', 'state': 'idle', 'background': 'visual suite, slot 0',
+             'last_activity': '2026-10-27T11:04:00Z'},
+            # Waits for #2; quiet only 10 minutes; a busy worker; an unreadable time.
+            {'name': 'crew-7', 'title': '[researcher] hotel', 'state': 'idle', 'last_activity': '2026-10-27T12:00:00Z'},
+            {'name': 'crew-8', 'title': '[dev-lead] x', 'state': 'idle', 'issue': 3, 'last_activity': '2026-10-27T14:54:00Z'},
+            {'name': 'crew-9', 'title': '[dev-lead] y', 'state': 'idle', 'issue': 3, 'last_activity': '2026-10-27T12:00:00Z',
+             'workers': {'busy': 1, 'total': 3}},
+            {'name': 'crew-10', 'title': '[dev-lead] z', 'state': 'idle', 'issue': 3, 'last_activity': 1793000000},
+            {'name': 'crew-11', 'title': '[dev-lead] w', 'state': 'idle', 'issue': 3, 'last_activity': '2026-10-27T12:00:00'}]
+
+        def check(crews, now, mode='on'):
+            (tmp_path / 'crews.json').write_text(json.dumps(crews))
+            dashboard.main(['--crews', str(tmp_path / 'crews.json'), '--mode', mode, '--out', str(tmp_path / 'snapshot.json')],
+                           run=runner, now=now)
+            capsys.readouterr()
+            return json.loads((tmp_path / 'snapshot.json').read_text())
+
+        document = check(crews, NOW)
+        looks = [(item['kind'], item['crew'], item['unanswered']) for item in document['attention']]
+        assert looks == [('stalled', 'crew-3', False), ('long run', 'crew-6', False)]
+        assert document['attention'][1]['text'] == 'visual suite, slot 0'
+        assert dashboard.summary(document) == '📊 15:04 · 4 active · 2 wait for you · 4 PRs · 2 need a look'
+        crews[2]['question'] = 'Which scale?'
+        assert [item['kind'] for item in check(crews, NOW)['attention']] == ['stalled', 'question', 'long run']
+        assert [item['kind'] for item in check(crews, NOW, mode='off')['attention']] == ['stalled', 'long run']
+        # Two refreshes close together: not yet unanswered. Ten minutes on with no activity: unanswered.
+        assert not any(item['unanswered'] for item in check(crews, NOW + timedelta(minutes=2))['attention'])
+        # crew-6 answered `status?` with the same run: its run's start is kept, and it is not unanswered.
+        crews[4]['last_activity'] = '2026-10-27T15:10:00Z'
+        later = check(crews, NOW + timedelta(minutes=12))
+        assert [(item['crew'], item['unanswered']) for item in later['attention']] == [('crew-3', True), ('crew-1', True)]
+        assert later['background_since']['crew-6'] == {'text': 'visual suite, slot 0', 'since': '2026-10-27T11:04:00Z'}
+        # A failed refresh keeps the check's memory for the next one.
+        dashboard.main(['--crews', str(tmp_path / 'crews.json'), '--mode', 'on', '--out', str(tmp_path / 'snapshot.json')],
+                       run=lambda args: (_ for _ in ()).throw(OSError('offline')), now=NOW + timedelta(minutes=13))
+        failed = json.loads((tmp_path / 'snapshot.json').read_text())
+        assert failed['error'] == 'offline' and failed['attention'] == later['attention']
+        assert check(crews, NOW + timedelta(minutes=14))['attention'][0]['unanswered'] is True
+    finally:
+        REPOSITORY['claimed']['nodes'].pop()
+        REPOSITORY['claimed']['nodes'][1]['body'] = 'Assigned to crew-1 (local_y) by Orchi'

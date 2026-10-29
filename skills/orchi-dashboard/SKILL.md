@@ -1,7 +1,7 @@
 ---
 name: orchi-dashboard
-description: Keep an Orchi pool's dashboard - a page of every crew, ordered by state (waiting for the user, working, idle and doing nothing, free), with what it does now and the Initiative and Epic of its work, and the backlog as a tree of Initiatives, Epics, and Tasks with their progress, PRs, and the planning queue - published by Orchi and refreshed by a Haiku subagent from GitHub and the host's session list. Read-only; it changes nothing and takes no requests. Invoke only when Orchi's instructions or a dashboard subagent's task asks for orchi-dashboard by name.
-argument-hint: "publish | refresh | collect --page <url> --mode <on or off> --dir <path>"
+description: Keep an Orchi pool's dashboard - a page of every crew, ordered by state (needing a look, waiting for the user, working, in a background run, idle and doing nothing, free), with what it does now and the Initiative and Epic of its work, and the backlog as a tree of Initiatives, Epics, and Tasks with their progress, PRs, and the planning queue - published by Orchi and refreshed by a Haiku subagent from GitHub and the host's session list. Read-only; it changes nothing and takes no requests. Invoke only when Orchi's instructions or a dashboard subagent's task asks for orchi-dashboard by name.
+argument-hint: "publish | refresh | collect [--page <url>] --mode <on or off> --dir <path>"
 user-invocable: false
 ---
 
@@ -35,14 +35,17 @@ when Orchi is updated.
 
 On `refresh`: after `publish`, before Orchi answers the user about status, when the user asks, and when
 something changed for the user (a crew asks them something, starts or finishes work, or is released; a PR
-opens or merges; the mode changes). Refresh only then; never schedule a timer. Use the page URL from this
+opens or merges; the mode changes), and for the pool reference's stall check. Refresh only then; never
+schedule a timer. Use the page URL from this
 conversation, or find it by its title as Publish says.
 
 1. Start one general-purpose subagent with the model `haiku`, in the background, with the task
    `Invoke the orchi-dashboard skill with: collect --page <url> --mode "<on or off>" --dir <work directory>`.
+   Without a page (the pool reference's stall check), leave out `--page`.
 2. Wait for it only before answering the user about status; otherwise go on. Its reply is one line,
-   `📊 <time> · <n> active · <n> wait for you · <n> PRs`; tell the user only when it reads `refresh failed`
-   twice in a row.
+   `📊 <time> · <n> active · <n> wait for you · <n> PRs`, ending with `· <n> need a look` when a crew looks
+   stuck; then act on the snapshot's `attention` as the pool reference's Stalls says. Tell the user only when it
+   reads `refresh failed` twice in a row.
 
 ## Collect
 
@@ -66,14 +69,15 @@ Load the host's session tools and `ArtifactData` with `ToolSearch` when they are
    and skip tool calls. It is `waiting` when that text asks the user something
    (the question in one line, in its own words), else `idle`; `stage` is a few
    words from it on what the crew does, or last did, such as `Reviewing the Epic`, and no text means no
-   `stage`; `question` only while it waits. Read messages only for an assigned crew that is new or whose
+   `stage`; `question` only while it waits; `"background"`, the text after `Background:`, when an idle crew's
+   newest text ends with that line. Read messages only for an assigned crew that is new or whose
    `last_activity` differs from the previous `crews.json`; otherwise copy its `stage` and `question` from that
-   file, and its `state` unless it runs now.
+   file (with `background`), and its `state` unless it runs now.
 2. Build the snapshot:
    `python3 .claude/skills/orchi-core/scripts/dashboard.py --crews <dir>/crews.json --mode "<on or off>" --out <dir>/snapshot.json`
    (under `~/.claude/skills/` in a user-wide installation). It prints the
    summary line and exits 2 when GitHub could not be read.
-3. Write it to the page's store: `ArtifactData` `get` of collection `snapshot`,
+3. Without `--page`, stop here. Otherwise write it to the page's store: `ArtifactData` `get` of collection `snapshot`,
    doc `current`, on `--page`, with `out_dir` = `<dir>`, which names its
    `version` without returning the document; then `set` (exit 0) or `update`
    (exit 2, which keeps the last good data and adds the failure) with
@@ -84,9 +88,11 @@ When a step fails, go on where you can; the next refresh tries again.
 
 ## The page
 
-Every crew is in one list, ordered by state: waiting for the user, working, idle, then free. An idle crew is
+Every crew is in one list, ordered by state: needing a look, waiting for the user, working, in a background run,
+idle, then free. An idle crew is
 not running, asks nothing, and has no busy worker: its card says `Idle · doing nothing`, shows its stage as
 the last step, and says since when nothing has run; a crew whose workers run counts as working. A crew with
-Remote Control on is marked, because it cannot be cleared. Each crew at work shows an estimate of how far its work
+Remote Control on is marked, because it cannot be cleared. A crew that named a background run shows it
+instead of `Idle`, and a crew the stall check lists is marked `Needs a look` with the reason. Each crew at work shows an estimate of how far its work
 is, with its basis: the share of children closed, else its stage, else its role; it never reads 100%. The page links Issues and PRs, never sessions:
 it runs sandboxed, and the sandbox blocks links into the Claude app.

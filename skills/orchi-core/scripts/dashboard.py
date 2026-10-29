@@ -7,7 +7,7 @@ import json
 import re
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import status
 
@@ -40,6 +40,12 @@ query($owner: String!, $name: String!) {
 }
 '''
 CLAIM = re.compile(r'Assigned to (crew-\d+)')
+WAITS = re.compile(r'waits for #(\d+)')
+# A crew quiet for longer than this, with nothing running and nothing to wait for, looks stalled; a background run
+# this old needs a look; a crew listed this long ago with no activity since did not answer Orchi's `status?`.
+STALL = timedelta(minutes=30)
+LONG_RUN = timedelta(hours=3)
+ANSWER = timedelta(minutes=10)
 ROLES = {'researcher': 'Researcher', 'prototyper': 'Prototyper', 'planner': 'Planner', 'designer': 'Designer',
          'dev-lead': 'Dev lead'}
 TITLE = re.compile(r'\[([a-z-]+)\] ')
@@ -59,6 +65,8 @@ def collect(repo: str, run: status.Runner = status.gh) -> dict:
                            '-f', 'name=' + name]))['data']['repository']
     crews = {node['number']: match[1] for node in data['claimed']['nodes']
              if (match := CLAIM.search(node.get('body') or ''))}
+    waits = {node['number']: int(match[1]) for node in data['claimed']['nodes']
+             if (match := WAITS.search(node.get('body') or ''))}
     work = []
     for node in data['initiatives']['nodes']:
         children = node['subIssues']
@@ -98,6 +106,8 @@ def collect(repo: str, run: status.Runner = status.gh) -> dict:
                       'closes': [issue['number'] for issue in node['closingIssuesReferences']['nodes']]})
     merged = [{'number': node['number'], 'title': node['title'], 'url': node['url'], 'merged_at': node['mergedAt'],
                'base': node['baseRefName']} for node in data['merged']['nodes']]
+    for item in work + planning:
+        item['waits_for'] = waits.get(item['number'])
     return {'default_branch': default, 'work': work, 'planning': planning, 'pulls': pulls, 'merged': merged}
 
 
@@ -138,15 +148,67 @@ def waiting(document: dict) -> list[dict]:
     return items
 
 
+def moment(value) -> datetime | None:
+    """An ISO time with its offset (`Z` included), or None when it is missing, unreadable, or has no offset."""
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except (ValueError, AttributeError, TypeError):
+        return None
+    return parsed if parsed.tzinfo else None
+
+
+def attention(document: dict, now: datetime, previous: dict) -> list[dict]:
+    """Crews that look stuck, from this refresh and the previous snapshot. The host shows only whether a turn runs,
+    so a crew names its background run itself (`background`), and the run's start is carried from refresh to refresh.
+
+    - `stalled`: holds an Issue, runs nothing, named no run, waits for no other Issue and no merge of its PR.
+    - `long run`: its named background run has gone on for hours.
+    - `question`: in autonomous mode, its question to Orchi has waited (a `(user)` question waits for the user).
+    Each is listed once the crew has been quiet for `STALL`; `unanswered` once it stays quiet `ANSWER` after that.
+    """
+    waits = {item['number']: item.get('waits_for') for item in document['work'] + document['planning']}
+    merging = {number for pull in document['pulls'] if not pull['draft'] for number in pull['closes']}
+    seen = {(item.get('crew'), item.get('quiet')): item.get('first_seen') for item in previous.get('attention') or []}
+    starts, document['background_since'] = previous.get('background_since') or {}, {}
+    items = []
+    for crew in document['crews']:
+        name, quiet, run = crew['name'], moment(crew.get('last_activity')), crew.get('background')
+        if run and crew['state'] == 'idle':
+            start = starts.get(name) or {}
+            document['background_since'][name] = {'text': run, 'since': start.get('since') if start.get('text') == run
+                                                   else crew.get('last_activity')}
+        if crew['role'] is None or not quiet or now - quiet <= STALL or (crew.get('workers') or {}).get('busy', 0) > 0:
+            continue
+        issue, since, text = crew.get('issue'), crew['last_activity'], crew.get('stage') or ''
+        if run and crew['state'] == 'idle':
+            since, text = document['background_since'][name]['since'], run
+            kind = 'long run' if now - (moment(since) or quiet) > LONG_RUN else None
+        elif crew['state'] == 'idle':
+            kind = 'stalled' if issue and not waits.get(issue) and issue not in merging else None
+        elif crew['state'] == 'waiting' and document.get('mode') == 'on' and '(user)' not in (crew.get('question') or ''):
+            kind, text = 'question', crew.get('question') or ''
+        else:
+            kind = None
+        if kind:
+            first = moment(seen.get((name, crew['last_activity'])))
+            items.append({'kind': kind, 'crew': name, 'issue': issue, 'text': text, 'since': since,
+                          'quiet': crew['last_activity'],
+                          'first_seen': first.isoformat(timespec='seconds') if first else now.isoformat(timespec='seconds'),
+                          'unanswered': bool(first) and now - first >= ANSWER})
+    return items
+
+
 def summary(document: dict) -> str:
     """The line the refresh subagent replies with: the time of the refresh and the counts the user scans for."""
     time = document['updated'][11:16]
     if document.get('error'):
         return f'📊 {time} · refresh failed'
-    # An idle crew runs nothing; it counts as active only while its workers run.
-    active = sum(crew['role'] is not None and (crew['state'] in {'working', 'waiting'} or (
-        crew['state'] == 'idle' and (crew.get('workers') or {}).get('busy', 0) > 0)) for crew in document['crews'])
-    return f"📊 {time} · {active} active · {len(document['waiting'])} wait for you · {len(document['pulls'])} PRs"
+    # An idle crew runs nothing; it counts as active only while its workers or its background run go on.
+    active = sum(crew['role'] is not None and (crew['state'] in {'working', 'waiting'} or (crew['state'] == 'idle' and (
+        (crew.get('workers') or {}).get('busy', 0) > 0 or bool(crew.get('background'))))) for crew in document['crews'])
+    line = f"📊 {time} · {active} active · {len(document['waiting'])} wait for you · {len(document['pulls'])} PRs"
+    look = len(document.get('attention') or [])
+    return line + (f' · {look} need a look' if look else '')
 
 
 def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: datetime | None = None) -> int:
@@ -158,17 +220,26 @@ def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: dat
     args = parser.parse_args(argv)
     now = now or datetime.now().astimezone()
     try:
+        with open(args.out, encoding='utf-8') as handle:
+            previous = json.load(handle)
+        previous = previous if isinstance(previous, dict) else {}
+    except (OSError, ValueError):
+        previous = {}
+    try:
         with open(args.crews, encoding='utf-8') as handle:
             crews = json.load(handle)
         repo = args.repo or json.loads(run(['repo', 'view', '--json', 'nameWithOwner']))['nameWithOwner']
         document = snapshot(repo, collect(repo, run), crews, args.mode, now)
     except (ValueError, KeyError, TypeError, OSError, subprocess.CalledProcessError) as error:
         detail = str(getattr(error, 'stderr', '') or error).strip()
-        # Only the failure and its time: merged into the stored snapshot, the page keeps the last good state.
-        document = {'updated': now.isoformat(timespec='seconds'), 'error': detail}
+        # The failure and its time, merged into the stored snapshot so the page keeps the last good state; the stall
+        # check's memory is carried over for the next refresh.
+        document = {'updated': now.isoformat(timespec='seconds'), 'error': detail,
+                    'attention': previous.get('attention') or [], 'background_since': previous.get('background_since') or {}}
         print(f'Orchi dashboard error: {detail}', file=sys.stderr)
     else:
         document['waiting'] = waiting(document)
+        document['attention'] = attention(document, now, previous)
     with open(args.out, 'w', encoding='utf-8') as handle:
         json.dump(document, handle, ensure_ascii=False, indent=1)
     print(summary(document))
