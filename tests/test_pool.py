@@ -143,7 +143,7 @@ def test_sessions_write_temporary_files_only_in_their_worktree():
         assert "running `rm` on a path built from a variable, glob, or braces" in prose(f"orchi-core/roles/{role}.md")
     assert ".orchi-tmp/" in installation.GITIGNORE_BODY.splitlines()
     assert ".hallmark/" in installation.GITIGNORE_BODY.splitlines()
-    assert "`.orchi-tmp/dashboard/` in your own worktree" in prose("orchi-dashboard/SKILL.md")
+    assert "`.orchi-tmp/dashboard/` in Orchi's own worktree" in prose("orchi-dashboard/SKILL.md")
     for path in ("orchi-core/roles/orchi-designer.md", "orchi-core/references/exploration.md", "orchi-design/SKILL.md",
                  "orchi-core/roles/orchi-researcher.md", "orchi-core/roles/README.md"):
         text = prose(path)
@@ -202,36 +202,44 @@ def test_orchi_prepares_the_repository_without_asking_the_user_to_commit():
     assert "pool.md#prepare-the-repository" in prose("orchi-core/references/exploration.md")
 
 
-def test_the_dashboard_is_optional_separate_refreshed_on_request_and_only_reads():
+def test_orchi_keeps_the_dashboard_itself_and_a_haiku_subagent_refreshes_it():
     import dashboard
     pool, entry, skill = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-dashboard/SKILL.md")
     template = (SKILLS / "orchi-dashboard/assets/dashboard.html").read_text()
-    assert "| Dashboard (`orchi-dashboard`) | Orchi, as a session of its own, when the user asks for it and when autonomous mode turns on |" in pool
-    assert "It starts the [dashboard](#dashboard) when the group has none" in pool and "## Dashboard" in pool
-    assert "with its own worktree, because the host cannot detach a session that shares its starter's folder" in pool
-    assert "It refreshes only on request" in pool and "timer" not in pool
-    assert "Invoke the orchi-dashboard skill with: start --report-to <Orchi's session id>" in pool
-    assert "| Dashboard → Orchi | Setup | `dashboard ready: <url>` |" in pool
-    assert "to its busy crews and the dashboard when it changes" in pool
-    assert "When the user asks for the dashboard, start it in that turn" in entry and "`dashboard ready: <url>`" in entry
-    assert "send it `refresh`" in entry and "write nothing when nothing changed for the user" in entry
-    assert "Start the dashboard when it is missing" not in entry and "dashboard's title shows a refresh" not in entry
+    # No session of its own: no Sessions row, no dashboard messages, no Refresh button, no Sonnet session.
+    assert "| Dashboard (`orchi-dashboard`) |" not in pool and "dashboard ready" not in pool + entry
+    assert "Orchi → dashboard" not in pool and "Sonnet at low effort" not in pool and "`Refresh`" not in skill
+    assert "a page Orchi keeps itself" in pool and "no session of its own holds it" in pool + skill
+    assert "It publishes the [dashboard](#dashboard) when there is none" in pool
+    assert "When the user asks for the dashboard, publish it as the pool reference's Dashboard says" in entry
+    assert "when there is a dashboard, refresh it and link it" in entry and "refreshed when it changed for the user, and write nothing when nothing did" in entry
+    assert "to its busy crews and refreshes the dashboard when it changes" in pool
+    assert "Orchi sends every crew one self-contained message" in pool
+    assert "it publishes it again from the new version to the same link, and archives a `dashboard` session" in pool
+    assert "Orchi waits for it only before answering about status" in pool and "Wait for it only before answering" in skill
+    assert "or an earlier version's `dashboard` session" in entry
+    # Refreshed on events and requests, never on a timer, by a background Haiku subagent.
+    assert "and never on a timer" in pool and "never schedule a timer" in skill and "Cron" not in skill
+    assert "one general-purpose subagent on Haiku, started in the background" in pool
+    assert "Invoke the orchi-dashboard skill with: collect --page <url> --mode" in pool + skill
+    assert "subagent with the model `haiku`, in the background" in skill
+    assert "Never rename a session or message anyone, and write only in `--dir`" in skill
+    assert "never message a crew or worker, change Issues, PRs, branches, or repository files" in skill
+    assert "(`list_events`, 6)" in skill and "`remote` its `remoteControlActive`" in skill
     # The page reads the document the skill writes, through the db capability it is published with.
     assert 'db.doc("snapshot/current")' in template and "collection `snapshot`, doc `current`" in skill
     assert 'capabilities` `{"db": {}}`' in skill and "<title>{{REPO}} pool</title>" in template
     assert "its title, `<repo> pool`" in skill
-    assert "scripts/dashboard.py --crews <dir>/crews.json" in skill and "never schedule a timer" in skill
-    assert "Cron" not in skill and "--every" not in skill
-    assert "End the turn with one reply button, `Refresh`, whose message is `refresh`" in skill
-    assert "never message a crew or worker, change Issues, PRs, branches, or repository files" in skill
-    assert "on Sonnet at low effort" in pool and "general-purpose subagent on Haiku" in pool
-    assert "subagent with the model `haiku`" in skill and "Invoke the orchi-dashboard skill with: collect --page <url>" in skill
-    assert "Never rename a session or message anyone, and write only in `--dir`" in skill
+    assert "scripts/dashboard.py --crews <dir>/crews.json" in skill
     document = {"updated": "2026-10-27T15:04:00+00:00", "crews": [], "pulls": [], "waiting": []}
     assert dashboard.summary(document).startswith("📊 15:04 · ") and "`📊 <time> · <n> active" in pool
-    for script in ("http://", "<script src", "localStorage"):
-        assert script not in template
-    assert 'class: "what stretch", href: url' in template and "Open session ›" in template
+    for script in ("http://", "<script src", "localStorage", "|claude:", "Open session", "waiting-section"):
+        assert script not in template, script
+    # One list ordered by state; an idle crew says it runs nothing; Remote Control is marked; two tabs.
+    assert 'idle: ["Idle · doing nothing", "idle"]' in template and '"Nothing is running"' in template
+    assert '"Last step: "' in template and 'pill("Remote Control on", "bad"' in template
+    assert 'id="tab-crews"' in template and 'id="tab-backlog"' in template
+    assert "An idle crew is not running, asks nothing, and has no busy worker" in skill
 
 
 def test_crews_start_on_demand_and_the_pool_only_for_autonomous_mode():

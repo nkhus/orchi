@@ -92,12 +92,15 @@ def test_work_progress_claims_and_pull_checks(tmp_path):
 
 def test_crews_get_roles_and_claims_and_waiting_lists_questions_and_merges(tmp_path, capsys):
     crews = [{'name': 'crew-1', 'title': '[researcher] hotel', 'state': 'waiting', 'question': 'Which scale?'},
-             {'name': 'crew-2', 'title': '[dev-lead] pay', 'state': 'working', 'workers': {'busy': 2, 'total': 3}},
-             {'name': 'crew-3', 'title': 'crew-3'}]
+             {'name': 'crew-2', 'title': '[dev-lead] pay', 'state': 'working', 'workers': {'busy': 2, 'total': 3},
+              'remote': True},
+             {'name': 'crew-3', 'title': 'crew-3'},
+             {'name': 'crew-4', 'title': '[planner] csv', 'state': 'idle', 'workers': {'busy': 0, 'total': 3}}]
     code, document = run(tmp_path, crews)
     roles = {crew['name']: (crew['role'], crew['issue'], crew['state']) for crew in document['crews']}
     assert roles == {'crew-1': ('Researcher', 5, 'waiting'), 'crew-2': ('Dev lead', 2, 'working'),
-                     'crew-3': (None, None, 'free')}
+                     'crew-3': (None, None, 'free'), 'crew-4': ('Planner', None, 'idle')}
+    assert document['crews'][1]['remote'] is True
     assert document['waiting'] == [{'kind': 'question', 'crew': 'crew-1', 'issue': 5, 'text': 'Which scale?'},
                                    {'kind': 'merge', 'pull': 10, 'text': 'PR 10'}]
     assert capsys.readouterr().out.strip() == '📊 15:04 · 2 active · 2 wait for you · 4 PRs'
