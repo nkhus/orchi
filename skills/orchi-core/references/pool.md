@@ -210,8 +210,9 @@ its title, so the assignment states it.
 | --- | --- | --- |
 | Crew → Orchi | Started, waiting, planned, declined | `<id> started`, `<id> needs the user: <question>`, `<id> now <role>`, `<id> planned: #<n>[, #<m>]`, `<id> declined: <reason>` |
 | Crew → Orchi | Delivery | `#<n> PR ready: <url>[, see it at <local link>]`, `#<n> follow-up: #<m>`, `#<n> waits for #<m>`, `#<n> done: <url>` |
+| Crew → Orchi | Status ([Stalls](#stalls)) | `<id> status: <what it does and what it waits for>` |
 | Crew → Orchi | Setup, takeover, update, release | `crew-<k> ready: <n> workers`, `<name> updated to <version>`, `crew-<k> refused: Orchi is session <session id>`, `crew-<k> released`, `crew-<k> not released: <reason>` |
-| Orchi → crew | Answer, queue, delivery | `<id> answer: <answer>`, `<id> remark: <the user's words>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged` |
+| Orchi → crew | Answer, queue, delivery, status | `<id> answer: <answer>`, `<id> remark: <the user's words>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged`, `<id> status?` |
 | Orchi → crew | Mode, takeover, update, release | `autonomous <on or off>`, `Orchi is now session <session id>`, `Orchi is updated to <version> …` ([Update Orchi](#update-orchi)), `release` |
 | Sub-planner ↔ planner | Planning | the crew's messages to Orchi and Orchi's to a crew, between them |
 | Worker → crew | Setup, task | `worker-<n> ready`, `#<task> question: <question>`, `#<task> done: <commit>` and the role's report, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
@@ -470,15 +471,17 @@ A crew releases its workers, if it has any, when its own work is done. Then:
 1. The crew sends `release`. It sends no second `release` until the first is
    answered.
 2. The worker confirms nothing would be lost: no uncommitted changes, no commits
-   that are neither merged nor pushed, no unanswered question. It runs
+   that are neither merged nor pushed, no unanswered question, no background run
+   of its own still running. It runs
    `git fetch` and `git switch --detach origin/<default>`, deletes the local
    branches it created whose work is merged, and replies `worker-<n> released`,
    or `worker-<n> not released: <reason>`.
 3. On `released`, the crew clears the worker with the host's tool.
 
 A crew is released when Orchi sends `release` after its work is done: `planned`,
-`declined`, or `done`. It releases its workers first, then returns its own
-worktree to a detached `origin/<default>` and replies `crew-<k> released`; a crew
+`declined`, or `done`. It releases its workers first, stops every background run
+it started that still runs (a leftover one holds the session, and the host then
+refuses to clear or archive it), then returns its own worktree to a detached `origin/<default>` and replies `crew-<k> released`; a crew
 started on demand stops there, and Orchi archives it. A pool crew clears
 its own conversation as the last action of its turn; nothing may follow it,
 because a message that arrives first drops the clear. The reply reaches Orchi
@@ -497,16 +500,53 @@ retried. A cleared session keeps its title, parent,
 folder, branch, and settings. Nobody deletes a pool session, and Orchi archives
 only a crew started on demand that replied `released`.
 
+## Stalls
+
+The host shows only whether a session runs a turn, not the runs it left in the
+background, so a quiet crew may be waiting for a long check or may be stuck.
+Each session says which it is, and Orchi checks.
+
+- A crew or worker that ends a turn while a background run it started goes on
+  ends that turn's text with one line, `Background: <what runs, and the slot it
+  waits for, if any>`; a run is a command, a subagent, or a worker's run the crew
+  waits for. The host wakes it when the run ends. A session that starts
+  a background run gives it its input and a time limit, so that it cannot wait
+  for ever.
+- Orchi checks the pool at a wake when a crew holds work and the last check is
+  older than 30 minutes (`.orchi-tmp/dashboard/snapshot.json` in Orchi's worktree
+  says when it ran), and with every dashboard refresh. The check is the
+  dashboard's refresh, run without `--page` when no page is kept. Its line ends
+  with `· <n> need a look` when the snapshot's `attention` lists a crew quiet for
+  more than 30 minutes with no busy worker: one that holds an Issue, has named no
+  background run, and waits for no other Issue and no merge of its PR
+  (`stalled`); one whose named run has gone on for more than 3 hours (`long
+  run`); or, in autonomous mode, one whose question to Orchi waits (`question`).
+  With no timer, a pool where nothing sends a message is checked at its next one.
+- For a `question`, Orchi reads the crew's question and answers it. For each other
+  crew listed, Orchi sends `<id> status?`. The crew checks what it waits for: a background run that still moves (its output grows or it uses the
+  processor) stays; a hung one it stops and runs again or reports; lost work it
+  resumes from its claim, Issue, and Handoff. It replies `<id> status: …`, with
+  the `Background:` line when a run goes on, and says `cannot continue` when it
+  cannot; Orchi tells the user of that.
+- An item marked `unanswered` has stayed listed for 10 minutes with no activity
+  since: the crew did not wake. Orchi tells the user once which crew, what it
+  holds, and since when it is quiet.
+- When the host refuses to archive or clear a crew a second time, Orchi tells the
+  user which crew and the host's reason (live work is often a command still
+  running in it) and stops retrying.
+
 ## Dashboard
 
 The dashboard is optional: a page Orchi keeps itself, published once the user
 asks for it or turns autonomous mode on; no session of its own holds it. It
 shows the pool's state so that Orchi's reports do not have to: every crew in
-one list, ordered by state (waiting for the user, working, idle, free), with
+one list, ordered by state (needing a look, waiting for the user, working, in a
+background run, idle, free), with
 what it does now, the Initiative and Epic of its work, and a mark while its
 Remote Control is on; the backlog as a tree with its progress; PRs and their
 checks; the planning queue; and recent merges. An idle crew runs nothing, and
-its card says so. The page reads GitHub and the host's session list, links
+its card says so; a crew that named a background run shows it, and a crew the
+[stall check](#stalls) lists comes first, marked `Needs a look` with the reason. The page reads GitHub and the host's session list, links
 Issues and PRs but never sessions (it runs sandboxed, and the sandbox blocks
 links into the app), and changes nothing.
 

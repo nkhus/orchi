@@ -244,6 +244,27 @@ def test_orchi_keeps_the_dashboard_itself_and_a_haiku_subagent_refreshes_it():
     assert "function estimate(crew, issue)" in template and "estBar(estimate(crew, issue))" in template
     assert '"by stage: "' in template and '"by role: planning"' in template and "final check" in template
     assert "it never reads 100%" in skill
+    # A crew that named a background run shows it; a stalled one comes first and needs a look.
+    assert 'background: ["Background run", "ok"]' in template and 'pill("Needs a look", "bad")' in template
+    assert '"Running in the background: "' in template and 'id="count-look"' in template
+    assert "the text after `Background:`" in skill and "Without `--page`, stop here." in skill
+
+
+def test_orchi_notices_a_stalled_crew_and_a_refused_archive():
+    pool, entry = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md")
+    assert "## Stalls" in pool and "`Background: <what runs, and the slot it waits for, if any>`" in pool
+    assert "gives it its input and a time limit" in pool
+    assert "older than 30 minutes" in pool and "more than 3 hours" in pool and "run without `--page`" in pool
+    assert "`<id> status?`" in pool and "`<id> status: <what it does and what it waits for>`" in pool
+    assert "An item marked `unanswered` has stayed listed for 10 minutes" in pool and "stops retrying" in pool
+    assert "stops every background run\nit started".replace("\n", " ") in pool or "stops every background run it started" in pool
+    assert "no background run of its own still running" in pool
+    assert "the last stall check is 30 minutes old, run one (pool reference, Stalls)" in entry
+    assert "unless `status:` says `cannot continue`: tell the user" in entry and "`cannot continue`" in pool
+    assert "a pool where nothing sends a message is checked at its next one" in pool
+    assert "For a `question`, Orchi reads the crew's question and answers it" in pool
+    assert "when the host refuses a second time, tell the user why" in entry
+    assert "a crew that does not answer `status?`" in entry
 
 
 def test_crews_start_on_demand_and_the_pool_only_for_autonomous_mode():

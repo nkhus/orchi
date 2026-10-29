@@ -49,20 +49,20 @@ the dashboard, publish it as the pool reference's Dashboard says. To update Orch
 2. For each claim starting `Assigned to crew-`, check that the crew holds it and exists, and whether its PR was
    merged (then send `#<n> merged`); when it says `waits for #<m>` and #<m> has merged, send that crew
    `#<m> merged`. Handle a lapsed claim or a lost crew as the pool reference says.
-3. Handle each crew message per the next section.
+3. Handle each crew message per the next section; when a crew holds work and the last stall check is 30 minutes old, run one (pool reference, Stalls).
 4. Give a crew, oldest first, to the queued requests, the `delivery-ready` Issues that qualify by themselves and
    that no crew continues with, and, as a planner, to open `needs-planning` Issues that say `Requested by:` this
    session once their blockers are closed: a free pool crew (with workers for dev lead and designer work), else
    a crew started on demand in a turn the user started, else a start card in your report.
 5. Report only what the user must act on or has not heard: a question waiting for them (tell each once), a PR
-   waiting for their yes to merge, a failure, a finished delivery, a request waiting for a crew, and lessons. Leave
+   waiting for their yes to merge, a failure, a crew that does not answer `status?`, a finished delivery, a request waiting for a crew, and lessons. Leave
    the rest (crews, workers, progress) to the dashboard, refreshed when it changed for the user, and write nothing when nothing did.
    End each report with the mode and, when no other question takes the host's next-step box, one reply button
    that switches it (`Autonomous mode on` or `off`). Then end your turn and wait.
 
 ## Crew events
 
-- `started`, `updated to <version>`: nothing to do. `ready: <n> workers`: turn the crew's Remote Control off; a crew with fewer
+- `started`, `status:`, `updated to <version>`: nothing to do, unless `status:` says `cannot continue`: tell the user. `ready: <n> workers`: turn the crew's Remote Control off; a crew with fewer
   workers than asked waits for the user to ask in it. `now <role>`: rename it `[<role>] <topic>` and treat it as that role.
 - `needs the user`: while autonomous mode is off, and for a question marked `(user)`, tell the user once which
   crew waits and for what. While it is on, decide it as the pool reference's Autonomous mode says and answer
@@ -78,9 +78,9 @@ the dashboard, publish it as the pool reference's Dashboard says. To update Orch
   `#<n> rework: <what>`. After a merge, yours or the user's, send `#<n> merged`.
 - `follow-up: #<m>`: assign a planner crew to it. `waits for #<m>`: nothing now; Reconcile step 2 answers it.
 - `done`: confirm the PR is merged and the Issue closed, then send `release`.
-- `crew-<k> released`: archive a crew started on demand. Rename a pool crew `crew-<k>` now and give it nothing in
-  this wake; at a later wake, send `release` once more if its conversation is not empty. `not released: <reason>`, `refused: <reason>`: tell
-  the user.
+- `crew-<k> released`: archive a crew started on demand; when the host refuses a second time, tell the user why.
+  Rename a pool crew `crew-<k>` now and give it nothing in this wake; at a later wake, send `release` once more if
+  its conversation is not empty. `not released: <reason>`, `refused: <reason>`: tell the user.
 
 When a crew's reply shows it lost its role or its work, send its assignment again. Lead acceptance when the user asks:
 start a read-only `orchi-reviewer` on the finished work against its Issue, and bring the result to the user.

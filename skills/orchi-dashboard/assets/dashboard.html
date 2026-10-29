@@ -52,6 +52,7 @@ h2 { font: 600 13px/1.3 var(--body); letter-spacing: 0.08em; text-transform: upp
 .stat b { font: 700 30px/1.1 var(--display); font-variant-numeric: tabular-nums; }
 .stat span { font-size: 13px; color: var(--muted); }
 .stat.hot b { color: var(--warn); }
+.stat.bad b { color: var(--bad); }
 .list { display: grid; gap: 8px; }
 .row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 10px; padding: 12px 16px; }
 .row p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
@@ -60,6 +61,9 @@ h2 { font: 600 13px/1.3 var(--body); letter-spacing: 0.08em; text-transform: upp
 .crew.working { border-left-color: var(--ok); }
 .crew.waiting { border-left-color: var(--warn); }
 .crew.idle { background: transparent; border-left-color: var(--idle); }
+.crew.background { border-left-color: var(--ok); border-left-style: dashed; }
+.crew.look { border-left-color: var(--bad); }
+.look-note { font-size: 13.5px; padding: 8px 10px; background: var(--bad-soft); color: var(--ink); border-radius: 8px; overflow-wrap: anywhere; }
 .crew.free { background: transparent; border-style: dashed; }
 .crew-head { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
 .crew-head .pills { display: flex; gap: 6px; flex-wrap: wrap; justify-content: end; }
@@ -123,6 +127,7 @@ details[open] > summary .twisty { transform: rotate(90deg); }
 .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 6px; }
 .tab .count { font: 500 12px/1.6 var(--mono); font-variant-numeric: tabular-nums; background: var(--track); color: var(--muted); border-radius: 999px; padding: 0 8px; }
 .tab .count.hot { background: var(--warn-soft); color: var(--warn); }
+.tab .count.bad { background: var(--bad-soft); color: var(--bad); }
 .panel { display: grid; gap: 28px; align-content: start; }
 .panel[hidden] { display: none; }
 .empty { padding: 14px 16px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 14px; }
@@ -145,7 +150,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   </div>
   <div class="tabbed">
     <div class="tabs" role="tablist" aria-label="Dashboard sections">
-      <button class="tab" type="button" role="tab" id="tab-crews" aria-controls="panel-crews" aria-selected="true">Crews <span class="count" id="count-crews">—</span><span class="count hot" id="count-wait" hidden></span></button>
+      <button class="tab" type="button" role="tab" id="tab-crews" aria-controls="panel-crews" aria-selected="true">Crews <span class="count" id="count-crews">—</span><span class="count hot" id="count-wait" hidden></span><span class="count bad" id="count-look" hidden></span></button>
       <button class="tab" type="button" role="tab" id="tab-backlog" aria-controls="panel-backlog" aria-selected="false" tabindex="-1">Backlog <span class="count" id="count-backlog">—</span></button>
     </div>
     <div class="panel" id="panel-crews" role="tabpanel" aria-labelledby="tab-crews">
@@ -194,10 +199,16 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       el("small", {}, `${progress.done} of ${progress.total} ${unit} · ${share}%`));
   };
   // A crew's state as the user reads it, in the order the list shows it. An idle crew with no busy worker runs nothing,
-  // and its card says so; one whose workers run is shown as working.
-  const STATES = {waiting: ["Waits for you", "warn"], working: ["Working", "ok"], idle: ["Idle · doing nothing", "idle"], free: ["Free", "free"]};
+  // and its card says so; one whose workers run is shown as working, and one that named its background run as running
+  // it. The host shows only whether a turn runs, so the background run is what the crew last said it left running.
+  const STATES = {waiting: ["Waits for you", "warn"], working: ["Working", "ok"], background: ["Background run", "ok"], idle: ["Idle · doing nothing", "idle"], free: ["Free", "free"]};
   const RANK = Object.keys(STATES);
-  const stateOf = (crew) => crew.state === "idle" && Number((crew.workers || {}).busy) > 0 ? "working" : crew.state;
+  const stateOf = (crew) => crew.state !== "idle" ? crew.state : Number((crew.workers || {}).busy) > 0 ? "working" : crew.background ? "background" : "idle";
+  // Why a crew needs a look, from the snapshot's attention list; one that did not answer Orchi's status check says so.
+  const LOOK = {"stalled": (item) => `Holds its work, but nothing has run for ${ago(item.since).replace(" ago", "")} and it waits for nothing.`,
+    "long run": (item) => `Its background run has gone on for ${ago(item.since).replace(" ago", "")}.`,
+    "question": (item) => `Its question to Orchi has waited ${ago(item.since).replace(" ago", "")}.`};
+  const lookText = (item) => (LOOK[item.kind] || (() => item.kind))(item) + (item.unanswered ? " It did not answer Orchi's status check; Orchi tells you." : " Orchi asks it for its status.");
   const STATUS = {claimed: ["In progress", "accent"], ready: ["Ready", "ok"], check: ["Check blockers", "warn"], blocked: ["Blocked", ""], todo: ["To do", "plain"]};
   const CHECKS = {passing: ["Checks pass", "ok"], failing: ["Checks fail", "bad"], running: ["Checks running", "warn"], none: ["No checks", ""]};
   const unitOf = (kind) => kind === "Initiative" ? "Epics" : "Tasks";
@@ -267,19 +278,25 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     if (doc.error) { banner.className = "banner"; banner.textContent = "The last refresh failed: " + doc.error + ". The page shows the refresh before it."; banner.hidden = false; }
     else banner.hidden = true;
 
-    const active = crews.filter((crew) => crew.role && ["working", "waiting"].includes(stateOf(crew))).length;
+    const looks = doc.attention || [];
+    const active = crews.filter((crew) => crew.role && ["working", "waiting", "background"].includes(stateOf(crew))).length;
     const ready = work.filter((item) => item.status === "ready" && !item.crew).length;
-    const stats = [[active, "Active crews"], [waiting.length, "Wait for you", waiting.length > 0], [pulls.length, "Open PRs"], [ready, "Ready to take"]];
-    $("strip").replaceChildren(...stats.map(([n, label, hot]) => el("div", {class: "stat" + (hot ? " hot" : "")}, el("b", {}, n), el("span", {}, label))));
+    const stats = [[active, "Active crews"], [waiting.length, "Wait for you", waiting.length > 0 && "hot"], [looks.length, "Need a look", looks.length > 0 && "bad"], [pulls.length, "Open PRs"], [ready, "Ready to take"]];
+    $("strip").replaceChildren(...stats.map(([n, label, tone]) => el("div", {class: "stat" + (tone ? " " + tone : "")}, el("b", {}, n), el("span", {}, label))));
 
     const asking = crews.filter((crew) => crew.state === "waiting").length;
     $("count-crews").textContent = crews.length;
     $("count-wait").textContent = asking + " wait";
     $("count-wait").hidden = asking === 0;
+    $("count-look").textContent = looks.length + " look";
+    $("count-look").hidden = looks.length === 0;
     $("count-backlog").textContent = work.length;
 
-    // One list of every crew: those waiting for the user, then working, idle, and free.
-    const ordered = [...crews].sort((a, b) => (RANK.indexOf(stateOf(a)) + 1 || 9) - (RANK.indexOf(stateOf(b)) + 1 || 9) || String(a.name).localeCompare(String(b.name), undefined, {numeric: true}));
+    // One list of every crew: those that need a look, those waiting for the user, then working, background, idle, free.
+    const lookOf = (crew) => looks.find((item) => item.crew === crew.name);
+    const runSince = (crew) => ((doc.background_since || {})[crew.name] || {}).since || crew.last_activity;
+    const rank = (crew) => lookOf(crew) ? 0 : RANK.indexOf(stateOf(crew)) + 1 || 9;
+    const ordered = [...crews].sort((a, b) => rank(a) - rank(b) || String(a.name).localeCompare(String(b.name), undefined, {numeric: true}));
     $("crews").replaceChildren(...(ordered.length ? ordered.map((crew) => {
       const state = stateOf(crew);
       const [stateText, tone] = crew.state === "idle" && state === "working" ? ["Workers busy", "ok"] : STATES[state] || [crew.state, ""];
@@ -290,13 +307,15 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       const now = issue ? work.filter((item) => item.status === "claimed" && under(item)) : [];
       const workers = crew.workers || {};
       const dots = Array.from({length: Number(workers.total) || 0}, (_, i) => el("i", {class: i < (Number(workers.busy) || 0) ? "busy" : ""}));
-      const idle = state === "idle";
-      return el("article", {class: "crew " + state},
+      const idle = state === "idle", look = lookOf(crew);
+      return el("article", {class: "crew " + state + (look ? " look" : "")},
         el("div", {class: "crew-head"}, el("div", {class: "crew-title"}, crew.title, el("small", {}, [crew.role, crew.name].filter(Boolean).join(" · "))),
-          el("div", {class: "pills"}, crew.remote ? pill("Remote Control on", "bad", "A session served over Remote Control cannot be cleared") : null, pill(stateText, tone))),
+          el("div", {class: "pills"}, crew.remote ? pill("Remote Control on", "bad", "A session served over Remote Control cannot be cleared") : null, look ? pill("Needs a look", "bad") : null, pill(stateText, tone))),
         path.length ? el("div", {class: "path", "aria-label": "Part of"}, path.flatMap((item, i) => [i ? el("span", {class: "sep"}, "›") : null, el("span", {}, item.kind + " ", link(item.url, "#" + item.number), " " + item.title)])) : null,
         issue ? el("div", {class: "crew-work"}, kind(issue), link(issue.url, "#" + issue.number), " ", issue.title) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
         crew.stage && state !== "free" ? el("div", {class: "stage" + (idle ? " last" : "")}, idle ? "Last step: " + crew.stage : crew.stage) : null,
+        look ? el("div", {class: "look-note"}, lookText(look)) : null,
+        state === "background" ? el("div", {class: "stage"}, "Running in the background: " + crew.background + (runSince(crew) ? " · since " + time(runSince(crew)) + " (" + ago(runSince(crew)) + ")" : "")) : null,
         idle ? el("div", {class: "muted", style: "font-size:13px"}, "Nothing is running" + (crew.last_activity ? " since " + time(crew.last_activity) + " (" + ago(crew.last_activity) + ")" : "") + ".") : null,
         issue && crew.state !== "free" ? estBar(estimate(crew, issue)) : null,
         now.length ? el("div", {class: "now"}, el("b", {}, "In progress now"), now.slice(0, 3).map((item) => el("div", {}, kind(item), link(item.url, "#" + item.number), " ", item.title, item.parent !== crew.issue && byNumber.get(item.parent) ? el("span", {class: "muted"}, " · in " + byNumber.get(item.parent).kind + " #" + item.parent) : null)), now.length > 3 ? el("span", {class: "muted"}, `and ${now.length - 3} more`) : null) : null,
