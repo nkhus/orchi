@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a control-room board. Summary strip, then what waits for the user, then crews, the backlog tree, PRs, and history. */
+/* Layout: a control-room board. Summary strip, then two tabs: Crews (one list, ordered by state) and Backlog (the tree, PRs, planning, history). */
 :root {
   --bg: #f3f4f1; --panel: #ffffff; --ink: #1b1f1c; --muted: #5d665f; --line: #d9ddd5;
   --accent: #2f5d50; --accent-soft: #e2ece7;
@@ -54,21 +54,19 @@ h2 { font: 600 13px/1.3 var(--body); letter-spacing: 0.08em; text-transform: upp
 .stat.hot b { color: var(--warn); }
 .list { display: grid; gap: 8px; }
 .row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 10px; padding: 12px 16px; }
-.row.merge { border-left-color: var(--ok); }
-.row.go { position: relative; cursor: pointer; transition: background 0.15s ease; }
-.row.go:hover { background: var(--warn-soft); }
-.row .stretch { text-decoration: none; }
-.row .stretch::after { content: ""; position: absolute; inset: 0; border-radius: 10px; }
-.row .stretch:focus-visible { outline: none; }
-.row.go:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
-.row.go .muted a { position: relative; z-index: 1; }
-.row .open { font-size: 13px; font-weight: 600; color: var(--warn); white-space: nowrap; align-self: center; }
 .row p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.row .what { font-weight: 600; }
-.crews { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; }
-.crew { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.crews { display: grid; gap: 10px; }
+.crew { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.crew.working { border-left-color: var(--ok); }
+.crew.waiting { border-left-color: var(--warn); }
+.crew.idle { background: transparent; border-left-color: var(--idle); }
 .crew.free { background: transparent; border-style: dashed; }
 .crew-head { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+.crew-head .pills { display: flex; gap: 6px; flex-wrap: wrap; justify-content: end; }
+.pill.idle { background: transparent; box-shadow: inset 0 0 0 1.5px var(--idle); color: var(--muted); }
+.pill.idle::before { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
+.stage { font-size: 14px; overflow-wrap: anywhere; }
+.stage.last { font-size: 13.5px; color: var(--muted); }
 .crew-title { font: 600 16px/1.3 var(--display); overflow-wrap: anywhere; }
 .crew-title small { display: block; font: 400 12.5px/1.4 var(--mono); color: var(--muted); }
 .crew-work { font-size: 14px; overflow-wrap: anywhere; }
@@ -115,6 +113,16 @@ details[open] > summary .twisty { transform: rotate(90deg); }
 .now { display: grid; gap: 4px; font-size: 13.5px; }
 .now b { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 28px; }
+.tabbed { display: grid; gap: 22px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tab { appearance: none; background: none; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; padding: 10px 16px; font: 600 15px/1.2 var(--body); color: var(--muted); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 6px; }
+.tab .count { font: 500 12px/1.6 var(--mono); font-variant-numeric: tabular-nums; background: var(--track); color: var(--muted); border-radius: 999px; padding: 0 8px; }
+.tab .count.hot { background: var(--warn-soft); color: var(--warn); }
+.panel { display: grid; gap: 28px; align-content: start; }
+.panel[hidden] { display: none; }
 .empty { padding: 14px 16px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 14px; }
 footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
 @media (max-width: 560px) { .node { grid-template-columns: minmax(0, 1fr); } .node .side { justify-content: start; } .children { margin-left: 2px; padding-left: 10px; } }
@@ -133,15 +141,24 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     <div class="stat"><b>—</b><span>Open PRs</span></div>
     <div class="stat"><b>—</b><span>Ready to take</span></div>
   </div>
-  <section id="waiting-section" hidden><h2>Waits for you</h2><div class="list" id="waiting"></div></section>
-  <section><h2>Crews</h2><div class="crews" id="crews"><div class="empty">The dashboard session fills this in on its first refresh. Crews, their work, and their workers appear here.</div></div></section>
-  <section><h2>Backlog</h2><div id="work"><div class="empty">Open Initiatives, their Epics, and their Tasks appear here as a tree with their progress.</div></div></section>
-  <div class="cols">
-    <section><h2>Pull requests</h2><div id="pulls"><div class="empty">No data yet.</div></div></section>
-    <section><h2>Planning queue</h2><div id="planning"><div class="empty">No data yet.</div></div></section>
+  <div class="tabbed">
+    <div class="tabs" role="tablist" aria-label="Dashboard sections">
+      <button class="tab" type="button" role="tab" id="tab-crews" aria-controls="panel-crews" aria-selected="true">Crews <span class="count" id="count-crews">—</span><span class="count hot" id="count-wait" hidden></span></button>
+      <button class="tab" type="button" role="tab" id="tab-backlog" aria-controls="panel-backlog" aria-selected="false" tabindex="-1">Backlog <span class="count" id="count-backlog">—</span></button>
+    </div>
+    <div class="panel" id="panel-crews" role="tabpanel" aria-labelledby="tab-crews">
+      <section><h2>Crews</h2><div class="crews" id="crews"><div class="empty">Orchi fills this in on its first refresh. Every crew appears here, ordered by state, with what it does now.</div></div></section>
+    </div>
+    <div class="panel" id="panel-backlog" role="tabpanel" aria-labelledby="tab-backlog" hidden>
+      <section><h2>Backlog</h2><div id="work"><div class="empty">Open Initiatives, their Epics, and their Tasks appear here as a tree with their progress.</div></div></section>
+      <div class="cols">
+        <section><h2>Pull requests</h2><div id="pulls"><div class="empty">No data yet.</div></div></section>
+        <section><h2>Planning queue</h2><div id="planning"><div class="empty">No data yet.</div></div></section>
+      </div>
+      <section><h2>Recently merged</h2><div id="merged"><div class="empty">No data yet.</div></div></section>
+    </div>
   </div>
-  <section><h2>Recently merged</h2><div id="merged"><div class="empty">No data yet.</div></div></section>
-  <footer id="footer">Read-only view of the Orchi pool from GitHub and the pool's sessions. Click Refresh in the dashboard session to update it; ask Orchi for anything else.</footer>
+  <footer id="footer">Read-only view of the Orchi pool from GitHub and the pool's sessions. Orchi refreshes it when something changes for you; ask Orchi to refresh it, or for anything else.</footer>
 </div>
 
 <script>
@@ -157,11 +174,15 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       node.append(child instanceof Node ? child : String(child));
     return node;
   };
-  const safeUrl = (url) => typeof url === "string" && /^(https:|claude:)/.test(url) ? url : null;
+  // Only web links: the page runs sandboxed, and the sandbox blocks links into the Claude app, so sessions get none.
+  const safeUrl = (url) => typeof url === "string" && /^https:/.test(url) ? url : null;
   const link = (url, text) => safeUrl(url) ? el("a", {href: safeUrl(url), target: "_blank", rel: "noopener"}, text) : el("span", {}, text);
-  const pill = (text, tone) => el("span", {class: "pill " + (tone || "")}, text);
+  const pill = (text, tone, title) => el("span", {class: "pill " + (tone || ""), title}, text);
   const time = (iso) => { const d = new Date(iso); return isNaN(d) ? "—" : d.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}); };
-  const ago = (iso) => { const m = Math.round((Date.now() - new Date(iso)) / 60000); return isNaN(m) ? "" : m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.round(m / 60) + " h ago"; };
+  const ago = (iso) => {
+    const m = Math.round((Date.now() - new Date(iso)) / 60000);
+    return isNaN(m) ? "" : m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago";
+  };
   const bar = (progress, unit) => {
     if (!progress || !progress.total) return null;
     const share = Math.round(100 * progress.done / progress.total);
@@ -170,7 +191,11 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         el("div", {class: "fill", style: "width:" + share + "%"})),
       el("small", {}, `${progress.done} of ${progress.total} ${unit} · ${share}%`));
   };
-  const STATES = {working: ["Working", "ok"], waiting: ["Waits for you", "warn"], idle: ["Idle", ""], free: ["Free", "free"]};
+  // A crew's state as the user reads it, in the order the list shows it. An idle crew with no busy worker runs nothing,
+  // and its card says so; one whose workers run is shown as working.
+  const STATES = {waiting: ["Waits for you", "warn"], working: ["Working", "ok"], idle: ["Idle · doing nothing", "idle"], free: ["Free", "free"]};
+  const RANK = Object.keys(STATES);
+  const stateOf = (crew) => crew.state === "idle" && Number((crew.workers || {}).busy) > 0 ? "working" : crew.state;
   const STATUS = {claimed: ["In progress", "accent"], ready: ["Ready", "ok"], check: ["Check blockers", "warn"], blocked: ["Blocked", ""], todo: ["To do", "plain"]};
   const CHECKS = {passing: ["Checks pass", "ok"], failing: ["Checks fail", "bad"], running: ["Checks running", "warn"], none: ["No checks", ""]};
   const unitOf = (kind) => kind === "Initiative" ? "Epics" : "Tasks";
@@ -178,6 +203,27 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   const kind = (item) => el("span", {class: "kind " + item.kind}, item.kind);
   // Initiatives and Epics the user folded stay folded across refreshes while the page is open.
   const folded = new Set();
+
+  // Tabs switch on the page only; a reload opens Crews again.
+  const TABS = ["crews", "backlog"];
+  function selectTab(name, focus) {
+    for (const t of TABS) {
+      const on = t === name;
+      $("tab-" + t).setAttribute("aria-selected", String(on));
+      $("tab-" + t).tabIndex = on ? 0 : -1;
+      $("panel-" + t).hidden = !on;
+    }
+    if (focus) $("tab-" + name).focus();
+  }
+  for (const t of TABS) {
+    $("tab-" + t).addEventListener("click", () => selectTab(t));
+    $("tab-" + t).addEventListener("keydown", (event) => {
+      const at = TABS.indexOf(t);
+      const next = event.key === "ArrowRight" ? TABS[(at + 1) % TABS.length] : event.key === "ArrowLeft" ? TABS[(at + TABS.length - 1) % TABS.length]
+        : event.key === "Home" ? TABS[0] : event.key === "End" ? TABS[TABS.length - 1] : null;
+      if (next) { event.preventDefault(); selectTab(next, true); }
+    });
+  }
 
   let last = null;
   function render(doc) {
@@ -196,29 +242,22 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     if (doc.error) { banner.className = "banner"; banner.textContent = "The last refresh failed: " + doc.error + ". The page shows the refresh before it."; banner.hidden = false; }
     else banner.hidden = true;
 
-    const active = crews.filter((crew) => crew.role && crew.state !== "free").length;
+    const active = crews.filter((crew) => crew.role && ["working", "waiting"].includes(stateOf(crew))).length;
     const ready = work.filter((item) => item.status === "ready" && !item.crew).length;
     const stats = [[active, "Active crews"], [waiting.length, "Wait for you", waiting.length > 0], [pulls.length, "Open PRs"], [ready, "Ready to take"]];
     $("strip").replaceChildren(...stats.map(([n, label, hot]) => el("div", {class: "stat" + (hot ? " hot" : "")}, el("b", {}, n), el("span", {}, label))));
 
-    $("waiting-section").hidden = waiting.length === 0;
-    $("waiting").replaceChildren(...waiting.map((item) => {
-      if (item.kind === "merge") {
-        const pr = pulls.find((p) => p.number === item.pull) || {};
-        return el("div", {class: "row merge"}, pill("Merge", "ok"), el("p", {}, el("span", {class: "what"}, link(pr.url, "#" + item.pull + " " + item.text)), el("br"), el("span", {class: "muted"}, "Ready to merge into " + (pr.base || "main") + ". Orchi merges it on your yes.")), el("span", {class: "mono muted"}, ""));
-      }
-      const crew = crews.find((c) => c.name === item.crew) || {};
-      const issue = byNumber.get(item.issue);
-      // The whole row opens the crew's session, where the question waits; the Issue link stays its own target.
-      const url = safeUrl(crew.link);
-      return el("div", {class: "row" + (url ? " go" : "")}, pill("Question", "warn"),
-        el("p", {}, url ? el("a", {class: "what stretch", href: url, target: "_blank", rel: "noopener"}, crew.title || item.crew) : el("span", {class: "what"}, crew.title || item.crew),
-          issue ? el("span", {class: "muted"}, " · ", link(issue.url, "#" + issue.number)) : null, el("br"), item.text || "Asked you something in its session."),
-        url ? el("span", {class: "open", "aria-hidden": "true"}, "Open session ›") : el("span", {}));
-    }));
+    const asking = crews.filter((crew) => crew.state === "waiting").length;
+    $("count-crews").textContent = crews.length;
+    $("count-wait").textContent = asking + " wait";
+    $("count-wait").hidden = asking === 0;
+    $("count-backlog").textContent = work.length;
 
-    $("crews").replaceChildren(...(crews.length ? crews.map((crew) => {
-      const [stateText, tone] = STATES[crew.state] || [crew.state, ""];
+    // One list of every crew: those waiting for the user, then working, idle, and free.
+    const ordered = [...crews].sort((a, b) => (RANK.indexOf(stateOf(a)) + 1 || 9) - (RANK.indexOf(stateOf(b)) + 1 || 9) || String(a.name).localeCompare(String(b.name), undefined, {numeric: true}));
+    $("crews").replaceChildren(...(ordered.length ? ordered.map((crew) => {
+      const state = stateOf(crew);
+      const [stateText, tone] = crew.state === "idle" && state === "working" ? ["Workers busy", "ok"] : STATES[state] || [crew.state, ""];
       const issue = byNumber.get(crew.issue);
       const pr = crew.issue ? pulls.find((p) => (p.closes || []).includes(crew.issue)) : null;
       const path = (crew.path || []).map((n) => byNumber.get(n)).filter(Boolean);
@@ -226,11 +265,14 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       const now = issue ? work.filter((item) => item.status === "claimed" && under(item)) : [];
       const workers = crew.workers || {};
       const dots = Array.from({length: Number(workers.total) || 0}, (_, i) => el("i", {class: i < (Number(workers.busy) || 0) ? "busy" : ""}));
-      return el("article", {class: "crew" + (crew.state === "free" ? " free" : "")},
-        el("div", {class: "crew-head"}, el("div", {class: "crew-title"}, crew.link ? link(crew.link, crew.title) : crew.title, el("small", {}, [crew.role, crew.name].filter(Boolean).join(" · "))), pill(stateText, tone)),
+      const idle = state === "idle";
+      return el("article", {class: "crew " + state},
+        el("div", {class: "crew-head"}, el("div", {class: "crew-title"}, crew.title, el("small", {}, [crew.role, crew.name].filter(Boolean).join(" · "))),
+          el("div", {class: "pills"}, crew.remote ? pill("Remote Control on", "bad", "A session served over Remote Control cannot be cleared") : null, pill(stateText, tone))),
         path.length ? el("div", {class: "path", "aria-label": "Part of"}, path.flatMap((item, i) => [i ? el("span", {class: "sep"}, "›") : null, el("span", {}, item.kind + " ", link(item.url, "#" + item.number), " " + item.title)])) : null,
         issue ? el("div", {class: "crew-work"}, kind(issue), link(issue.url, "#" + issue.number), " ", issue.title) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
-        crew.stage ? el("div", {class: "muted", style: "font-size:13.5px"}, crew.stage) : null,
+        crew.stage && state !== "free" ? el("div", {class: "stage" + (idle ? " last" : "")}, idle ? "Last step: " + crew.stage : crew.stage) : null,
+        idle ? el("div", {class: "muted", style: "font-size:13px"}, "Nothing is running" + (crew.last_activity ? " since " + time(crew.last_activity) + " (" + ago(crew.last_activity) + ")" : "") + ".") : null,
         issue ? bar(issue.progress, unitOf(issue.kind)) : null,
         now.length ? el("div", {class: "now"}, el("b", {}, "In progress now"), now.slice(0, 3).map((item) => el("div", {}, kind(item), link(item.url, "#" + item.number), " ", item.title, item.parent !== crew.issue && byNumber.get(item.parent) ? el("span", {class: "muted"}, " · in " + byNumber.get(item.parent).kind + " #" + item.parent) : null)), now.length > 3 ? el("span", {class: "muted"}, `and ${now.length - 3} more`) : null) : null,
         crew.question && crew.state === "waiting" ? el("div", {class: "question"}, crew.question) : null,
@@ -264,7 +306,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 
     $("pulls").replaceChildren(pulls.length ? el("div", {class: "list"}, pulls.map((pr) => el("div", {class: "row", style: "border-left-color:var(--line)"},
       el("span", {class: "mono"}, "#" + pr.number), el("p", {}, link(pr.url, pr.title), el("br"), el("span", {class: "muted mono"}, "into " + pr.base)),
-      el("span", {style: "display:grid;gap:4px;justify-items:end"}, pill(pr.draft ? "Draft" : "Ready", pr.draft ? "plain" : "accent"), pill(...CHECKS[pr.checks] || [pr.checks, ""]))))) : empty("No open pull requests."));
+      el("span", {style: "display:grid;gap:4px;justify-items:end"}, waiting.some((item) => item.kind === "merge" && item.pull === pr.number) ? pill("Waits for your yes", "warn") : null, pill(pr.draft ? "Draft" : "Ready", pr.draft ? "plain" : "accent"), pill(...CHECKS[pr.checks] || [pr.checks, ""]))))) : empty("No open pull requests."));
 
     const planning = doc.planning || [];
     $("planning").replaceChildren(planning.length ? el("div", {class: "list"}, planning.map((item) => el("div", {class: "row", style: "border-left-color:var(--accent)"},
@@ -275,7 +317,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     $("merged").replaceChildren(merged.length ? el("div", {class: "table-wrap"}, el("table", {}, el("tbody", {}, merged.map((pr) => el("tr", {},
       el("td", {class: "mono muted"}, time(pr.merged_at)), el("td", {class: "title"}, link(pr.url, "#" + pr.number), " ", pr.title), el("td", {class: "mono muted"}, "into " + pr.base)))))) : empty("No merges yet."));
 
-    $("footer").textContent = "Read-only view of " + (doc.repository || "the repository") + " from GitHub and the pool's sessions. Click Refresh in the dashboard session to update it; ask Orchi for anything else.";
+    $("footer").textContent = "Read-only view of " + (doc.repository || "the repository") + " from GitHub and the pool's sessions. Orchi refreshes it when something changes for you; ask Orchi to refresh it, or for anything else.";
   }
 
   // Keep "x min ago" current between snapshots.

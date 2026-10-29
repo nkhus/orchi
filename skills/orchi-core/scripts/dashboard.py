@@ -139,11 +139,13 @@ def waiting(document: dict) -> list[dict]:
 
 
 def summary(document: dict) -> str:
-    """The dashboard session's title: the time of the refresh and the counts the user scans for."""
+    """The line the refresh subagent replies with: the time of the refresh and the counts the user scans for."""
     time = document['updated'][11:16]
     if document.get('error'):
         return f'📊 {time} · refresh failed'
-    active = sum(crew['state'] in {'working', 'waiting', 'idle'} and crew['role'] is not None for crew in document['crews'])
+    # An idle crew runs nothing; it counts as active only while its workers run.
+    active = sum(crew['role'] is not None and (crew['state'] in {'working', 'waiting'} or (
+        crew['state'] == 'idle' and (crew.get('workers') or {}).get('busy', 0) > 0)) for crew in document['crews'])
     return f"📊 {time} · {active} active · {len(document['waiting'])} wait for you · {len(document['pulls'])} PRs"
 
 

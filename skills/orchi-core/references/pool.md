@@ -15,7 +15,6 @@ every other skill runs as a crew's or worker's assignment.
 | Orchi (`/orchi`) | the user | top level, in the group `Orchi pool · <repo>` | the user; crews | Plans, researches, edits code, or merges into main without the user's yes while autonomous mode is off |
 | Crew | Orchi, on demand or when it builds the pool for autonomous mode | top level, in the group `Orchi pool · <repo>` | Orchi; the user while autonomous mode is off; its workers | Writes code itself, takes a second assignment (a planner queues one), or starts sessions other than its workers and a planner's sub-planners |
 | Worker (`orchi-work`) | its crew, in the user's turn, for autonomous mode | nested under its crew | its crew only | Talks to the user, pushes, or opens PRs |
-| Dashboard (`orchi-dashboard`) | Orchi, as a session of its own, when the user asks for it and when autonomous mode turns on | top level, in the group `Orchi pool · <repo>`, never nested under Orchi | Orchi, once, with its page's link; the user who opens it | Messages crews or workers, changes Issues, PRs, branches, or files, or takes a request |
 
 Orchi is a persona, and its session is always titled `Orchi`; it never renames
 itself after a request. A free crew is titled `crew-<k>`; an assigned one
@@ -145,7 +144,7 @@ mode](#autonomous-mode) or work steered over Remote Control, needs a pool built
 ahead of it. When the user turns autonomous mode on, or asks for more pool
 crews, Orchi builds the pool in that turn:
 
-1. It starts the [dashboard](#dashboard) when the group has none, and the
+1. It publishes the [dashboard](#dashboard) when there is none, and starts the
    missing crews (3 unless the user names another number), each
    with its own worktree, a brief to run the crew setup below, and the title
    `crew-<k>`. It detaches each to the top level and files it into the group
@@ -215,8 +214,6 @@ its title, so the assignment states it.
 | Orchi → crew | Answer, queue, delivery | `<id> answer: <answer>`, `<id> remark: <the user's words>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged` |
 | Orchi → crew | Mode, takeover, update, release | `autonomous <on or off>`, `Orchi is now session <session id>`, `Orchi is updated to <version> …` ([Update Orchi](#update-orchi)), `release` |
 | Sub-planner ↔ planner | Planning | the crew's messages to Orchi and Orchi's to a crew, between them |
-| Dashboard → Orchi | Setup | `dashboard ready: <url>` |
-| Orchi → dashboard | Mode, refresh | `autonomous <on or off>`, `refresh` |
 | Worker → crew | Setup, task | `worker-<n> ready`, `#<task> question: <question>`, `#<task> done: <commit>` and the role's report, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
 | Crew → worker | Task | `#<task> answer: <answer>` |
 | Crew ↔ worker | Release | `release`; `worker-<n> released`, `worker-<n> not released: <reason>` |
@@ -243,8 +240,8 @@ and holds, through compaction, until the user turns it off or runs `/orchi`
 again, which turns it off. The user switches it by telling Orchi or with the
 button at the end of Orchi's report. Orchi states it in every report, ends every
 assignment with `Autonomous mode: <on or off>, set by the user on <date>.`, and
-sends `autonomous <on or off>` to its busy crews and the dashboard when it
-changes. Turning it on builds the pool first, as Autonomous development says.
+sends `autonomous <on or off>` to its busy crews and refreshes the dashboard
+when it changes. Turning it on builds the pool first, as Autonomous development says.
 
 | | Off (default) | On |
 | --- | --- | --- |
@@ -502,32 +499,31 @@ only a crew started on demand that replied `released`.
 
 ## Dashboard
 
-The dashboard is optional: a session of its own in the pool group, never nested
-under Orchi, that exists once the user asks for it or turns autonomous mode on.
-It shows the pool's state on a page so that Orchi does not have to: the
-crews and what each holds, the work with its progress, what waits for the user,
-PRs and their checks, the planning queue, and recent merges. It reads GitHub and
-the host's session list, writes only to its own page and its `.orchi-tmp/`
-folder, and changes nothing else.
+The dashboard is optional: a page Orchi keeps itself, published once the user
+asks for it or turns autonomous mode on; no session of its own holds it. It
+shows the pool's state so that Orchi's reports do not have to: every crew in
+one list, ordered by state (waiting for the user, working, idle, free), with
+what it does now, the Initiative and Epic of its work, and a mark while its
+Remote Control is on; the backlog as a tree with its progress; PRs and their
+checks; the planning queue; and recent merges. An idle crew runs nothing, and
+its card says so. The page reads GitHub and the host's session list, links
+Issues and PRs but never sessions (it runs sandboxed, and the sandbox blocks
+links into the app), and changes nothing.
 
-Orchi starts it in the user's turn when the group has none, on
-Sonnet at low effort (set with the host's effort tool when the start cannot),
-with its own worktree, because the host cannot detach a session that shares its
-starter's folder. Orchi titles it `dashboard`, detaches it to the top level, and
-files it into the group, with this brief:
-
-`You are the dashboard of the Orchi pool; Orchi is session <session id>. Invoke the orchi-dashboard skill with: start --report-to <Orchi's session id> --mode "<on or off>".`
-
-It refreshes only on request: when the user clicks `Refresh` at the end of its
-turn or asks for one, and when Orchi sends `refresh` (before it answers the user
-about status) or a new mode. Each refresh runs in a general-purpose subagent on
-Haiku, which reads the sessions and GitHub and writes the page, so the session's
-own conversation stays short for the user's questions. The session renames
-itself to the subagent's one-line summary
-(`📊 <time> · <n> active · <n> wait for you · <n> PRs`), and sends Orchi
-`dashboard ready: <url>` once. Orchi gives the user the link in its next report,
-and again when asked about status. The dashboard is never released, cleared, or
-given work; when it is gone, Orchi starts a new one only as above.
+To publish it, Orchi invokes the `orchi-dashboard` skill with `publish`, which
+copies the page into `.orchi-tmp/dashboard/` in Orchi's worktree, publishes it,
+and gives the user the link; Orchi gives it again when asked about status.
+Orchi refreshes it before it answers the user about status, when the user asks,
+and when something changed for the user (a crew asks them something, starts or
+finishes work, or is released; a PR opens or merges; the mode changes), and
+never on a timer. Each refresh is one general-purpose subagent on Haiku, started
+in the background (Orchi waits for it only before answering about status) with
+the task
+`Invoke the orchi-dashboard skill with: collect --page <url> --mode "<on or off>" --dir <Orchi's worktree>/.orchi-tmp/dashboard`;
+it reads the sessions and GitHub and writes the page, so Orchi's own
+conversation never reads the crews' messages for it. Its one-line reply
+(`📊 <time> · <n> active · <n> wait for you · <n> PRs`) needs nothing from
+Orchi; Orchi tells the user only when two refreshes in a row fail.
 
 ## Update Orchi
 
@@ -554,9 +550,11 @@ each one is moved to the new version explicitly:
 3. **Orchi itself.** Orchi moves its own worktree to the new commit
    (`git fetch`, `git switch --detach origin/<default>`), reads this skill and
    the pool reference again, treating the text earlier in its conversation as
-   out of date, and does what the upgrade notes ask of a project, as the user
-   would.
-4. **Each session.** Orchi sends every crew and the dashboard one
+   out of date, does what the upgrade notes ask of a project, as the user
+   would. When it keeps a dashboard, it publishes it again from the new
+   version to the same link, and archives a `dashboard` session an earlier
+   version started.
+4. **Each session.** Orchi sends every crew one
    self-contained message, which a session on any earlier version can follow;
    the host delivers it when the session's current turn ends:
    `Orchi is updated to <version> on <default>. Bring it into your worktree: when you hold no branch, git fetch and git switch --detach origin/<default>; otherwise merge origin/<default> into your work branch, or, for an Epic of an Initiative, into the Initiative branch and then that into yours. Then invoke your skill again with your assignment; the skill text earlier in this conversation is out of date, and everything you and the user said still holds. A question waiting for the user keeps waiting. Reply <name> updated to <version>.`

@@ -36,7 +36,7 @@ That session becomes Orchi. You don't commit or push anything: it commits and pu
 
 When you want work to go on while you are away, turn on **autonomous mode** (say so, or click the button at the end of Orchi's report). Orchi then builds a pool of 3 crews and a dashboard, you click **`Create workers`** once in each crew, and each starts 3 workers; pool crews are cleared and reused instead of archived. From then on crews ask only Orchi, and Orchi takes the decisions and sends them as instructions. Turn it off to take the questions back.
 
-The **dashboard** is optional: ask Orchi for one, and it comes with autonomous mode. It is a session of its own on Sonnet at low effort, which answers your questions about the pool. Click **`Refresh`** at the end of its turn, and a Haiku subagent updates its page with the crews and what each holds, the progress of every Initiative and Epic, what waits for you, PRs and their checks, and the planning queue, and its sidebar title sums it up (`📊 15:04 · 3 active · 1 wait for you · 2 PRs`). Orchi otherwise tells you only what needs you.
+The **dashboard** is optional: ask Orchi for one, and it comes with autonomous mode. It is a page Orchi keeps itself, with no session of its own, and Orchi gives you its link. Its Crews tab lists every crew by state, waiting for you first, with what it does now and the Initiative and Epic of its work; an idle crew is marked as doing nothing, and a crew with Remote Control on is marked too. Its Backlog tab holds every Initiative, Epic, and Task as a tree with their progress, the PRs and their checks, and the planning queue. Orchi refreshes it through a Haiku subagent when something changes for you, before it answers about status, and when you ask. Orchi otherwise tells you only what needs you.
 
 > **Needs** Git, an authenticated GitHub CLI (`gh`), Python 3.11+, and `uv`, on macOS, Linux, or WSL, and network access to GitHub: the installer also installs two design skills, [Hallmark](https://github.com/Nutlope/hallmark) and Emil Kowalski's [prototype](https://github.com/emilkowalski/skills), at pinned commits. Hallmark's own scripts use Node.js 18+ when it is there.
 
@@ -165,7 +165,7 @@ Orchi is a set of Claude Code skills and subagents. Git and GitHub are its only 
 | `orchi-design` | Designer crew | Runs a `design` Epic with you: references, the engine round between Hallmark and prototype in a project's first design Epic, a direction round and an approved comp per surface; builds go to writer subagents or workers |
 | `orchi-deliver` | Dev lead crew | Delivers a Task, Epic, or Initiative through writer subagents or workers, one review, and a PR; never merges into `main` itself |
 | `orchi-work` | Worker | Implements, fixes, or designs one Task, or answers one research question, as the matching subagent role |
-| `orchi-dashboard` | Dashboard session | Refreshes the pool's status page through a Haiku subagent when you click `Refresh`, and answers questions about it; reads only, changes nothing |
+| `orchi-dashboard` | Orchi | Publishes the pool's status page and refreshes it through a Haiku subagent; reads only, changes nothing |
 | `orchi-core` | Every pool session | The workflow: scope, readiness, execution, testing, review, knowledge, standards, and the pool |
 
 </details>
