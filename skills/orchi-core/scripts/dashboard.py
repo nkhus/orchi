@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
+from collections import Counter
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import status
 
@@ -50,6 +53,12 @@ ROLES = {'researcher': 'Researcher', 'prototyper': 'Prototyper', 'planner': 'Pla
          'dev-lead': 'Dev lead'}
 TITLE = re.compile(r'\[([a-z-]+)\] ')
 CHECKS = {'SUCCESS': 'passing', 'FAILURE': 'failing', 'ERROR': 'failing', 'PENDING': 'running', 'EXPECTED': 'running'}
+# A crew's work runs while its subagents write their transcripts, or while a command it or they started runs: every
+# Bash tool command runs in a shell that sources a shell snapshot, a child of the session's own `claude` process.
+# `ps` and `lsof` get `PROBE` seconds; what they cannot tell in time counts as nothing.
+RECENT = timedelta(minutes=10)
+SHELL = '/shell-snapshots/snapshot-'
+PROBE = 10
 
 
 def role(title: str) -> str | None:
@@ -121,8 +130,79 @@ def lineage(work: list[dict], number: int | None) -> list[int]:
     return chain
 
 
-def snapshot(repo: str, github: dict, crews: list[dict], mode: str, now: datetime) -> dict:
-    """The document the dashboard page renders: GitHub state joined with the crews the session read from the host."""
+def directories(pids: list[str]) -> dict[str, str]:
+    """The working directory of each process that still runs: `/proc` on Linux, else `lsof`."""
+    if os.path.isdir('/proc/self'):
+        found = {}
+        for pid in pids:
+            try:
+                found[pid] = os.readlink(f'/proc/{pid}/cwd')
+            except OSError:
+                pass
+        return found
+    # lsof exits 1 when one of the processes has ended; the others are still listed.
+    listing = subprocess.run(['lsof', '-nP', '-a', '-d', 'cwd', '-Fpn', '-p', ','.join(pids)],
+                             capture_output=True, text=True, timeout=PROBE).stdout
+    found, pid = {}, None
+    for line in listing.splitlines():
+        if line.startswith('p'):
+            pid = line[1:]
+        elif line.startswith('n') and pid:
+            found[pid] = line[1:]
+    return found
+
+
+def commands(listing: str, cwd=directories) -> Counter:
+    """Running Bash tool commands per session directory, from `ps -axo pid=,ppid=,args=`; a shell nested in another
+    tool shell is part of its command."""
+    shells = {}
+    for line in listing.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) == 3 and SHELL in parts[2]:
+            shells[parts[0]] = parts[1]
+    parents = [parent for parent in shells.values() if parent not in shells]
+    places = {pid: os.path.realpath(path) for pid, path in cwd(sorted(set(parents))).items()} if parents else {}
+    return Counter(places[parent] for parent in parents if parent in places)
+
+
+def activity(crews: list[dict], now: datetime, root: Path | None = None, listing: str | None = None,
+             cwd=directories) -> dict:
+    """What runs for each crew with a role and a `cwd`: `{name: {"subagents", "commands"}}`, crews with nothing left
+    out. Subagents count while their transcripts, under the session's folder in `~/.claude/projects`, were written in
+    the last `RECENT`. What cannot be read counts as nothing."""
+    places = {crew['name']: crew['cwd'] for crew in crews if crew.get('cwd') and role(crew.get('title') or crew['name'])}
+    if not places:
+        return {}
+    root = root or Path(os.environ.get('CLAUDE_CONFIG_DIR') or Path.home() / '.claude') / 'projects'
+    try:
+        if listing is None:
+            listing = subprocess.run(['ps', '-axo', 'pid=,ppid=,args='], capture_output=True, text=True,
+                                     check=True, timeout=PROBE).stdout
+        running = commands(listing, cwd)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        running = Counter()
+    found = {}
+    for name, place in places.items():
+        subagents = 0
+        for path in (root / re.sub(r'[^A-Za-z0-9]', '-', place)).glob('*/subagents/*.jsonl'):
+            try:
+                subagents += now.timestamp() - path.stat().st_mtime <= RECENT.total_seconds()
+            except OSError:
+                pass
+        counts = {'subagents': subagents, 'commands': running[os.path.realpath(place)]}
+        if any(counts.values()):
+            found[name] = counts
+    return found
+
+
+def plural(count: int, noun: str) -> str:
+    return f'{count} {noun}' + ('' if count == 1 else 's')
+
+
+def snapshot(repo: str, github: dict, crews: list[dict], mode: str, now: datetime, running: dict | None = None) -> dict:
+    """The document the dashboard page renders: GitHub state joined with the crews the session read from the host,
+    and what runs for them (`activity`). An idle crew whose work runs is in a background run, named by the crew's own
+    `Background:` line when the collector found one."""
     # A crew's own claim is its outermost one: a dev lead's Epic, not the Tasks of it that also name its crew.
     claims = {}
     for item in github['work'] + github['planning']:
@@ -133,8 +213,15 @@ def snapshot(repo: str, github: dict, crews: list[dict], mode: str, now: datetim
         title = crew.get('title') or crew['name']
         issue = crew.get('issue') or claims.get(crew['name'])
         state = crew.get('state') or ('free' if role(title) is None else 'idle')
-        joined.append({**crew, 'title': title, 'role': role(title), 'issue': issue, 'state': state,
-                       'path': lineage(github['work'], issue)})
+        entry = {**crew, 'title': title, 'role': role(title), 'issue': issue, 'state': state,
+                 'path': lineage(github['work'], issue)}
+        counts = (running or {}).get(crew['name'])
+        if counts:
+            entry['running'] = counts
+            if state == 'idle' and not crew.get('background'):
+                entry['background'] = (f"{plural(counts['subagents'], 'subagent')}, "
+                                       f"{plural(counts['commands'], 'command')} running")
+        joined.append(entry)
     return {'repository': repo, 'updated': now.isoformat(timespec='seconds'), 'mode': mode,
             'error': None, 'crews': joined, **github}
 
@@ -159,10 +246,12 @@ def moment(value) -> datetime | None:
 
 def attention(document: dict, now: datetime, previous: dict) -> list[dict]:
     """Crews that look stuck, from this refresh and the previous snapshot. The host shows only whether a turn runs,
-    so a crew names its background run itself (`background`), and the run's start is carried from refresh to refresh.
+    so a background run (`background`) is the crew's own line or what `activity` found running, and the run's start is
+    carried from refresh to refresh.
 
-    - `stalled`: holds an Issue, runs nothing, named no run, waits for no other Issue and no merge of its PR.
-    - `long run`: its named background run has gone on for hours.
+    - `stalled`: holds an Issue, runs nothing, has no background run (named or found running), waits for no other
+      Issue and no merge of its PR.
+    - `long run`: its background run has gone on for hours.
     - `question`: in autonomous mode, its question to Orchi has waited (a `(user)` question waits for the user).
     Each is listed once the crew has been quiet for `STALL`; `unanswered` once it stays quiet `ANSWER` after that.
     """
@@ -229,7 +318,7 @@ def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: dat
         with open(args.crews, encoding='utf-8') as handle:
             crews = json.load(handle)
         repo = args.repo or json.loads(run(['repo', 'view', '--json', 'nameWithOwner']))['nameWithOwner']
-        document = snapshot(repo, collect(repo, run), crews, args.mode, now)
+        document = snapshot(repo, collect(repo, run), crews, args.mode, now, activity(crews, now))
     except (ValueError, KeyError, TypeError, OSError, subprocess.CalledProcessError) as error:
         detail = str(getattr(error, 'stderr', '') or error).strip()
         # The failure and its time, merged into the stored snapshot so the page keeps the last good state; the stall

@@ -186,3 +186,104 @@ def test_a_quiet_crew_on_its_work_or_an_hours_long_background_run_needs_a_look(t
     finally:
         REPOSITORY['claimed']['nodes'].pop()
         REPOSITORY['claimed']['nodes'][1]['body'] = 'Assigned to crew-1 (local_y) by Orchi'
+
+
+# Running work, read from the host: two sessions' `claude` processes (71459 in CREW, 5654 in OTHER) and a terminal;
+# crew-6's writer runs `make` from its own worktree in a tool shell (30491) that nests another (30495).
+CREW, OTHER = '/work/my_repo/.claude/worktrees/rsh-9771c5', '/work/repo/.claude/worktrees/busy-jepsen-0f3bc8'
+SNAPSHOT = '/bin/zsh -c source /home/u/.claude/shell-snapshots/snapshot-zsh-1.sh 2>/dev/null || true && eval'
+LISTING = f'''\
+71459     1 /Applications/Claude/claude
+ 5654     1 /Applications/Claude/claude
+58448     1 /bin/zsh -l
+30491 71459 {SNAPSHOT} 'make visual-test-linux'
+30494 30491 /usr/bin/make visual-test-linux
+30495 30491 {SNAPSHOT} 'tail -40'
+29392  5654 {SNAPSHOT} 'sh .orchi-tmp/pw.sh'
+'''
+PLACES = {'71459': CREW, '5654': OTHER, '58448': CREW, '30491': CREW + '/../agent-a71ad'}
+
+
+def directories(pids):
+    return {pid: PLACES[pid] for pid in pids if pid in PLACES}
+
+
+def transcript(root, cwd, name, minutes):
+    from datetime import timedelta
+    import os
+    folder = cwd.replace('/', '-').replace('.', '-').replace('_', '-')  # every non-alphanumeric character
+    path = root / folder / 'f3d1-session' / 'subagents' / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text('{}\n')
+    stamp = (NOW - timedelta(minutes=minutes)).timestamp()
+    os.utime(path, (stamp, stamp))
+
+
+def idle(name='crew-6', cwd=CREW, **extra):
+    return {'name': name, 'title': '[dev-lead] audit', 'state': 'idle', 'workers': {'busy': 0, 'total': 0},
+            'last_activity': '2026-10-27T14:00:00Z', 'cwd': cwd, **extra}
+
+
+def test_a_crews_running_subagents_and_commands_are_read_from_the_host(tmp_path):
+    transcript(tmp_path, CREW, 'agent-a71ad.jsonl', 2)
+    transcript(tmp_path, CREW, 'agent-a0994.jsonl', 9)
+    transcript(tmp_path, CREW, 'agent-old.jsonl', 40)
+    free = {**idle('crew-2'), 'title': 'crew-2'}
+    found = dashboard.activity([idle(), idle('crew-4', OTHER), idle('crew-1', None), free], NOW, root=tmp_path,
+                               listing=LISTING, cwd=directories)
+    assert found == {'crew-6': {'subagents': 2, 'commands': 1}, 'crew-4': {'subagents': 0, 'commands': 1}}
+
+    def broken(pids):
+        raise OSError('lsof: not found')
+
+    assert dashboard.activity([idle()], NOW, root=tmp_path, listing=LISTING, cwd=broken) == {
+        'crew-6': {'subagents': 2, 'commands': 0}}
+    assert dashboard.activity([idle()], NOW, root=tmp_path / 'missing', listing='', cwd=broken) == {}
+
+
+def test_an_idle_crew_whose_work_runs_is_in_a_background_run_and_active_not_stalled():
+    github = {'default_branch': 'main', 'planning': [], 'pulls': [], 'merged': [],
+              'work': [{'number': 7, 'kind': 'Task', 'title': 'T', 'url': 'u', 'status': 'claimed', 'parent': None,
+                        'crew': 'crew-6', 'progress': None, 'waits_for': None}]}
+
+    def document(crews, running):
+        doc = dashboard.snapshot('o/r', github, crews, 'on', NOW, running)
+        doc['waiting'], doc['attention'] = dashboard.waiting(doc), dashboard.attention(doc, NOW, {})
+        return doc
+
+    doc = document([idle()], {'crew-6': {'subagents': 1, 'commands': 2}})
+    assert doc['crews'][0]['background'] == '1 subagent, 2 commands running' and doc['attention'] == []
+    assert dashboard.summary(doc) == '📊 15:04 · 1 active · 0 wait for you · 0 PRs'
+    named = document([idle(background='the #1946 writer')], {'crew-6': {'subagents': 1, 'commands': 0}})['crews'][0]
+    assert (named['background'], named['running']) == ('the #1946 writer', {'subagents': 1, 'commands': 0})
+    doc = document([idle()], {})
+    assert 'running' not in doc['crews'][0] and [item['kind'] for item in doc['attention']] == ['stalled']
+    assert dashboard.summary(doc) == '📊 15:04 · 0 active · 0 wait for you · 0 PRs · 1 need a look'
+
+
+def test_lsof_names_each_listed_process_directory(monkeypatch):
+    import subprocess
+    listing = 'p71459\nfcwd\nn/work/my_repo/.claude/worktrees/rsh-9771c5\np5654\nfcwd\nn/work/other dir\n'
+    calls = []
+    monkeypatch.setattr(dashboard.os.path, 'isdir', lambda path: False)
+    monkeypatch.setattr(dashboard.subprocess, 'run', lambda args, **options: calls.append(args)
+                        or subprocess.CompletedProcess(args, 1, stdout=listing, stderr=''))
+    assert dashboard.directories(['5654', '71459', '99999']) == {'71459': CREW, '5654': '/work/other dir'}
+    assert calls[0][-2:] == ['-p', '5654,71459,99999']
+
+
+def test_a_failing_ps_leaves_the_refresh_as_before(tmp_path, monkeypatch, capsys):
+    import subprocess
+    calls = []
+
+    def ps(args, **options):
+        calls.append(args[0])
+        raise subprocess.TimeoutExpired(args, options.get('timeout'))
+
+    monkeypatch.setattr(dashboard.subprocess, 'run', ps)
+    (tmp_path / 'crews.json').write_text(json.dumps([idle()]))
+    code = dashboard.main(['--crews', str(tmp_path / 'crews.json'), '--mode', 'on', '--out', str(tmp_path / 'snapshot.json')],
+                          run=runner, now=NOW)
+    capsys.readouterr()
+    crew = json.loads((tmp_path / 'snapshot.json').read_text())['crews'][0]
+    assert (code, calls, crew['state']) == (0, ['ps'], 'idle') and 'running' not in crew

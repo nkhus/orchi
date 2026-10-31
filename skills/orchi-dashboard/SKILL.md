@@ -60,8 +60,9 @@ Load the host's session tools and `ArtifactData` with `ToolSearch` when they are
    lists, or its title when free). Its workers are the sessions whose
    `startedBy` is the crew: `total` counts them, `busy` those with `isRunning`
    true. Write the crews as a JSON list to `<dir>/crews.json`: `{"name",
-   "title", "state", "workers": {"busy", "total"}, "last_activity", "remote"}`
-   (`last_activity` is the host's `lastActivityAt`, `remote` its `remoteControlActive`), plus `"stage"` when
+   "title", "state", "workers": {"busy", "total"}, "last_activity", "remote", "cwd"}`
+   (`last_activity` is the host's `lastActivityAt`, `remote` its `remoteControlActive`, `cwd` its `cwd`: the
+   script reads the crew's running subagents and commands from it), plus `"stage"` when
    you know it and `"question"` when it waits; the script adds the role and the
    Issue. `state` is `working` while the crew runs (`isRunning`), `free` while
    its title is `crew-<k>`, and otherwise `waiting` or `idle`, decided from the
@@ -92,7 +93,7 @@ Every crew is in one list, ordered by state: needing a look, waiting for the use
 idle, then free. An idle crew is
 not running, asks nothing, and has no busy worker: its card says `Idle · doing nothing`, shows its stage as
 the last step, and says since when nothing has run; a crew whose workers run counts as working. A crew with
-Remote Control on is marked, because it cannot be cleared. A crew that named a background run shows it
-instead of `Idle`, and a crew the stall check lists is marked `Needs a look` with the reason. Each crew at work shows an estimate of how far its work
+Remote Control on is marked, because it cannot be cleared. A crew in a background run - one it named, or
+subagents or commands of its that still run - shows it instead of `Idle`, and a crew the stall check lists is marked `Needs a look` with the reason. Each crew at work shows an estimate of how far its work
 is, with its basis: the share of children closed, else its stage, else its role; it never reads 100%. The page links Issues and PRs, never sessions:
 it runs sandboxed, and the sandbox blocks links into the Claude app.
