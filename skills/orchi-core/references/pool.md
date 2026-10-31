@@ -504,7 +504,9 @@ only a crew started on demand that replied `released`.
 
 The host shows only whether a session runs a turn, not the runs it left in the
 background, so a quiet crew may be waiting for a long check or may be stuck.
-Each session says which it is, and Orchi checks.
+The dashboard's script finds a crew's subagents and commands that still run
+from the host's files and processes; each session names its runs too, and
+Orchi checks.
 
 - A crew or worker that ends a turn while a background run it started goes on
   ends that turn's text with one line, `Background: <what runs, and the slot it
@@ -517,9 +519,10 @@ Each session says which it is, and Orchi checks.
   says when it ran), and with every dashboard refresh. The check is the
   dashboard's refresh, run without `--page` when no page is kept. Its line ends
   with `· <n> need a look` when the snapshot's `attention` lists a crew quiet for
-  more than 30 minutes with no busy worker: one that holds an Issue, has named no
-  background run, and waits for no other Issue and no merge of its PR
-  (`stalled`); one whose named run has gone on for more than 3 hours (`long
+  more than 30 minutes with no busy worker: one that holds an Issue, has no
+  background run (named, or found running), and waits for no other Issue and no
+  merge of its PR (`stalled`); one whose background run has gone on for more
+  than 3 hours (`long
   run`); or, in autonomous mode, one whose question to Orchi waits (`question`).
   With no timer, a pool where nothing sends a message is checked at its next one.
 - For a `question`, Orchi reads the crew's question and answers it. For each other
@@ -545,7 +548,8 @@ background run, idle, free), with
 what it does now, the Initiative and Epic of its work, and a mark while its
 Remote Control is on; the backlog as a tree with its progress; PRs and their
 checks; the planning queue; and recent merges. An idle crew runs nothing, and
-its card says so; a crew that named a background run shows it, and a crew the
+its card says so; a crew in a background run - one it named, or subagents or
+commands of its that still run - shows it, and a crew the
 [stall check](#stalls) lists comes first, marked `Needs a look` with the reason. The page reads GitHub and the host's session list, links
 Issues and PRs but never sessions (it runs sandboxed, and the sandbox blocks
 links into the app), and changes nothing.
