@@ -190,7 +190,7 @@ def test_a_quiet_crew_on_its_work_or_an_hours_long_background_run_needs_a_look(t
 
 # Running work, read from the host: two sessions' `claude` processes (71459 in CREW, 5654 in OTHER) and a terminal;
 # crew-6's writer runs `make` from its own worktree in a tool shell (30491) that nests another (30495).
-CREW, OTHER = '/work/repo/.claude/worktrees/rsh-9771c5', '/work/repo/.claude/worktrees/busy-jepsen-0f3bc8'
+CREW, OTHER = '/work/my_repo/.claude/worktrees/rsh-9771c5', '/work/repo/.claude/worktrees/busy-jepsen-0f3bc8'
 SNAPSHOT = '/bin/zsh -c source /home/u/.claude/shell-snapshots/snapshot-zsh-1.sh 2>/dev/null || true && eval'
 LISTING = f'''\
 71459     1 /Applications/Claude/claude
@@ -211,7 +211,8 @@ def directories(pids):
 def transcript(root, cwd, name, minutes):
     from datetime import timedelta
     import os
-    path = root / cwd.replace('/', '-').replace('.', '-') / 'f3d1-session' / 'subagents' / name
+    folder = cwd.replace('/', '-').replace('.', '-').replace('_', '-')  # every non-alphanumeric character
+    path = root / folder / 'f3d1-session' / 'subagents' / name
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text('{}\n')
     stamp = (NOW - timedelta(minutes=minutes)).timestamp()
@@ -258,3 +259,31 @@ def test_an_idle_crew_whose_work_runs_is_in_a_background_run_and_active_not_stal
     doc = document([idle()], {})
     assert 'running' not in doc['crews'][0] and [item['kind'] for item in doc['attention']] == ['stalled']
     assert dashboard.summary(doc) == '📊 15:04 · 0 active · 0 wait for you · 0 PRs · 1 need a look'
+
+
+def test_lsof_names_each_listed_process_directory(monkeypatch):
+    import subprocess
+    listing = 'p71459\nfcwd\nn/work/my_repo/.claude/worktrees/rsh-9771c5\np5654\nfcwd\nn/work/other dir\n'
+    calls = []
+    monkeypatch.setattr(dashboard.os.path, 'isdir', lambda path: False)
+    monkeypatch.setattr(dashboard.subprocess, 'run', lambda args, **options: calls.append(args)
+                        or subprocess.CompletedProcess(args, 1, stdout=listing, stderr=''))
+    assert dashboard.directories(['5654', '71459', '99999']) == {'71459': CREW, '5654': '/work/other dir'}
+    assert calls[0][-2:] == ['-p', '5654,71459,99999']
+
+
+def test_a_failing_ps_leaves_the_refresh_as_before(tmp_path, monkeypatch, capsys):
+    import subprocess
+    calls = []
+
+    def ps(args, **options):
+        calls.append(args[0])
+        raise subprocess.TimeoutExpired(args, options.get('timeout'))
+
+    monkeypatch.setattr(dashboard.subprocess, 'run', ps)
+    (tmp_path / 'crews.json').write_text(json.dumps([idle()]))
+    code = dashboard.main(['--crews', str(tmp_path / 'crews.json'), '--mode', 'on', '--out', str(tmp_path / 'snapshot.json')],
+                          run=runner, now=NOW)
+    capsys.readouterr()
+    crew = json.loads((tmp_path / 'snapshot.json').read_text())['crews'][0]
+    assert (code, calls, crew['state']) == (0, ['ps'], 'idle') and 'running' not in crew

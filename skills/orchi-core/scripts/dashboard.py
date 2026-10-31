@@ -55,8 +55,10 @@ TITLE = re.compile(r'\[([a-z-]+)\] ')
 CHECKS = {'SUCCESS': 'passing', 'FAILURE': 'failing', 'ERROR': 'failing', 'PENDING': 'running', 'EXPECTED': 'running'}
 # A crew's work runs while its subagents write their transcripts, or while a command it or they started runs: every
 # Bash tool command runs in a shell that sources a shell snapshot, a child of the session's own `claude` process.
+# `ps` and `lsof` get `PROBE` seconds; what they cannot tell in time counts as nothing.
 RECENT = timedelta(minutes=10)
-SHELL = '/.claude/shell-snapshots/'
+SHELL = '/shell-snapshots/snapshot-'
+PROBE = 10
 
 
 def role(title: str) -> str | None:
@@ -140,7 +142,7 @@ def directories(pids: list[str]) -> dict[str, str]:
         return found
     # lsof exits 1 when one of the processes has ended; the others are still listed.
     listing = subprocess.run(['lsof', '-nP', '-a', '-d', 'cwd', '-Fpn', '-p', ','.join(pids)],
-                             capture_output=True, text=True).stdout
+                             capture_output=True, text=True, timeout=PROBE).stdout
     found, pid = {}, None
     for line in listing.splitlines():
         if line.startswith('p'):
@@ -175,9 +177,9 @@ def activity(crews: list[dict], now: datetime, root: Path | None = None, listing
     try:
         if listing is None:
             listing = subprocess.run(['ps', '-axo', 'pid=,ppid=,args='], capture_output=True, text=True,
-                                     check=True).stdout
+                                     check=True, timeout=PROBE).stdout
         running = commands(listing, cwd)
-    except (OSError, ValueError, subprocess.CalledProcessError):
+    except (OSError, ValueError, subprocess.SubprocessError):
         running = Counter()
     found = {}
     for name, place in places.items():
@@ -247,8 +249,9 @@ def attention(document: dict, now: datetime, previous: dict) -> list[dict]:
     so a background run (`background`) is the crew's own line or what `activity` found running, and the run's start is
     carried from refresh to refresh.
 
-    - `stalled`: holds an Issue, runs nothing, named no run, waits for no other Issue and no merge of its PR.
-    - `long run`: its named background run has gone on for hours.
+    - `stalled`: holds an Issue, runs nothing, has no background run (named or found running), waits for no other
+      Issue and no merge of its PR.
+    - `long run`: its background run has gone on for hours.
     - `question`: in autonomous mode, its question to Orchi has waited (a `(user)` question waits for the user).
     Each is listed once the crew has been quiet for `STALL`; `unanswered` once it stays quiet `ANSWER` after that.
     """
