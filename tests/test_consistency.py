@@ -65,12 +65,13 @@ def test_flows_do_not_stall_and_keep_user_only_questions():
     assert "a `design` Epic has none yet" in prose("orchi-core/references/readiness.md")
     assert "and that Orchi takes it from here" in prose("orchi-plan/SKILL.md")
     assert "An Epic labelled `design` → report `#<n> declined: a design Epic goes to a designer crew`" in deliver
-    assert "anything destructive or irreversible, and\nchecks they asked to do by hand".replace("\n", " ") in pool
+    assert "anything destructive or irreversible, removing or replacing something users can do or see today" in pool
+    assert "and checks they asked to do by hand" in pool
     assert "Never ask a technical question" in pool
     assert "the review confirmed each exception it adds or changes" in pool
     assert "and whether its PR was merged (then send `#<n> merged`)" in entry
     assert "the pool has no liveness check between wakes" in pool
-    assert "Orchi on `crew-<k> ready`, a crew on each `worker-<n> ready`" in pool
+    assert "for a crew on `crew-<k> ready`, together with its workers" in pool
     assert "the session it names has stopped" in deliver and "the session it names has stopped" in prose(
         "orchi-core/references/execution.md")
     assert "only `orchi-plan` closes the Exploration" in prose("orchi-standards/SKILL.md")
@@ -100,7 +101,8 @@ def test_the_user_answers_only_product_questions_and_nothing_waits_needlessly():
     assert "agents own everything technical" in core and "never the mechanism" in core
     assert "The split into Tasks, Epics, and an Initiative and the blockers between them are yours" in planning
     deliver = prose("orchi-deliver/SKILL.md")
-    assert "Do not rerun the suite: CI runs it on the pushed commit" in deliver
+    assert "Where CI runs the suite on the pushed commit, do not rerun it" in deliver
+    assert "Without CI, the writer runs the checks its Task touches, and the full suites run once, at step 5" in deliver
     assert "create its Tasks yourself: the user agreed its outcome" in deliver
     assert "merge main into the Initiative branch first" in deliver
     assert "`#<n> waits for #<m>`" in prose("orchi-core/references/pool.md")
@@ -161,5 +163,5 @@ def test_the_first_run_is_findable_and_acceptance_waits_for_its_harness():
     assert "planning adds an Issue labelled `needs-planning`" in prose("orchi-core/references/standards.md")
     deliver = prose("orchi-deliver/SKILL.md")
     assert "from a detached checkout of the PR head" in deliver and "stop it on `#<n> rework`" in deliver
-    assert "before its `done`, answer it with `#<task> answer`" in deliver
+    assert "answer it before its `done` with `#<task> answer`" in deliver
     assert "A worker's own clear after `done` is not retried." in prose("orchi-core/references/pool.md")

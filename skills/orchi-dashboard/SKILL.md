@@ -57,8 +57,9 @@ Load the host's session tools and `ArtifactData` with `ToolSearch` when they are
 1. Read the pool: the host's sessions in the sidebar group `Orchi pool · <repo>`.
    A crew is a top-level session there titled `crew-<k>` or `[<role>] <topic>`,
    but not `Orchi`; its `name` is `crew-<k>` (the handle the host
-   lists, or its title when free). Its workers are the sessions whose
-   `startedBy` is the crew: `total` counts them, `busy` those with `isRunning`
+   lists, or its title when free). Its workers are the host's sessions titled
+   `worker-<k>.<n>` for its `crew-<k>` (in an older pool, those whose
+   `startedBy` is the crew): `total` counts them, `busy` those with `isRunning`
    true. Write the crews as a JSON list to `<dir>/crews.json`: `{"name",
    "title", "state", "workers": {"busy", "total"}, "last_activity", "remote"}`
    (`last_activity` is the host's `lastActivityAt`, `remote` its `remoteControlActive`), plus `"stage"` when
@@ -69,7 +70,7 @@ Load the host's session tools and `ArtifactData` with `ToolSearch` when they are
    and skip tool calls. It is `waiting` when that text asks the user something
    (the question in one line, in its own words), else `idle`; `stage` is a few
    words from it on what the crew does, or last did, such as `Reviewing the Epic`, and no text means no
-   `stage`; `question` only while it waits; `"background"`, the text after `Background:`, when an idle crew's
+   `stage`; `question` only while it waits; `"background"`, the text after `Background:` with its `(pid …)` ending, when an idle crew's
    newest text ends with that line. Read messages only for an assigned crew that is new or whose
    `last_activity` differs from the previous `crews.json`; otherwise copy its `stage` and `question` from that
    file (with `background`), and its `state` unless it runs now.

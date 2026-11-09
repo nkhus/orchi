@@ -40,7 +40,9 @@ def test_sessions_start_only_in_the_users_turn_and_the_pool_needs_bypass():
     assert "start sessions in a turn a message or an event started" in entry
     assert "bypass permissions mode" in pool and "bypass permissions mode" in entry
     assert "`Orchi pool · <repo>`" in pool and "`Orchi pool · <repo>`" in entry
-    assert "`Create workers`" in pool and "`Create workers`" in entry
+    assert "`Create workers`" not in pool + entry
+    assert "In the same turn it starts each crew's missing workers" in pool and "with the dashboard and each crew's workers" in entry
+    assert "In a turn the user started, also start the missing workers of each crew that holds dev lead or designer work" in entry
 
 
 def test_assignment_claim_and_crew_events_match():
@@ -76,10 +78,12 @@ def test_release_and_clearing_rules_agree():
     for text in (pool, work):
         assert "no uncommitted changes, no commits that are neither merged nor pushed" in text
         assert "`git switch --detach origin/<default>`" in text
-        assert "`worker-<n> released`" in text and "`worker-<n> not released: <reason>`" in text
+        assert "`worker-<k>.<n> released`" in text and "`worker-<k>.<n> not released: <reason>`" in text
     assert "It sends no second `release` until the first is answered." in pool
     assert "nothing may follow it" in pool and "Nobody deletes a pool session" in pool
-    assert "Orchi archives only a crew started on demand that replied `released`" in pool
+    assert "Orchi archives only a crew started on demand that replied `released`, with its workers" in pool
+    assert "The worker clears its own conversation as the last action of that turn, since Orchi, not the crew, started it" in pool
+    assert "your crew did not start you, so it cannot" in work and "Your crew clears this session" not in work
     assert "`crew-<k> released`" in pool and "`crew-<k> released`" in prose("orchi/SKILL.md")
 
 
@@ -212,7 +216,7 @@ def test_orchi_keeps_the_dashboard_itself_and_a_haiku_subagent_refreshes_it():
     assert "a page Orchi keeps itself" in pool and "no session of its own holds it" in pool + skill
     assert "It publishes the [dashboard](#dashboard) when there is none" in pool
     assert "When the user asks for the dashboard, publish it as the pool reference's Dashboard says" in entry
-    assert "when there is a dashboard, refresh it and link it" in entry and "refreshed when it changed for the user, and write nothing when nothing did" in entry
+    assert "refresh the dashboard and answer in at most 15 lines" in entry and "refreshed when it changed for the user, and write nothing when nothing did" in entry
     assert "to its busy crews and refreshes the dashboard when it changes" in pool
     assert "Orchi sends every crew one self-contained message" in pool
     assert "it publishes it again from the new version to the same link, and archives a `dashboard` session" in pool
@@ -271,13 +275,14 @@ def test_crews_start_on_demand_and_the_pool_only_for_autonomous_mode():
     orchi, pool = prose("orchi/SKILL.md"), prose("orchi-core/references/pool.md")
     assert "It starts no crew ahead of work" in pool and "Start crews only as the pool reference's Sessions on demand says" in orchi
     assert "gets a start card in Orchi's report" in pool and "else a start card in your report" in orchi
-    assert "A crew started on demand has no workers: it gives writing to writer subagents" in pool
+    assert "For dev lead or designer work, Orchi starts the crew's workers in the same turn" in pool
+    assert "gives writing to writer subagents until Orchi starts its workers in the user's next turn" in pool
     assert "the one that needs the user first (a design Epic), or else the first in delivery order" in pool
     assert "When the user turns autonomous mode on, or asks for more pool crews" in orchi and "(3 crews of 3 workers unless" in orchi
-    assert "(3 unless the user names another number)" in pool and "(3 unless Orchi's brief names another number)" in pool
+    assert "(3 unless the user names another number)" in pool and "(3 for a pool crew, 2 for a crew started on demand)" in pool
     assert "started on demand and not a sub-planner, continue with the item the pool's Sessions on demand step 4 names" in prose(
         "orchi-plan/SKILL.md")
-    assert "Started on demand, you have no workers: start writer subagents" in prose("orchi-deliver/SKILL.md")
+    assert "until you have any, start writer subagents" in prose("orchi-deliver/SKILL.md")
 
 
 def test_orchi_takes_a_stream_of_requests_in_and_planners_queue_them():
@@ -307,3 +312,44 @@ def test_orchi_updates_itself_and_moves_every_session_to_the_new_version():
     assert "A question waiting for the user keeps waiting. Reply <name> updated to <version>." in pool
     assert "look for a newer Orchi as its Update Orchi says" in entry and "To update Orchi, follow its Update Orchi" in entry
     assert "`updated to <version>`: nothing to do" in entry
+
+
+def test_the_dev_lead_decides_and_its_workers_run_the_work():
+    pool, deliver, work = prose("orchi-core/references/pool.md"), prose("orchi-deliver/SKILL.md"), prose("orchi-work/SKILL.md")
+    assert "A dev lead is the decision centre of its Issue" in pool and "the decision centre of this Issue" in deliver
+    assert "It runs no long command and waits for no slot itself" in pool and "Run no long command and poll no run yourself" in deliver
+    assert "`verify` (run the checks the crew names on the branch head" in pool and "`merge` (merge `--base` into the branch" in pool
+    assert "| `verify` | none: this skill |" in work and "In `merge` mode, merge `--base` into the branch without rebasing" in work
+    assert "the crew your brief names (Orchi starts workers, so your parent session is Orchi, not your crew)" in work
+    assert "every question whose answer keeps its Issue's agreed outcome, acceptance, and scope" in pool
+    assert "`<id> answer: yours to decide`" in pool and "`yours to decide`" in prose("orchi/SKILL.md")
+    assert "Decide by yourself everything that keeps the Issue's agreed outcome, acceptance, and scope" in deliver
+
+
+def test_the_user_sees_progress_and_decides_direction_and_unproven_merges():
+    pool, entry, deliver = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-deliver/SKILL.md")
+    testing, review = prose("orchi-core/references/testing.md"), prose("orchi-core/references/review-delivery.md")
+    assert "a change of an Initiative's direction (what it builds, or for whom)" in pool
+    assert "`continue the Initiative?`, and the Initiative's next Epic starts only on the user's yes" in pool
+    assert "after the first such Epic, the next starts only on their yes" in review
+    assert "merges only on the user's yes to that gap, which Orchi names in plain words" in pool
+    assert "A claim about real use is established only on the real path" in testing
+    assert "a run on new input nobody prepared or tuned for" in testing
+    assert "`, not proven: <what, in plain words>`" in deliver and "with `not proven` (name each gap), ask the user" in entry
+    assert "The work would remove or replace something users can do or see today" in deliver
+    assert "Start no full suite before the review's verdict" in deliver
+    assert "run the full applicable suites once per PR, on the head that will merge" in review
+
+
+def test_orchi_keeps_notes_short_messages_and_a_plain_status():
+    pool, entry = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md")
+    assert "## Orchi's notes" in (SKILLS / "orchi-core/references/pool.md").read_text()
+    assert "`.orchi-tmp/orchi/notes.md`" in pool and "never raises a topic set aside until the user does" in pool
+    assert "Read your notes (pool reference, Orchi's notes)" in entry and "in `.orchi-tmp/`; plan" in entry
+    assert "Asked how things go, in any words, refresh the dashboard and answer in at most 15 lines" in entry
+    assert "Talk to the user in their language and plain words" in entry
+    assert "Orchi sends a crew at most one message per wake" in pool and "goes into a comment on the Issue" in pool
+    assert "about ten in a row with no message from the user" in pool
+    assert "`(user, here)`" in pool and "Orchi never relays the answer" in pool
+    assert "never shortens one. After a compaction, ids in the conversation's summary are memory." in pool
+    assert "`run ended`" in pool and "ending with `(pid <n>[, <m>])`" in pool

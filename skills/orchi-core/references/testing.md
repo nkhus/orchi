@@ -65,6 +65,14 @@ Report each acceptance claim with the evidence behind it and one verdict:
 Only an established claim counts as verified. A limited or not established
 claim is reported as such, never rounded up.
 
+A claim about real use is established only on the real path: the product's own
+entry point, with the real services, models, and data it will meet, or a copy of
+them. Tests on fixtures, stubs, or prepared input establish the code's logic,
+not the claim. A claim that something works without a person, or on a new site,
+file, or customer, also needs a run on new input nobody prepared or tuned for.
+A PR into main whose main outcome is not established this way merges only on
+the user's yes to the named gap ([pool](pool.md#autonomous-mode)).
+
 ## Defects
 
 A defect Task starts from a reproduction: one command that has already failed on
