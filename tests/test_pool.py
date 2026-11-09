@@ -107,7 +107,7 @@ def test_only_work_that_passed_planning_is_assigned_to_a_dev_lead():
 def test_autonomous_mode_is_one_switch_in_which_orchi_decides():
     pool, entry = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md")
     assert "| | Off (default) | On |" in pool and "| A crew asks | The user, in its own session | Orchi only |" in pool
-    assert "Orchi, and sends each decision to the crew as an instruction" in pool
+    assert "Orchi, except what only the user decides (below), and sends each decision to the crew as an instruction" in pool
     assert "Orchi adopts it unless the Issue, its decision log, `PRODUCT.md`, `DESIGN.md`, or an earlier decision of the user contradicts it" in pool
     assert "`<id> answer: recommend one and proceed`" in pool and "Orchi still researches and designs nothing itself" in pool
     assert "`decided by Orchi in autonomous mode, set by the user on <date>`" in pool
@@ -330,7 +330,7 @@ def test_the_user_sees_progress_and_decides_direction_and_unproven_merges():
     pool, entry, deliver = prose("orchi-core/references/pool.md"), prose("orchi/SKILL.md"), prose("orchi-deliver/SKILL.md")
     testing, review = prose("orchi-core/references/testing.md"), prose("orchi-core/references/review-delivery.md")
     assert "a change of an Initiative's direction (what it builds, or for whom)" in pool
-    assert "`continue the Initiative?`, and the Initiative's next Epic starts only on the user's yes" in pool
+    assert "`continue the Initiative?`, and until the user's yes no other Epic" in pool
     assert "after the first such Epic, the next starts only on their yes" in review
     assert "merges only on the user's yes to that gap, which Orchi names in plain words" in pool
     assert "A claim about real use is established only on the real path" in testing
@@ -353,3 +353,17 @@ def test_orchi_keeps_notes_short_messages_and_a_plain_status():
     assert "`(user, here)`" in pool and "Orchi never relays the answer" in pool
     assert "never shortens one. After a compaction, ids in the conversation's summary are memory." in pool
     assert "`run ended`" in pool and "ending with `(pid <n>[, <m>])`" in pool
+
+
+def test_workers_know_their_crew_after_a_clear_and_orchi_archives_them():
+    pool, work, entry = prose("orchi-core/references/pool.md"), prose("orchi-work/SKILL.md"), prose("orchi/SKILL.md")
+    assert "your crew is the session the host lists as `crew-<k>` in the pool's group" in work
+    assert "a cleared worker has lost its brief, so it checks this every task" in work
+    assert "as a crew or in a worker's title" in pool
+    assert "archive a crew started on demand, with its workers" in entry and "a released crew started on demand, its workers," in entry
+    assert "at its first wake after that session's first turn has ended, whatever the wake's event" in pool
+    assert "`verify #<n> --branch <branch>: <checks>`" in pool and "verify #<n> --branch <branch>: <checks>" in work
+    assert "`your workers: <titles>`, `<id> answer: <answer>`" in pool
+    assert "until the user's yes no other Epic of the Initiative starts or merges into its branch" in pool
+    assert "Orchi's decision does not count" in prose("orchi-deliver/SKILL.md")
+    assert "until you have any, to `orchi-designer` subagents" in prose("orchi-design/SKILL.md")

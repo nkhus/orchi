@@ -70,7 +70,7 @@ Load the host's session tools and `ArtifactData` with `ToolSearch` when they are
    and skip tool calls. It is `waiting` when that text asks the user something
    (the question in one line, in its own words), else `idle`; `stage` is a few
    words from it on what the crew does, or last did, such as `Reviewing the Epic`, and no text means no
-   `stage`; `question` only while it waits; `"background"`, the text after `Background:` with its `(pid …)` ending, when an idle crew's
+   `stage`; `question` only while it waits; `"worker_runs"`, the text after `Background:` in the newest text of each of its workers that does not run now, when it ends with that line; `"background"`, the text after `Background:` with its `(pid …)` ending, when an idle crew's
    newest text ends with that line. Read messages only for an assigned crew that is new or whose
    `last_activity` differs from the previous `crews.json`; otherwise copy its `stage` and `question` from that
    file (with `background`), and its `state` unless it runs now.

@@ -71,7 +71,7 @@ def test_flows_do_not_stall_and_keep_user_only_questions():
     assert "the review confirmed each exception it adds or changes" in pool
     assert "and whether its PR was merged (then send `#<n> merged`)" in entry
     assert "the pool has no liveness check between wakes" in pool
-    assert "for a crew on `crew-<k> ready`, together with its workers" in pool
+    assert "turns Remote Control off for each crew and worker it starts" in pool
     assert "the session it names has stopped" in deliver and "the session it names has stopped" in prose(
         "orchi-core/references/execution.md")
     assert "only `orchi-plan` closes the Exploration" in prose("orchi-standards/SKILL.md")

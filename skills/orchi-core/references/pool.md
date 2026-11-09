@@ -13,7 +13,7 @@ every other skill runs as a crew's or worker's assignment.
 | Session | Created by | In the sidebar | Talks to | Never |
 | --- | --- | --- | --- | --- |
 | Orchi (`/orchi`) | the user | top level, in the group `Orchi pool · <repo>` | the user; crews | Plans, researches, edits code, or merges into main without the user's yes while autonomous mode is off |
-| Crew | Orchi, on demand or when it builds the pool for autonomous mode | top level, in the group `Orchi pool · <repo>` | Orchi; the user while autonomous mode is off; its workers | Writes code itself, takes a second assignment (a planner queues one), or starts sessions other than its workers and a planner's sub-planners |
+| Crew | Orchi, on demand or when it builds the pool for autonomous mode | top level, in the group `Orchi pool · <repo>` | Orchi; the user while autonomous mode is off; its workers | Writes code itself, takes a second assignment (a planner queues one), or starts sessions other than a planner's sub-planners |
 | Worker (`orchi-work`) | Orchi, in the user's turn, for a crew that holds dev lead or designer work | nested under Orchi | its crew only | Talks to the user, pushes, or opens PRs |
 
 Orchi is a persona, and its session is always titled `Orchi`; it never renames
@@ -43,8 +43,7 @@ every run that takes time as well: full check suites, a real-path run on a stand
 and a merge of the base into its branch with its conflicts ([Workers](#workers)).
 It runs no long command and waits for no slot itself, so its conversation keeps
 the decisions and not the logs. A crew edits Issues and PRs, creates, merges, and pushes
-branches, resolves small conflicts of the merges it makes (one that needs code
-changes goes to a worker), and writes documents: a
+branches (a merge that conflicts goes to a worker in `merge` mode), and writes documents: a
 planner, researcher, or designer crew writes the planning documents its
 conversation with the user produces (the working folder's research, option, and
 plan files, `PRODUCT.md`, `DESIGN.md` from `document`, a surface brief, an
@@ -126,8 +125,7 @@ the group when it is missing, so that every session of the project sits in one
 sidebar section. It starts no crew ahead of work:
 
 1. For a request that needs a crew, in the user's turn, Orchi starts one with
-   its own worktree, named `crew-<k>` with the lowest `k` no session in the
-   group uses, titled `[<role>] <topic>`, detached to the top level, filed into
+   its own worktree, named `crew-<k>` with the lowest `k` no session in the group uses, as a crew or in a worker's title, titled `[<role>] <topic>`, detached to the top level, filed into
    the group, and given the [assignment](#assign-a-crew) as its brief.
 2. Work that becomes ready in a turn the user did not start (another item of a
    plan, a follow-up, a queued request) gets a start card in Orchi's report;
@@ -161,12 +159,8 @@ crews, Orchi builds the pool in that turn:
    `Orchi pool · <repo>`.
 2. In the same turn it starts each crew's missing workers (3 unless the user
    names another number), one call at a time, each with its own worktree, the
-   title `worker-<k>.<n>`, and the worker's brief below, and leaves them nested
-   under itself: only the starter can nest a session, and the crew's own turns
-   are started by messages, which start no session.
-3. A session served over Remote Control cannot be cleared, so Orchi turns Remote
-   Control off for each session it started once that session's first turn has
-   ended: for a crew on `crew-<k> ready`, together with its workers.
+      title `worker-<k>.<n>`, the host name `worker-<k>.<n>`, and the worker's brief below, leaves them nested under itself, and files them into the group: only the starter can nest a session, and the crew's own turns are started by messages, which start no session.
+3. A session served over Remote Control cannot be cleared, so Orchi turns Remote Control off for each crew and worker it starts at its first wake after that session's first turn has ended, whatever the wake's event.
 4. Orchi reports the pool: crews, workers, and anything that failed to start.
    From then on it gives work to free pool crews by message in any turn, and a
    pool crew is cleared and reused, never archived.
@@ -177,7 +171,7 @@ A worker's brief: `You are worker-<k>.<n> of crew-<k> (<crew session id>); Orchi
 
 Orchi starts workers in any turn the user starts, for each crew that holds or is
 given dev lead or designer work and has fewer than its number (3 for a pool crew,
-2 for a crew started on demand), and tells the crew `your workers: <titles>`. A
+2 for a crew started on demand), in the same way, and tells the crew `your workers: <titles>`. A
 pool crew keeps its workers between assignments; a crew started on demand loses
 them when Orchi archives it.
 
@@ -233,7 +227,7 @@ its title, so the assignment states it.
 | Crew → Orchi | Delivery | `#<n> PR ready: <url>[, see it at <local link>]`, `#<n> follow-up: #<m>`, `#<n> waits for #<m>`, `#<n> done: <url>` |
 | Crew → Orchi | Status ([Stalls](#stalls)) | `<id> status: <what it does and what it waits for>` |
 | Crew → Orchi | Setup, takeover, update, release | `crew-<k> ready: <n> workers`, `<name> updated to <version>`, `crew-<k> refused: Orchi is session <session id>`, `crew-<k> released`, `crew-<k> not released: <reason>` |
-| Orchi → crew | Answer, queue, delivery, status | `<id> answer: <answer>`, `<id> remark: <the user's words>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged`, `<id> status?` |
+| Orchi → crew | Answer, queue, delivery, status, workers | `your workers: <titles>`, `<id> answer: <answer>`, `<id> remark: <the user's words>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged`, `<id> status?` |
 | Orchi → crew | Mode, takeover, update, release | `autonomous <on or off>`, `Orchi is now session <session id>`, `Orchi is updated to <version> …` ([Update Orchi](#update-orchi)), `release` |
 | Sub-planner ↔ planner | Planning | the crew's messages to Orchi and Orchi's to a crew, between them |
 | Worker → crew | Task | `#<task> question: <question>`, `#<task> done: <commit>` and the role's report, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
@@ -279,10 +273,10 @@ when it changes. Turning it on builds the pool first, as Autonomous development 
 | | Off (default) | On |
 | --- | --- | --- |
 | A crew asks | The user, in its own session | Orchi only |
-| Decides the direction, scope, breakdown, and design | The user, as planning says | Orchi, and sends each decision to the crew as an instruction |
+| Decides the direction, scope, breakdown, and design | The user, as planning says | Orchi, except what only the user decides (below), and sends each decision to the crew as an instruction |
 | Merges into main | Orchi merges into main on the user's yes | Orchi merges it when the PR's checks pass, its Verification section records no unresolved `blocker` or `major`, every repair is rechecked, the review confirmed each exception it adds or changes, and its main outcome is proven on the real path (below) |
 
-While it is on, Orchi takes every decision the user would take: a researcher's
+While it is on, Orchi takes every decision the user would take, except those only the user decides (below): a researcher's
 direction and shape, a planner's scope and breakdown, a designer's references,
 engine, direction, and comps, and what only the user knows (their needs, their
 users, acceptance thresholds), which it decides as stated assumptions. Orchi
@@ -320,8 +314,7 @@ what users see merges into its Initiative branch, the dev lead shows it: the
 `see it at` link and screenshots of what changed, with what it does in plain
 words. For the first such Epic of an Initiative, and for any Epic that removes
 or replaces something users have today, this is a `(user)` question, `continue
-the Initiative?`, and the Initiative's next Epic starts only on the user's yes;
-other Epics go to the user as information in Orchi's next report.
+the Initiative?`, and until the user's yes no other Epic of the Initiative starts or merges into its branch (Epics in flight go on up to their merge); later Epics go to the user as information in Orchi's next report.
 
 In both modes a PR into main whose Verification marks a claim of its main
 outcome `Limited` or `Not established` ([verdicts](testing.md#verdicts)), such
@@ -501,7 +494,7 @@ conversation after each `done`, so each starts from its message and its Issue;
 the crew records each on its Issue as
 `Task <task> on worker-<k>.<n> (<session id>), branch <branch>` and sends:
 
-`You are worker-<k>.<n> of <crew title>. Invoke the orchi-work skill with: <mode> #<task> --branch <branch> --base <base>. Report to <crew session id>.`
+`You are worker-<k>.<n> of <crew title>. Invoke the orchi-work skill with: <mode> #<task> --branch <branch> --base <base>. Report to <crew session id>.` A `verify` task names the Issue or PR instead of a Task and ends with the checks to run: `verify #<n> --branch <branch>: <checks>`.
 
 The modes are `implement`, `fix`, and `design` (one ready Task, as the writer
 roles say); `verify` (run the checks the crew names on the branch head, such as
@@ -576,8 +569,7 @@ Each session says which it is, and Orchi checks.
 
 - A crew or worker that ends a turn while a background run it started goes on
   ends that turn's text with one line, `Background: <what runs, and the slot it
-  waits for, if any>`, ending with `(pid <n>[, <m>])` for each command it runs
-  in the background; a run is a command, a subagent, or a worker's run the crew
+  waits for, if any>`, ending with `(pid <n>[, <m>])` for each command it runs in the background (it starts such a command with `echo pid $$;`, so its first output line names the shell that runs it); a run is a command, a subagent, or a worker's run the crew
   waits for. The host wakes it when the run ends, unless the session restarted
   meanwhile, which ends its runs without a wake. A session that starts
   a background run gives it its input and a time limit, so that it cannot wait
@@ -591,9 +583,7 @@ Each session says which it is, and Orchi checks.
   background run, and waits for no other Issue and no merge of its PR
   (`stalled`); one whose named run has gone on for more than 3 hours (`long
   run`); or, in autonomous mode, one whose question to Orchi waits (`question`).
-  It also lists, after 10 quiet minutes, an idle crew whose named commands have
-  all ended without waking it (`run ended`): none of their process ids runs any
-  more, as after a restart.
+  It also lists, after 10 quiet minutes, an idle crew whose named commands, or those an idle worker of its own named, have all ended without waking anyone (`run ended`): none of their process ids runs any more, as after a restart.
   With no timer, a pool where nothing sends a message is checked at its next one.
 - For a `question`, Orchi reads the crew's question and answers it. For each other
   crew listed, Orchi sends `<id> status?`. The crew checks what it waits for: a background run that still moves (its output grows or it uses the
@@ -621,6 +611,10 @@ loses, and reads it at every wake:
   when, in plain words; an item leaves the list once answered, and numbers are
   not reused that day. Orchi's reports and status answers list the open ones by
   number, so the user can answer `2: yes`.
+
+A new Orchi that takes the pool over copies the notes from the old Orchi's
+worktree when it can read them, and otherwise rebuilds them from the Issues'
+decision logs and the questions crews still wait on.
 
 ## Dashboard
 

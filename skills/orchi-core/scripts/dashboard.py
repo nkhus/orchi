@@ -188,8 +188,9 @@ def attention(document: dict, now: datetime, previous: dict, alive=None) -> list
     - `stalled`: holds an Issue, runs nothing, named no run, waits for no other Issue and no merge of its PR.
     - `long run`: its named background run has gone on for hours.
     - `question`: in autonomous mode, its question to Orchi has waited (a `(user)` question waits for the user).
-    - `run ended`: every command its background line names by process id has ended, yet nothing woke it (the session
-      restarted, which ends its runs without a wake); listed after `ENDED`, not `STALL`.
+    - `run ended`: every command its background line, or an idle worker's (`worker_runs`), names by process id has
+      ended, yet nothing woke anyone (a session restarted, which ends its runs without a wake); listed after `ENDED`.
+    A worker's run whose named process still runs counts as a busy worker.
     Each other kind is listed once the crew has been quiet for `STALL`; `unanswered` once it stays quiet `ANSWER` after
     that.
     """
@@ -204,12 +205,15 @@ def attention(document: dict, now: datetime, previous: dict, alive=None) -> list
             start = starts.get(name) or {}
             document['background_since'][name] = {'text': run, 'since': start.get('since') if start.get('text') == run
                                                    else crew.get('last_activity')}
-        busy = (crew.get('workers') or {}).get('busy', 0) > 0
-        if crew['role'] is None or not quiet or busy or now - quiet <= (ENDED if run and ended(run, alive) else STALL):
+        runs = crew.get('worker_runs') or []
+        dead = ([run] if crew['state'] == 'idle' and run and ended(run, alive) else []) + [
+            line for line in runs if ended(line, alive)]
+        busy = (crew.get('workers') or {}).get('busy', 0) > 0 or any(PIDS.search(line) and not ended(line, alive) for line in runs)
+        if crew['role'] is None or not quiet or busy or now - quiet <= (ENDED if dead else STALL):
             continue
         issue, since, text = crew.get('issue'), crew['last_activity'], crew.get('stage') or ''
-        if run and crew['state'] == 'idle' and ended(run, alive):
-            kind, text = 'run ended', run
+        if dead and crew['state'] == 'idle':
+            kind, text = 'run ended', dead[0]
         elif run and crew['state'] == 'idle':
             since, text = document['background_since'][name]['since'], run
             kind = 'long run' if now - (moment(since) or quiet) > LONG_RUN else None
@@ -234,8 +238,14 @@ def summary(document: dict) -> str:
     if document.get('error'):
         return f'📊 {time} · refresh failed'
     # An idle crew runs nothing; it counts as active only while its workers or its background run go on.
-    active = sum(crew['role'] is not None and (crew['state'] in {'working', 'waiting'} or (crew['state'] == 'idle' and (
-        (crew.get('workers') or {}).get('busy', 0) > 0 or bool(crew.get('background'))))) for crew in document['crews'])
+    def counts(crew: dict) -> bool:
+        if crew['role'] is None:
+            return False
+        if crew['state'] in {'working', 'waiting'}:
+            return True
+        return crew['state'] == 'idle' and ((crew.get('workers') or {}).get('busy', 0) > 0 or bool(
+            crew.get('background') or crew.get('worker_runs')))
+    active = sum(counts(crew) for crew in document['crews'])
     line = f"📊 {time} · {active} active · {len(document['waiting'])} wait for you · {len(document['pulls'])} PRs"
     look = len(document.get('attention') or [])
     return line + (f' · {look} need a look' if look else '')

@@ -123,7 +123,7 @@ Reuse completed Epic reviews; do not repeat them. Focus on:
 3. Reconciliation with current `main`: no lost changes, current documentation
    describes the combined behavior, and the working folder holds only the plan's
    `README.md`, which the integrator deletes after this review.
-4. Evidence for the full applicable suite on the combined candidate.
+4. Evidence for the checks run on the combined candidate; without CI, the full suites run after this review's repairs, so their absence is not a finding.
 
 Read full changed files where needed, not only hunks. Confirm each suspected
 defect with concrete inputs or code paths before reporting it. Grade it `major`
