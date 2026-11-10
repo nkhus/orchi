@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -46,6 +47,29 @@ WAITS = re.compile(r'waits for #(\d+)')
 STALL = timedelta(minutes=30)
 LONG_RUN = timedelta(hours=3)
 ANSWER = timedelta(minutes=10)
+# A crew ends its `Background:` line with `(pid <n>[, <m>])` for each command it runs in the background.
+PIDS = re.compile(r'\(pids? (\d+(?:, *\d+)*)\)\s*$')
+ENDED = timedelta(minutes=10)
+
+
+def running(pid: int) -> bool:
+    """Whether a process with this id still runs on this machine (one owned by another user counts as running)."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def ended(run: str | None, alive=None) -> bool:
+    """Whether every command a `Background:` line names by process id has ended; False when it names none."""
+    match = PIDS.search(run or '')
+    alive = alive or running
+    return bool(match) and not any(alive(int(pid)) for pid in re.split(r', *', match.group(1)))
 ROLES = {'researcher': 'Researcher', 'prototyper': 'Prototyper', 'planner': 'Planner', 'designer': 'Designer',
          'dev-lead': 'Dev lead'}
 TITLE = re.compile(r'\[([a-z-]+)\] ')
@@ -157,14 +181,18 @@ def moment(value) -> datetime | None:
     return parsed if parsed.tzinfo else None
 
 
-def attention(document: dict, now: datetime, previous: dict) -> list[dict]:
+def attention(document: dict, now: datetime, previous: dict, alive=None) -> list[dict]:
     """Crews that look stuck, from this refresh and the previous snapshot. The host shows only whether a turn runs,
     so a crew names its background run itself (`background`), and the run's start is carried from refresh to refresh.
 
     - `stalled`: holds an Issue, runs nothing, named no run, waits for no other Issue and no merge of its PR.
     - `long run`: its named background run has gone on for hours.
     - `question`: in autonomous mode, its question to Orchi has waited (a `(user)` question waits for the user).
-    Each is listed once the crew has been quiet for `STALL`; `unanswered` once it stays quiet `ANSWER` after that.
+    - `run ended`: every command its background line, or an idle worker's (`worker_runs`), names by process id has
+      ended, yet nothing woke anyone (a session restarted, which ends its runs without a wake); listed after `ENDED`.
+    A worker's run whose named process still runs counts as a busy worker.
+    Each other kind is listed once the crew has been quiet for `STALL`; `unanswered` once it stays quiet `ANSWER` after
+    that.
     """
     waits = {item['number']: item.get('waits_for') for item in document['work'] + document['planning']}
     merging = {number for pull in document['pulls'] if not pull['draft'] for number in pull['closes']}
@@ -177,10 +205,16 @@ def attention(document: dict, now: datetime, previous: dict) -> list[dict]:
             start = starts.get(name) or {}
             document['background_since'][name] = {'text': run, 'since': start.get('since') if start.get('text') == run
                                                    else crew.get('last_activity')}
-        if crew['role'] is None or not quiet or now - quiet <= STALL or (crew.get('workers') or {}).get('busy', 0) > 0:
+        runs = crew.get('worker_runs') or []
+        dead = ([run] if crew['state'] == 'idle' and run and ended(run, alive) else []) + [
+            line for line in runs if ended(line, alive)]
+        busy = (crew.get('workers') or {}).get('busy', 0) > 0 or any(PIDS.search(line) and not ended(line, alive) for line in runs)
+        if crew['role'] is None or not quiet or busy or now - quiet <= (ENDED if dead else STALL):
             continue
         issue, since, text = crew.get('issue'), crew['last_activity'], crew.get('stage') or ''
-        if run and crew['state'] == 'idle':
+        if dead and crew['state'] == 'idle':
+            kind, text = 'run ended', dead[0]
+        elif run and crew['state'] == 'idle':
             since, text = document['background_since'][name]['since'], run
             kind = 'long run' if now - (moment(since) or quiet) > LONG_RUN else None
         elif crew['state'] == 'idle':
@@ -204,8 +238,14 @@ def summary(document: dict) -> str:
     if document.get('error'):
         return f'📊 {time} · refresh failed'
     # An idle crew runs nothing; it counts as active only while its workers or its background run go on.
-    active = sum(crew['role'] is not None and (crew['state'] in {'working', 'waiting'} or (crew['state'] == 'idle' and (
-        (crew.get('workers') or {}).get('busy', 0) > 0 or bool(crew.get('background'))))) for crew in document['crews'])
+    def counts(crew: dict) -> bool:
+        if crew['role'] is None:
+            return False
+        if crew['state'] in {'working', 'waiting'}:
+            return True
+        return crew['state'] == 'idle' and ((crew.get('workers') or {}).get('busy', 0) > 0 or bool(
+            crew.get('background') or crew.get('worker_runs')))
+    active = sum(counts(crew) for crew in document['crews'])
     line = f"📊 {time} · {active} active · {len(document['waiting'])} wait for you · {len(document['pulls'])} PRs"
     look = len(document.get('attention') or [])
     return line + (f' · {look} need a look' if look else '')

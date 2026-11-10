@@ -28,7 +28,8 @@ def test_two_misses_change_course_and_initiatives_step_back():
     assert "do not send it a longer version of the same brief" in execution
     assert deliver.count("(../orchi-core/references/execution.md#change-course)") == 3
     assert "## Step back between Epics" in (SKILLS / "orchi-core/references/review-delivery.md").read_text()
-    assert "[step back](../orchi-core/references/review-delivery.md#step-back-between-epics), then reclassify" in deliver
+    assert "[step back](../orchi-core/references/review-delivery.md#step-back-between-epics), show the user what changed" in deliver
+    assert "start the next only on their yes), then reclassify" in deliver
 
 
 def test_declined_work_is_checked_before_proposing():

@@ -207,7 +207,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   // Why a crew needs a look, from the snapshot's attention list; one that did not answer Orchi's status check says so.
   const LOOK = {"stalled": (item) => `Holds its work, but nothing has run for ${ago(item.since).replace(" ago", "")} and it waits for nothing.`,
     "long run": (item) => `Its background run has gone on for ${ago(item.since).replace(" ago", "")}.`,
-    "question": (item) => `Its question to Orchi has waited ${ago(item.since).replace(" ago", "")}.`};
+    "question": (item) => `Its question to Orchi has waited ${ago(item.since).replace(" ago", "")}.`,
+    "run ended": (item) => `Its background run has ended, but nothing woke the crew; it has been quiet for ${ago(item.quiet).replace(" ago", "")}.`};
   const lookText = (item) => (LOOK[item.kind] || (() => item.kind))(item) + (item.unanswered ? " It did not answer Orchi's status check; Orchi tells you." : " Orchi asks it for its status.");
   const STATUS = {claimed: ["In progress", "accent"], ready: ["Ready", "ok"], check: ["Check blockers", "warn"], blocked: ["Blocked", ""], todo: ["To do", "plain"]};
   const CHECKS = {passing: ["Checks pass", "ok"], failing: ["Checks fail", "bad"], running: ["Checks running", "warn"], none: ["No checks", ""]};

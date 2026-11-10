@@ -186,3 +186,45 @@ def test_a_quiet_crew_on_its_work_or_an_hours_long_background_run_needs_a_look(t
     finally:
         REPOSITORY['claimed']['nodes'].pop()
         REPOSITORY['claimed']['nodes'][1]['body'] = 'Assigned to crew-1 (local_y) by Orchi'
+
+
+def test_a_background_run_whose_processes_ended_without_a_wake_needs_a_look(tmp_path, capsys, monkeypatch):
+    from datetime import timedelta
+    monkeypatch.setattr(dashboard, 'running', lambda pid: pid == 4242)
+    assert dashboard.ended('backend suite, slot 1 (pid 111, 222)') and not dashboard.ended('suite (pids 111, 4242)')
+    assert not dashboard.ended('research subagents') and not dashboard.ended(None)
+    crews = [
+        # Its suite's processes are gone and nothing woke it for 12 minutes: the session restarted.
+        {'name': 'crew-3', 'title': '[dev-lead] audit', 'state': 'idle', 'issue': 3, 'last_activity': '2026-10-27T14:52:00Z',
+         'background': 'backend suite (pid 111)'},
+        # One of its processes still runs (it waits for a slot): fine for now.
+        {'name': 'crew-4', 'title': '[dev-lead] csv', 'state': 'idle', 'issue': 3, 'last_activity': '2026-10-27T14:00:00Z',
+         'background': 'pg tests, waits for a slot (pid 4242)'},
+        # Ended, but only 5 minutes ago: the host may still wake it.
+        {'name': 'crew-5', 'title': '[dev-lead] pay', 'state': 'idle', 'issue': 3, 'last_activity': '2026-10-27T14:59:00Z',
+         'background': 'browser suite (pid 333)'}]
+    (tmp_path / 'crews.json').write_text(json.dumps(crews))
+    dashboard.main(['--crews', str(tmp_path / 'crews.json'), '--mode', 'on', '--out', str(tmp_path / 'snapshot.json')],
+                   run=runner, now=NOW)
+    document = json.loads((tmp_path / 'snapshot.json').read_text())
+    assert [(item['kind'], item['crew'], item['text']) for item in document['attention']] == [
+        ('run ended', 'crew-3', 'backend suite (pid 111)')]
+    assert capsys.readouterr().out.strip().endswith('· 1 need a look')
+    # Past three hours, the live run is a long run as before.
+    later = NOW + timedelta(hours=3)
+    dashboard.main(['--crews', str(tmp_path / 'crews.json'), '--mode', 'on', '--out', str(tmp_path / 'snapshot.json')],
+                   run=runner, now=later)
+    kinds = {item['crew']: item['kind'] for item in json.loads((tmp_path / 'snapshot.json').read_text())['attention']}
+    assert kinds == {'crew-3': 'run ended', 'crew-4': 'long run', 'crew-5': 'run ended'}
+    # A worker's verify run whose process is gone: its crew, quiet and idle, needs a look; a live one keeps it busy.
+    crews = [{'name': 'crew-6', 'title': '[dev-lead] gate', 'state': 'idle', 'issue': 3, 'last_activity': '2026-10-27T14:40:00Z',
+              'workers': {'busy': 0, 'total': 2}, 'worker_runs': ['full suites (pid 555)']},
+             {'name': 'crew-7', 'title': '[dev-lead] gate', 'state': 'idle', 'issue': 3, 'last_activity': '2026-10-27T13:00:00Z',
+              'workers': {'busy': 0, 'total': 2}, 'worker_runs': ['pg tests, waits for a slot (pid 4242)']}]
+    (tmp_path / 'crews.json').write_text(json.dumps(crews))
+    dashboard.main(['--crews', str(tmp_path / 'crews.json'), '--mode', 'on', '--out', str(tmp_path / 'snapshot.json')],
+                   run=runner, now=NOW)
+    document = json.loads((tmp_path / 'snapshot.json').read_text())
+    assert [(item['kind'], item['crew'], item['text']) for item in document['attention']] == [
+        ('run ended', 'crew-6', 'full suites (pid 555)')]
+    assert dashboard.summary(document).startswith('📊 15:04 · 2 active')

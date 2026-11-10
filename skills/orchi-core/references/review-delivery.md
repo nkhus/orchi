@@ -72,7 +72,11 @@ action; never reset review rounds or declare success to exhaust a budget.
 ## Integrate
 
 Check the PR target explicitly. If it moved after verification, resolve conflicts,
-inspect compatibility, and rerun affected checks. Serialize merges into a shared
+inspect compatibility, and rerun affected checks. Where no CI runs the suites,
+run the full applicable suites once per PR, on the head that will merge: after
+the review's repairs and the last update from the target. Before that, and after
+a later small change, run only the checks the change touches; a full rerun is
+for a change that reaches shared code or a merge that brought conflicts. Serialize merges into a shared
 target, rechecking when another Epic has landed since validation. Squash the Epic
 PR into its Initiative branch, or into main for a standalone Epic.
 
@@ -100,7 +104,10 @@ remote merge, and merging is not deployment.
 ## Step back between Epics
 
 Each time an Epic merges into its Initiative branch, look at the combined result:
-run it, or read it as its user would. Check whether the remaining Epics still
+run it, or read it as its user would. When the Epic changes what users see, show
+it to the user as the pool reference's
+[Autonomous mode](pool.md#autonomous-mode) says; after the first such Epic, the
+next starts only on their yes. Check whether the remaining Epics still
 fit what it shows (their outcomes, dependencies, and deferred fields), whether
 modules the Epic touched grew too large or lost clear boundaries, and whether
 checks became slow enough to hold up later Epics. Re-plan what it shows as

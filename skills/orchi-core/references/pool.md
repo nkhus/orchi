@@ -13,14 +13,15 @@ every other skill runs as a crew's or worker's assignment.
 | Session | Created by | In the sidebar | Talks to | Never |
 | --- | --- | --- | --- | --- |
 | Orchi (`/orchi`) | the user | top level, in the group `Orchi pool · <repo>` | the user; crews | Plans, researches, edits code, or merges into main without the user's yes while autonomous mode is off |
-| Crew | Orchi, on demand or when it builds the pool for autonomous mode | top level, in the group `Orchi pool · <repo>` | Orchi; the user while autonomous mode is off; its workers | Writes code itself, takes a second assignment (a planner queues one), or starts sessions other than its workers and a planner's sub-planners |
-| Worker (`orchi-work`) | its crew, in the user's turn, for autonomous mode | nested under its crew | its crew only | Talks to the user, pushes, or opens PRs |
+| Crew | Orchi, on demand or when it builds the pool for autonomous mode | top level, in the group `Orchi pool · <repo>` | Orchi; the user while autonomous mode is off; its workers | Writes code itself, takes a second assignment (a planner queues one), or starts sessions other than a planner's sub-planners |
+| Worker (`orchi-work`) | Orchi, in the user's turn, for a crew that holds dev lead or designer work | nested under Orchi | its crew only | Talks to the user, pushes, or opens PRs |
 
 Orchi is a persona, and its session is always titled `Orchi`; it never renames
 itself after a request. A free crew is titled `crew-<k>`; an assigned one
 `[<role>] <topic>`, where `<role>` is `researcher`, `prototyper`, `planner`,
 `designer`, or `dev-lead`, and `<topic>` is the lowercase tag of the Issue it holds
-(`[planner] pay`, `[dev-lead] pay-token`). A worker is always `worker-<n>`.
+(`[planner] pay`, `[dev-lead] pay-token`). A worker is always `worker-<k>.<n>`,
+the `n`-th worker of `crew-<k>`.
 `crew-<k>` stays the crew's name in claims and messages, whatever its title.
 
 ## Roles
@@ -35,8 +36,14 @@ itself after a request. A free crew is titled `crew-<k>`; an assigned one
 | Dev lead | `orchi-deliver` | One standalone Task, standalone Epic, or Initiative | Its PR into main is merged |
 
 A crew writes no product code itself: a dev lead gives every change and review
-repair to a worker, or, without workers, to a writer subagent. A crew edits Issues and PRs, creates, merges, and pushes
-branches, resolves the conflicts of the merges it makes, and writes documents: a
+repair to a worker, or, until its workers exist, to a writer subagent. A dev lead
+is the decision centre of its Issue: it plans the Tasks, reads its workers'
+reports and diffs, decides, reviews, and talks to Orchi, and gives its workers
+every run that takes time as well: full check suites, a real-path run on a stand,
+and a merge of the base into its branch with its conflicts ([Workers](#workers)).
+It runs no long command and waits for no slot itself, so its conversation keeps
+the decisions and not the logs. A crew edits Issues and PRs, creates, merges, and pushes
+branches (a merge that conflicts goes to a worker in `merge` mode), and writes documents: a
 planner, researcher, or designer crew writes the planning documents its
 conversation with the user produces (the working folder's research, option, and
 plan files, `PRODUCT.md`, `DESIGN.md` from `document`, a surface brief, an
@@ -118,14 +125,15 @@ the group when it is missing, so that every session of the project sits in one
 sidebar section. It starts no crew ahead of work:
 
 1. For a request that needs a crew, in the user's turn, Orchi starts one with
-   its own worktree, named `crew-<k>` with the lowest `k` no session in the
-   group uses, titled `[<role>] <topic>`, detached to the top level, filed into
+   its own worktree, named `crew-<k>` with the lowest `k` no session in the group uses, as a crew or in a worker's title, titled `[<role>] <topic>`, detached to the top level, filed into
    the group, and given the [assignment](#assign-a-crew) as its brief.
 2. Work that becomes ready in a turn the user did not start (another item of a
    plan, a follow-up, a queued request) gets a start card in Orchi's report;
    the user's click starts its crew with the same brief.
-3. A crew started on demand has no workers: it gives writing to writer
-   subagents, as its role skill says. It claims its Issue itself when it loads,
+3. For dev lead or designer work, Orchi starts the crew's workers in the same
+   turn, as [Workers](#workers) says. A crew that takes such work in a turn the
+   user did not start (a planner that continues into delivery) gives writing to
+   writer subagents until Orchi starts its workers in the user's next turn. It claims its Issue itself when it loads,
    as `Assigned to crew-<k> (<its session id>) by <Orchi> on <date>, started
    <date>`, unless another claim holds it, which it reports as
    `<id> refused: claimed` before stopping.
@@ -135,7 +143,7 @@ sidebar section. It starts no crew ahead of work:
    first in delivery order, keeps its claim on that item, and reports
    `<id> now <role>`.
 5. When its work is done, Orchi sends `release`; on `crew-<k> released`, Orchi
-   archives it with the host's tool.
+   archives it and its workers with the host's tool.
 
 ## Autonomous development
 
@@ -149,31 +157,34 @@ crews, Orchi builds the pool in that turn:
    with its own worktree, a brief to run the crew setup below, and the title
    `crew-<k>`. It detaches each to the top level and files it into the group
    `Orchi pool · <repo>`.
-2. Each crew ends its first turn with one reply button, `Create workers`, in the
-   host's next-step box. Where there is none, it proposes its workers as start
-   cards; failing both, it asks the user to reply `yes`.
-3. The user's click or reply starts a user turn in the crew. In it the crew
-   starts its missing workers (3 unless Orchi's brief names another number), one
-   call at a time, each with its own worktree and the title `worker-<n>`, and a
-   brief to reply `ready` and wait for its crew.
-4. A session served over Remote Control cannot be cleared, so its starter turns
-   Remote Control off when the session reports after its first turn: Orchi on
-   `crew-<k> ready`, a crew on each `worker-<n> ready`.
-5. Orchi reports the pool: crews, workers, and anything that failed to start.
+2. In the same turn it starts each crew's missing workers (3 unless the user
+   names another number), one call at a time, each with its own worktree, the
+      title `worker-<k>.<n>`, the host name `worker-<k>.<n>`, and the worker's brief below, leaves them nested under itself, and files them into the group: only the starter can nest a session, and the crew's own turns are started by messages, which start no session.
+3. A session served over Remote Control cannot be cleared, so Orchi turns Remote Control off for each crew and worker it starts at its first wake after that session's first turn has ended, whatever the wake's event.
+4. Orchi reports the pool: crews, workers, and anything that failed to start.
    From then on it gives work to free pool crews by message in any turn, and a
    pool crew is cleared and reused, never archived.
 
-A crew's brief: `You are crew-<k> of the Orchi pool; Orchi is session <session id>. Follow the pool reference of the installed orchi skill (references/pool.md). End this turn with one reply button, Create workers, as its Autonomous development step 2 says. When the user answers, start <m> workers as step 3 says, turn their Remote Control off after their first turn, report crew-<k> ready: <started> workers to Orchi, and wait for an assignment.`
+A crew's brief: `You are crew-<k> of the Orchi pool; Orchi is session <session id>. Follow the pool reference of the installed orchi skill (references/pool.md). Your workers are the sessions titled worker-<k>.<n> in the host's session list. Report crew-<k> ready: <n> workers to Orchi and wait for an assignment.`
 
-A worker's brief: `You are worker-<n> of crew-<k> (<crew session id>). Talk only to your crew. Send it worker-<n> ready by message and wait for a task.`
+A worker's brief: `You are worker-<k>.<n> of crew-<k> (<crew session id>); Orchi is session <session id>. Talk only to your crew. Reply ready here and wait for a task.`
+
+Orchi starts workers in any turn the user starts, for each crew that holds or is
+given dev lead or designer work and has fewer than its number (3 for a pool crew,
+2 for a crew started on demand), in the same way, and tells the crew `your workers: <titles>`. A
+pool crew keeps its workers between assignments; a crew started on demand loses
+them when Orchi archives it.
 
 A session reads its own id from the host (`get_session` with `self`) each time
-it writes it in a brief, a claim, a task, or `--report-to`; it never takes the
-id from memory or from another message.
+it writes it in a brief, a claim, a task, or `--report-to`, and copies any other
+session's full id from the host's session list in the same turn before it
+messages that session; it never takes an id from memory or from another message,
+and never shortens one. After a compaction, ids in the conversation's summary
+are memory.
 
 Building the pool adds only what is missing, so it can run again. Orchi finds its crews with
 the host's session list filtered by the group, and a crew finds its workers
-among the sessions it started.
+there by their titles, `worker-<k>.<n>`.
 
 A pool has one Orchi: the session that started its crews (their
 `parentSessionId`), or the one they last accepted a takeover from. When
@@ -194,7 +205,11 @@ its parent.
 ## Messages
 
 Keep a message to one line that names the Issue or PR, so the receiver can read
-the rest from GitHub. The exception is a worker's `done`, which carries the
+the rest from GitHub. An answer, ruling, or brief that needs more goes into a
+comment on the Issue, and the message names the comment. Orchi sends a crew at
+most one message per wake, with everything it has for that crew, and sends no
+message that needs nothing from the crew (a notice that a limit is lifted, a
+thanks). The exception is a worker's `done`, which carries the
 role's full report (checks, red evidence, or a research answer with its
 sources), because nothing on GitHub holds it yet. A session accepts assignments, tasks, mode changes, updates, and
 releases only from its owner: a crew from Orchi, a worker from its crew. Any
@@ -212,12 +227,12 @@ its title, so the assignment states it.
 | Crew → Orchi | Delivery | `#<n> PR ready: <url>[, see it at <local link>]`, `#<n> follow-up: #<m>`, `#<n> waits for #<m>`, `#<n> done: <url>` |
 | Crew → Orchi | Status ([Stalls](#stalls)) | `<id> status: <what it does and what it waits for>` |
 | Crew → Orchi | Setup, takeover, update, release | `crew-<k> ready: <n> workers`, `<name> updated to <version>`, `crew-<k> refused: Orchi is session <session id>`, `crew-<k> released`, `crew-<k> not released: <reason>` |
-| Orchi → crew | Answer, queue, delivery, status | `<id> answer: <answer>`, `<id> remark: <the user's words>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged`, `<id> status?` |
+| Orchi → crew | Answer, queue, delivery, status, workers | `your workers: <titles>`, `<id> answer: <answer>`, `<id> remark: <the user's words>`, `#<m> queued`, `#<n> rework: <what the user asked>`, `#<n> merged`, `<id> status?` |
 | Orchi → crew | Mode, takeover, update, release | `autonomous <on or off>`, `Orchi is now session <session id>`, `Orchi is updated to <version> …` ([Update Orchi](#update-orchi)), `release` |
 | Sub-planner ↔ planner | Planning | the crew's messages to Orchi and Orchi's to a crew, between them |
-| Worker → crew | Setup, task | `worker-<n> ready`, `#<task> question: <question>`, `#<task> done: <commit>` and the role's report, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
+| Worker → crew | Task | `#<task> question: <question>`, `#<task> done: <commit>` and the role's report, `#<task> blocked: <reason>`, `#<task> not ready: <what is missing>` |
 | Crew → worker | Task | `#<task> answer: <answer>` |
-| Crew ↔ worker | Release | `release`; `worker-<n> released`, `worker-<n> not released: <reason>` |
+| Crew ↔ worker | Release | `release`; `worker-<k>.<n> released`, `worker-<k>.<n> not released: <reason>` |
 
 A crew whose work waits for an Issue it does not hold appends `, waits for #<m>`
 to its work reference and reports `#<n> waits for #<m>`; once #<m> has merged,
@@ -231,8 +246,19 @@ report, and Orchi passes on the user's reply as
 while autonomous mode is on; while it is off, the user answers in the crew. When
 the mode changes while a question waits, the crew asks it again in the new
 mode's way. All pool sessions run in one permission mode, so their messages are not
-held; a message from a session in another mode is held for approval, so the
+held for approval; a message from a session in another mode is, so the
 receiver tells the user which session sent it instead of asking for a resend.
+The app also holds a session's messages to other sessions after about ten in a
+row with no message from the user; the user's next message to that session lets
+them through. When Orchi's sends are held, it tells the user in one line which
+crews wait and that any reply to Orchi sends them on, and sends the rest after
+that reply.
+
+Some answers count only when the user types them in the session that asks:
+signing in, credentials, and an action the crew's or repository's rules want
+confirmed in its own conversation. A crew marks such a question `(user, here)`.
+Orchi never relays the answer: it gives the user the crew's link and the
+question in one line and asks them to answer there.
 
 ## Autonomous mode
 
@@ -247,10 +273,10 @@ when it changes. Turning it on builds the pool first, as Autonomous development 
 | | Off (default) | On |
 | --- | --- | --- |
 | A crew asks | The user, in its own session | Orchi only |
-| Decides the direction, scope, breakdown, and design | The user, as planning says | Orchi, and sends each decision to the crew as an instruction |
-| Merges into main | Orchi merges into main on the user's yes | Orchi merges it when the PR's checks pass, its Verification section records no unresolved `blocker` or `major`, every repair is rechecked, and the review confirmed each exception it adds or changes |
+| Decides the direction, scope, breakdown, and design | The user, as planning says | Orchi, except what only the user decides (below), and sends each decision to the crew as an instruction |
+| Merges into main | Orchi merges into main on the user's yes | Orchi merges it when the PR's checks pass, its Verification section records no unresolved `blocker` or `major`, every repair is rechecked, the review confirmed each exception it adds or changes, and its main outcome is proven on the real path (below) |
 
-While it is on, Orchi takes every decision the user would take: a researcher's
+While it is on, Orchi takes every decision the user would take, except those only the user decides (below): a researcher's
 direction and shape, a planner's scope and breakdown, a designer's references,
 engine, direction, and comps, and what only the user knows (their needs, their
 users, acceptance thresholds), which it decides as stated assumptions. Orchi
@@ -263,14 +289,40 @@ in the Issue's decision log as `decided by Orchi in autonomous mode, set by the
 user on <date>`, and Orchi lists the product and design decisions in its next
 report, one line each, so the user can revisit them.
 
+In both modes a crew decides by itself, and records in the Issue's decision log
+as `decided by crew-<k>`, every question whose answer keeps its Issue's agreed
+outcome, acceptance, and scope: how to build and check it, the order of its
+Tasks, a technical gap, a detail the Issue leaves open that its user would not
+notice, and the repair of a defect within scope. It asks Orchi (or, with the mode
+off, the user) only when the answer would change that outcome, acceptance, or
+scope, touches another crew's Issue, or is the user's own (below). Orchi answers
+a question a crew could have decided with `<id> answer: yours to decide`.
+
 In both modes, only the user decides money (paid services and the budget),
-access and credentials, deploying, anything destructive or irreversible, and
+access and credentials, deploying, anything destructive or irreversible,
+removing or replacing something users can do or see today, a change of an
+Initiative's direction (what it builds, or for whom), and
 checks they asked to do by hand; where a merge into main deploys, the merge waits
 for them. Never ask a technical question
 ([Orchi skill](../SKILL.md#research-propose-agree)). A crew marks such a
 question `(user)` in `<id> needs the user:`, and Orchi never answers it: while
 the mode is on, it waits for the user on Orchi's report, and the crew carries on
 with other work or waits.
+
+The user sees work in progress, not only at the end. When an Epic that changes
+what users see merges into its Initiative branch, the dev lead shows it: the
+`see it at` link and screenshots of what changed, with what it does in plain
+words. For the first such Epic of an Initiative, and for any Epic that removes
+or replaces something users have today, this is a `(user)` question, `continue
+the Initiative?`, and until the user's yes no other Epic of the Initiative starts or merges into its branch (Epics in flight go on up to their merge); later Epics go to the user as information in Orchi's next report.
+
+In both modes a PR into main whose Verification marks a claim of its main
+outcome `Limited` or `Not established` ([verdicts](testing.md#verdicts)), such
+as a feature shown only with stubbed services, fixtures, or prepared input,
+merges only on the user's yes to that gap, which Orchi names in plain words. A
+claim that something works without a person, or on a new site, file, or
+customer, is established only by a run on new input nobody prepared, through the
+product's own entry point.
 
 ## Assign a crew
 
@@ -317,8 +369,9 @@ holds an adopted claim is gone, Orchi rewrites the claim to a free crew and send
 it the same assignment, or starts a new crew with it as Sessions on demand
 says; it resumes from the claim, the Issue, and the PR's `Handoff`. A crew does
 the same for a lost worker's task with another worker. Orchi gives dev lead and
-designer work only to a pool crew that reported at least one worker, or to a
-crew it starts on demand, and never reassigns a crew in the wake it reported
+designer work first to a free crew that has workers; a crew without them takes it
+and writes through writer subagents until Orchi starts its workers in the user's
+next turn. Orchi never reassigns a crew in the wake it reported
 `released`, so its clear can land first.
 
 Orchi gives a dev lead or designer crew only an open, unclaimed Issue labelled
@@ -439,16 +492,23 @@ no unfinished task of the crew: it has reported `done` on its last task and owes
 no answer. A worker takes many tasks during one assignment and clears its
 conversation after each `done`, so each starts from its message and its Issue;
 the crew records each on its Issue as
-`Task <task> on worker-<n> (<session id>), branch <branch>` and sends:
+`Task <task> on worker-<k>.<n> (<session id>), branch <branch>` and sends:
 
-`You are worker-<n> of <crew title>. Invoke the orchi-work skill with: <mode> #<task> --branch <branch> --base <base>. Report to <crew session id>.`
+`You are worker-<k>.<n> of <crew title>. Invoke the orchi-work skill with: <mode> #<task> --branch <branch> --base <base>. Report to <crew session id>.` A `verify` task names the Issue or PR instead of a Task and ends with the checks to run: `verify #<n> --branch <branch>: <checks>`.
 
 The modes are `implement`, `fix`, and `design` (one ready Task, as the writer
-roles say) and `research` and `retrieve` (one read-only answer, given as
-`<mode> <id>: <question>` with no branch). A worker works only in its own
+roles say); `verify` (run the checks the crew names on the branch head, such as
+the full suites or a real-path run on a stand, wait for any shared slot itself,
+and report each result with its evidence and the commit it ran on; it edits
+nothing); `merge` (merge `--base` into the branch, resolve its conflicts, rerun
+the checks the conflicts touch, and commit the merge); and `research` and
+`retrieve` (one read-only answer, given as `<mode> <id>: <question>` with no
+branch). A worker works only in its own
 worktree, commits on the named branch, and never pushes; its crew reads the
 branch, which all worktrees of the repository share. When no worker is free, the
-work waits for one.
+work waits for one. A dev lead keeps its own turns short: it gives each run that
+takes more than a few minutes to a worker and reads the result when the worker
+reports, instead of running it or polling it itself.
 
 Git lets only one worktree check out a branch, so a session holds a branch only
 while it writes on it. A crew creates a branch without checking it out
@@ -474,15 +534,16 @@ A crew releases its workers, if it has any, when its own work is done. Then:
    that are neither merged nor pushed, no unanswered question, no background run
    of its own still running. It runs
    `git fetch` and `git switch --detach origin/<default>`, deletes the local
-   branches it created whose work is merged, and replies `worker-<n> released`,
-   or `worker-<n> not released: <reason>`.
-3. On `released`, the crew clears the worker with the host's tool.
+   branches it created whose work is merged, and replies `worker-<k>.<n>
+   released`, or `worker-<k>.<n> not released: <reason>`.
+3. The worker clears its own conversation as the last action of that turn, since
+   Orchi, not the crew, started it; a refused clear is retried at its next task.
 
 A crew is released when Orchi sends `release` after its work is done: `planned`,
 `declined`, or `done`. It releases its workers first, stops every background run
 it started that still runs (a leftover one holds the session, and the host then
 refuses to clear or archive it), then returns its own worktree to a detached `origin/<default>` and replies `crew-<k> released`; a crew
-started on demand stops there, and Orchi archives it. A pool crew clears
+started on demand stops there, and Orchi archives it and its workers. A pool crew clears
 its own conversation as the last action of its turn; nothing may follow it,
 because a message that arrives first drops the clear. The reply reaches Orchi
 before the clear lands, so Orchi renames the crew `crew-<k>` on the reply. When
@@ -498,7 +559,7 @@ clearing session retries on its next wake and tells its owner if the refusal
 persists; the user removes the cause. A worker's own clear after `done` is not
 retried. A cleared session keeps its title, parent,
 folder, branch, and settings. Nobody deletes a pool session, and Orchi archives
-only a crew started on demand that replied `released`.
+only a crew started on demand that replied `released`, with its workers.
 
 ## Stalls
 
@@ -508,8 +569,9 @@ Each session says which it is, and Orchi checks.
 
 - A crew or worker that ends a turn while a background run it started goes on
   ends that turn's text with one line, `Background: <what runs, and the slot it
-  waits for, if any>`; a run is a command, a subagent, or a worker's run the crew
-  waits for. The host wakes it when the run ends. A session that starts
+  waits for, if any>`, ending with `(pid <n>[, <m>])` for each command it runs in the background (it starts such a command with `echo pid $$;`, so its first output line names the shell that runs it); a run is a command, a subagent, or a worker's run the crew
+  waits for. The host wakes it when the run ends, unless the session restarted
+  meanwhile, which ends its runs without a wake. A session that starts
   a background run gives it its input and a time limit, so that it cannot wait
   for ever.
 - Orchi checks the pool at a wake when a crew holds work and the last check is
@@ -521,6 +583,7 @@ Each session says which it is, and Orchi checks.
   background run, and waits for no other Issue and no merge of its PR
   (`stalled`); one whose named run has gone on for more than 3 hours (`long
   run`); or, in autonomous mode, one whose question to Orchi waits (`question`).
+  It also lists, after 10 quiet minutes, an idle crew whose named commands, or those an idle worker of its own named, have all ended without waking anyone (`run ended`): none of their process ids runs any more, as after a restart.
   With no timer, a pool where nothing sends a message is checked at its next one.
 - For a `question`, Orchi reads the crew's question and answers it. For each other
   crew listed, Orchi sends `<id> status?`. The crew checks what it waits for: a background run that still moves (its output grows or it uses the
@@ -534,6 +597,24 @@ Each session says which it is, and Orchi checks.
 - When the host refuses to archive or clear a crew a second time, Orchi tells the
   user which crew and the host's reason (live work is often a command still
   running in it) and stops retrying.
+
+## Orchi's notes
+
+Orchi keeps `.orchi-tmp/orchi/notes.md` in its worktree, which no compaction
+loses, and reads it at every wake:
+
+- **Standing decisions:** what the user set aside, ruled, or asked to keep, one
+  line each with the date and their words. Orchi checks it before it raises a
+  topic, answers a crew, or plans a request, and never raises a topic set aside
+  until the user does.
+- **Questions for the user:** numbered, each with the crew that waits and since
+  when, in plain words; an item leaves the list once answered, and numbers are
+  not reused that day. Orchi's reports and status answers list the open ones by
+  number, so the user can answer `2: yes`.
+
+A new Orchi that takes the pool over copies the notes from the old Orchi's
+worktree when it can read them, and otherwise rebuilds them from the Issues'
+decision logs and the questions crews still wait on.
 
 ## Dashboard
 
