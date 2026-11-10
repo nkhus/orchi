@@ -50,6 +50,13 @@ ANSWER = timedelta(minutes=10)
 # A crew ends its `Background:` line with `(pid <n>[, <m>])` for each command it runs in the background.
 PIDS = re.compile(r'\(pids? (\d+(?:, *\d+)*)\)\s*$')
 ENDED = timedelta(minutes=10)
+# Orchi's notes: a heading line, a numbered question for the user (not an indented sub-item), a question that asks
+# the user's yes for a merge, and standing decisions that defer an Issue or hold a PR.
+HEADING = re.compile(r'^\s*#{1,6}\s+(.*)$')
+QUESTION = re.compile(r'^(?:[-*] )?(\d+)[.)]\s+(.+?)\s*$')
+MERGE = re.compile(r'^Merge PR #(\d+)\b')
+DEFERRED = re.compile(r'#(\d+)\s+deferred\b', re.IGNORECASE)
+HELD = re.compile(r'#(\d+)\s+on hold\b', re.IGNORECASE)
 
 
 def running(pid: int) -> bool:
@@ -74,6 +81,32 @@ ROLES = {'researcher': 'Researcher', 'prototyper': 'Prototyper', 'planner': 'Pla
          'dev-lead': 'Dev lead'}
 TITLE = re.compile(r'\[([a-z-]+)\] ')
 CHECKS = {'SUCCESS': 'passing', 'FAILURE': 'failing', 'ERROR': 'failing', 'PENDING': 'running', 'EXPECTED': 'running'}
+
+
+def notes(path: str | None) -> dict:
+    """Orchi's open questions for the user, the PRs they ask the user to merge, and the Issues and PRs the user deferred
+    or held, read from its notes; empty without them."""
+    found = {'questions': [], 'merges': [], 'deferred': [], 'held': []}
+    try:
+        with open(path, encoding='utf-8') as handle:
+            lines = handle.read().splitlines()
+    except (OSError, TypeError, ValueError):
+        return found
+    section = ''
+    for line in lines:
+        heading = HEADING.match(line)
+        if heading:
+            section = heading.group(1).strip().lower()
+        elif section == 'questions for the user' and (question := QUESTION.match(line)):
+            number, text = int(question.group(1)), question.group(2)
+            if all(item['number'] != number for item in found['questions']):
+                found['questions'].append({'number': number, 'text': text})
+                if merge := MERGE.match(text):
+                    found['merges'].append(int(merge.group(1)))
+        elif section == 'standing decisions':
+            for key, pattern in (('deferred', DEFERRED), ('held', HELD)):
+                found[key] += [int(n) for n in pattern.findall(line) if int(n) not in found[key]]
+    return found
 
 
 def role(title: str) -> str | None:
@@ -164,11 +197,14 @@ def snapshot(repo: str, github: dict, crews: list[dict], mode: str, now: datetim
 
 
 def waiting(document: dict) -> list[dict]:
-    """What waits for the user: crews that asked them something, and PRs into the default branch ready to merge."""
+    """What waits for the user: crews that asked them something, and PRs that wait for their yes to merge: those Orchi's
+    notes ask about, or, without notes, with autonomous mode off, PRs into the default branch ready to merge."""
     items = [{'kind': 'question', 'crew': crew['name'], 'issue': crew.get('issue'), 'text': crew.get('question') or ''}
              for crew in document['crews'] if crew['state'] == 'waiting']
+    asked = document.get('merges')
     items += [{'kind': 'merge', 'pull': pull['number'], 'text': pull['title']} for pull in document['pulls']
-              if pull['into_default'] and not pull['draft'] and pull['checks'] in {'passing', 'none'}]
+              if (pull['number'] in asked if asked is not None else document.get('mode') == 'off' and pull['into_default']
+                  and not pull['draft'] and pull['checks'] in {'passing', 'none'})]
     return items
 
 
@@ -257,6 +293,8 @@ def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: dat
     parser.add_argument('--crews', required=True, help='JSON file with the crews read from the host')
     parser.add_argument('--mode', required=True, choices=('on', 'off'), help='Whether autonomous mode is on')
     parser.add_argument('--out', required=True, help='Where to write the snapshot JSON')
+    parser.add_argument('--notes', help="Orchi's notes file, for its questions to the user and the deferred Issues")
+    parser.add_argument('--limit', type=int, default=3, help='The pool size: how many crews may hold work at once')
     args = parser.parse_args(argv)
     now = now or datetime.now().astimezone()
     try:
@@ -278,6 +316,9 @@ def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: dat
                     'attention': previous.get('attention') or [], 'background_since': previous.get('background_since') or {}}
         print(f'Orchi dashboard error: {detail}', file=sys.stderr)
     else:
+        if args.notes:
+            document.update(notes(args.notes))
+        document['limit'] = args.limit
         document['waiting'] = waiting(document)
         document['attention'] = attention(document, now, previous)
     with open(args.out, 'w', encoding='utf-8') as handle:

@@ -132,6 +132,26 @@ details[open] > summary .twisty { transform: rotate(90deg); }
 .panel[hidden] { display: none; }
 .empty { padding: 14px 16px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 14px; }
 footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+/* Actions: each button sends one request to Orchi, which the app asks the user to confirm. */
+.acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.act { appearance: none; font: 600 13px/1.2 var(--body); padding: 6px 12px; min-height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; white-space: nowrap; }
+.act:hover { border-color: var(--accent); color: var(--accent); }
+.act.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.act.primary:hover { color: var(--panel); filter: brightness(1.08); }
+.act:disabled { opacity: 0.55; cursor: default; filter: none; }
+.act:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.answer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: end; }
+.answer textarea { font: 14px/1.4 var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; resize: vertical; min-height: 38px; width: 100%; box-sizing: border-box; }
+.answer textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+.here { font-size: 13px; color: var(--muted); }
+.load { margin: -4px 0 12px; font-size: 13.5px; color: var(--muted); }
+.load b { color: var(--ink); font-weight: 600; }
+.asks { display: grid; gap: 8px; }
+.ask { display: grid; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 10px; padding: 12px 16px; }
+.ask p { margin: 0; overflow-wrap: anywhere; }
+#toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); width: max-content; max-width: min(92vw, 520px); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); z-index: 10; }
+#toast[hidden] { display: none; }
+@media (max-width: 560px) { .answer { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .node { grid-template-columns: minmax(0, 1fr); } .node .side { justify-content: start; } .children { margin-left: 2px; padding-left: 10px; } }
 @media (prefers-reduced-motion: no-preference) { .bar .fill { transition: width 0.4s ease; } }
 </style>
@@ -154,10 +174,11 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       <button class="tab" type="button" role="tab" id="tab-backlog" aria-controls="panel-backlog" aria-selected="false" tabindex="-1">Backlog <span class="count" id="count-backlog">—</span></button>
     </div>
     <div class="panel" id="panel-crews" role="tabpanel" aria-labelledby="tab-crews">
+      <section id="asks-section" hidden><h2>Orchi's questions for you</h2><div class="asks" id="asks"></div></section>
       <section><h2>Crews</h2><div class="crews" id="crews"><div class="empty">Orchi fills this in on its first refresh. Every crew appears here, ordered by state, with what it does now.</div></div></section>
     </div>
     <div class="panel" id="panel-backlog" role="tabpanel" aria-labelledby="tab-backlog" hidden>
-      <section><h2>Backlog</h2><div id="work"><div class="empty">Open Initiatives, their Epics, and their Tasks appear here as a tree with their progress.</div></div></section>
+      <section><h2>Backlog</h2><p class="load" id="load" hidden></p><div id="work"><div class="empty">Open Initiatives, their Epics, and their Tasks appear here as a tree with their progress.</div></div></section>
       <div class="cols">
         <section><h2>Pull requests</h2><div id="pulls"><div class="empty">No data yet.</div></div></section>
         <section><h2>Planning queue</h2><div id="planning"><div class="empty">No data yet.</div></div></section>
@@ -165,6 +186,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       <section><h2>Recently merged</h2><div id="merged"><div class="empty">No data yet.</div></div></section>
     </div>
   </div>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
   <footer id="footer">Read-only view of the Orchi pool from GitHub and the pool's sessions. Orchi refreshes it when something changes for you; ask Orchi to refresh it, or for anything else.</footer>
 </div>
 
@@ -241,6 +263,75 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   // Initiatives and Epics the user folded stay folded across refreshes while the page is open.
   const folded = new Set();
 
+  // Requests to Orchi. The page hands each one to the conversation beside it (Orchi's, when the user opened the page
+  // from Orchi's link) on the user's click, and the app asks the user to confirm it; the page never starts a turn
+  // itself. Without a conversation to take it the page stays read-only and shows no buttons.
+  let room = null, canSend = "off";
+  // An older app may lack the check; then nothing can be sent.
+  const checkSend = () => Promise.resolve().then(() => room.canSendToClaudeSession()).catch(() => "off");
+  // Only a conversation open beside the page: elsewhere a request could reach a new conversation that is not Orchi.
+  const SENDABLE = new Set(["available"]);
+  const live = () => Boolean(room) && SENDABLE.has(canSend);
+  // A sent button stays `Sent` for two minutes: the app's dialog may be cancelled, and nothing tells the page.
+  const SENT_FOR = 120000, LIMIT = 3900;
+  const sent = new Map(), drafts = new Map();
+  const isSent = (key) => sent.has(key) && Date.now() - sent.get(key) < SENT_FOR;
+  // A short fingerprint of a question, so an answer typed for one question never shows under the next.
+  const mark = (text) => { let h = 0; for (const c of String(text)) h = (h * 31 + c.codePointAt(0)) >>> 0; return h.toString(36); };
+  // Control and format characters, which the app refuses in a request, out of what the user typed.
+  const clean = (text) => String(text).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u00AD\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF\uE000-\uF8FF]/g, "");
+  let toastTimer = null;
+  function note(text) {
+    const toast = $("toast");
+    toast.textContent = text; toast.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, 6000);
+  }
+  const FAILED = {claude_unavailable: "Not sent: open this page beside Orchi's conversation in the Claude app.", rate_limited: "Not sent: one request at a time; try again in a moment.",
+    invalid_argument: "Not sent: the request is too long or has characters the app refuses; shorten it."};
+  // One request: `action` and its fields are what Orchi acts on; `request` says it in a sentence.
+  const request = (action, fields, label, sentence) => ({label, orchi_dashboard: "request", action, request: sentence, ...fields});
+  function send(key, data) {
+    if (new TextEncoder().encode(JSON.stringify(data)).length > LIMIT) { note("Too long to send: shorten the answer."); return; }
+    let pending;
+    try {
+      pending = room.sendToClaudeSession(data, {deliver: "send", attachPresence: false, onStatus: (status) => {
+        if (status.state === "sent") note("Orchi has your request.");
+        else if (status.state === "failed") { sent.delete(key); rerender(); note("Not sent: " + (status.reason || "unavailable") + "."); }
+      }});
+    } catch (error) { note("Not sent."); return; }
+    sent.set(key, Date.now());
+    rerender();
+    pending.then(() => note("Confirm it in the app; it goes to the conversation beside this page."),
+      (error) => { sent.delete(key); rerender(); note(FAILED[error && error.code] || "Not sent: " + ((error && (error.message || error.code)) || "unknown error") + "."); });
+  }
+  // A button that sends one request; `build` returns the request, or null when there is nothing to send yet.
+  function act(text, key, build, options = {}) {
+    const done = isSent(key);
+    const button = el("button", {type: "button", class: "act" + (options.primary ? " primary" : ""), disabled: done, title: options.title, "data-key": key}, done ? "Sent" : text);
+    button.addEventListener("click", (event) => {
+      event.preventDefault(); event.stopPropagation();
+      const data = build();
+      if (data) send(key, data); else if (options.empty) options.empty();
+    });
+    return button;
+  }
+  // A box for the user's answer, kept across refreshes while its question is on the page.
+  function answerBox(key, label, build) {
+    const box = el("textarea", {rows: "2", maxlength: "1000", "data-draft": key, "aria-label": label, placeholder: "Your answer"});
+    box.value = drafts.get(key) || "";
+    box.addEventListener("input", () => drafts.set(key, box.value));
+    const text = () => clean(box.value).trim();
+    return el("div", {class: "answer"}, box, act("Send answer", key, () => text() ? build(text()) : null,
+      {primary: true, empty: () => box.focus()}));
+  }
+  const crewActs = (crew, look) => el("div", {class: "acts"},
+    act(look ? "Wake it" : "What's up?", "status-" + crew.name, () => request("status", {crew: crew.name, issue: crew.issue || null},
+      "Status of " + crew.name, `Ask ${crew.name} what it does and what it waits for, and tell me in two lines.`)));
+  const hereNote = () => el("div", {class: "here"}, "Answer it in the crew's own conversation: only there does it count.");
+  const mergeActs = (pr) => el("div", {class: "acts"},
+    act("Merge", "merge-" + pr.number, () => request("merge", {pull: pr.number}, "Merge PR #" + pr.number, `Yes, merge PR #${pr.number} once its checks pass.`), {primary: true}),
+    act("Hold", "hold-" + pr.number, () => request("hold", {pull: pr.number}, "Hold PR #" + pr.number, `Do not merge PR #${pr.number} yet; ask me what to change.`)));
+
   // Tabs switch on the page only; a reload opens Crews again.
   const TABS = ["crews", "backlog"];
   function selectTab(name, focus) {
@@ -273,7 +364,24 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 
     const meta = [pill("Updated " + time(doc.updated) + " · " + ago(doc.updated), "plain")];
     if (doc.mode) meta.push(pill("Autonomous mode " + doc.mode, doc.mode === "on" ? "accent" : "plain"));
+    if (live()) {
+      meta.push(act("Refresh", "refresh", () => request("refresh", {}, "Refresh the dashboard", "Refresh the dashboard.")));
+      if (doc.mode) { const to = doc.mode === "on" ? "off" : "on";
+        meta.push(act("Autonomous mode " + to, "mode-" + to, () => request("mode", {to}, "Autonomous mode " + to, `Turn autonomous mode ${to}.`))); }
+    }
     $("meta").replaceChildren(...meta);
+
+    // Orchi's numbered questions for the user, from its notes; with buttons, each takes an answer here.
+    const questions = doc.questions || [];
+    $("asks-section").hidden = questions.length === 0;
+    const byPull = new Map(pulls.map((pr) => [pr.number, pr]));
+    $("asks").replaceChildren(...questions.map((item) => {
+      const merge = /^Merge PR #(\d+)/.exec(item.text), pr = merge && byPull.get(Number(merge[1]));
+      return el("div", {class: "ask"}, el("p", {}, el("b", {class: "mono"}, item.number + ". "), item.text),
+        !live() ? null : pr ? mergeActs(pr) : /\(user, here\)/.test(item.text) ? hereNote()
+          : answerBox("question-" + item.number + "-" + mark(item.text), "Answer to question " + item.number, (text) => request("note_answer", {question: item.number, text},
+            "Answer to question " + item.number, `My answer to your question ${item.number} is in text.`)));
+    }));
 
     const banner = $("banner");
     if (doc.error) { banner.className = "banner"; banner.textContent = "The last refresh failed: " + doc.error + ". The page shows the refresh before it."; banner.hidden = false; }
@@ -286,6 +394,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     $("strip").replaceChildren(...stats.map(([n, label, tone]) => el("div", {class: "stat" + (tone ? " " + tone : "")}, el("b", {}, n), el("span", {}, label))));
 
     const asking = crews.filter((crew) => crew.state === "waiting").length;
+    // PRs that wait for the user's yes: those Orchi's notes ask about; Merge and Hold show only on them.
+    const asked = new Set(waiting.filter((item) => item.kind === "merge").map((item) => item.pull)), held = new Set(doc.held || []);
     $("count-crews").textContent = crews.length;
     $("count-wait").textContent = asking + " wait";
     $("count-wait").hidden = asking === 0;
@@ -321,10 +431,24 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         issue && crew.state !== "free" ? estBar(estimate(crew, issue)) : null,
         now.length ? el("div", {class: "now"}, el("b", {}, "In progress now"), now.slice(0, 3).map((item) => el("div", {}, kind(item), link(item.url, "#" + item.number), " ", item.title, item.parent !== crew.issue && byNumber.get(item.parent) ? el("span", {class: "muted"}, " · in " + byNumber.get(item.parent).kind + " #" + item.parent) : null)), now.length > 3 ? el("span", {class: "muted"}, `and ${now.length - 3} more`) : null) : null,
         crew.question && crew.state === "waiting" ? el("div", {class: "question"}, crew.question) : null,
+        // A question marked `(user, here)` counts only when typed in the crew's own conversation, so it takes no answer here.
+        live() && crew.question && crew.state === "waiting" ? (/\(user, here\)/.test(crew.question) ? hereNote()
+          : answerBox("answer-" + crew.name + "-" + mark(crew.question), "Answer to " + crew.name, (text) => request("answer", {crew: crew.name, issue: crew.issue || null, question: clean(crew.question).slice(0, 300), text},
+            "Answer for " + crew.name, `Pass my answer in text on to ${crew.name}.`))) : null,
         pr ? el("div", {style: "display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13.5px"}, link(pr.url, "PR #" + pr.number), pill(pr.draft ? "Draft" : "Ready", pr.draft ? "plain" : "accent"), pill(...CHECKS[pr.checks] || [pr.checks, ""])) : null,
+        live() && pr && asked.has(pr.number) ? mergeActs(pr) : null,
+        live() && crew.role ? crewActs(crew, look) : null,
         dots.length ? el("div", {class: "workers", "aria-label": `${workers.busy || 0} of ${workers.total} workers busy`}, dots, el("span", {}, `${workers.busy || 0}/${workers.total} workers busy`)) : null);
     }) : [empty("No crews found in the pool's sidebar group.")]));
 
+    const deferred = new Set(doc.deferred || []);
+    // The pool size is the most crews that hold work at once; with a free pool crew or room below the size, work starts now.
+    const free = crews.filter((crew) => stateOf(crew) === "free"), busy = crews.filter((crew) => crew.role && stateOf(crew) !== "free");
+    const limit = Number(doc.limit) || 3, space = free.length > 0 || busy.length < limit;
+    $("load").hidden = false;
+    $("load").replaceChildren(el("b", {}, `${busy.length} of ${limit} crews busy`), " · ",
+      free.length ? `${free.length} free (${free.map((crew) => crew.name).join(", ")}): work you take starts now.`
+        : space ? "room for one more crew: work you take starts a new one." : "the pool is full: work you take waits for the next crew that frees up.");
     const order = {claimed: 0, ready: 1, check: 2, blocked: 3, todo: 4};
     const sorted = (items) => items.sort((a, b) => (order[a.status] - order[b.status]) || a.number - b.number);
     const childrenOf = (item) => sorted(work.filter((w) => w.parent === item.number));
@@ -332,9 +456,19 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       const [text, tone] = STATUS[item.status] || [item.status, ""];
       const crew = crews.find((c) => c.name === item.crew);
       const kids = childrenOf(item);
+      const held = deferred.has(item.number), open = !item.crew && item.status !== "claimed";
+      const ref = item.kind + " #" + item.number;
+      // Work no crew holds can be taken, planned, or deferred from here; Orchi checks it as for any request.
+      const acts = live() && open ? (held
+        ? [act("Resume", "resume-" + item.number, () => request("resume", {issue: item.number}, "Resume " + ref, `Take ${ref} back into the queue.`))]
+        : [item.status === "ready" ? (space
+            ? act("Take", "take-" + item.number, () => request("take", {issue: item.number, busy: busy.length, limit}, "Take " + ref, `Give ${ref} to a crew now.`), {primary: true, title: free.length ? free[0].name + " is free" : `${busy.length} of ${limit} crews busy`})
+            : act("Queue", "take-" + item.number, () => request("take", {issue: item.number, busy: busy.length, limit}, "Queue " + ref, `Queue ${ref} for the next crew that frees up; start no new crew for it.`), {title: "The pool is full"})) : null,
+          act("Plan", "plan-" + item.number, () => request("plan", {issue: item.number}, "Plan " + ref, `Have a planner plan ${ref}.`)),
+          act("Defer", "defer-" + item.number, () => request("defer", {issue: item.number}, "Defer " + ref, `Defer ${ref}: give it to no crew until I say so.`))]) : [];
       const row = el(kids.length ? "summary" : "div", {class: "node lvl-" + level},
         el("p", {}, kids.length ? el("span", {class: "twisty", "aria-hidden": "true"}, "▸") : null, kind(item), link(item.url, "#" + item.number), " ", item.title),
-        el("span", {class: "side"}, pill(text, tone), crew ? el("span", {class: "muted"}, crew.title) : item.crew ? el("span", {class: "muted mono"}, item.crew) : null),
+        el("span", {class: "side"}, held ? pill("Deferred", "plain") : pill(text, tone), crew ? el("span", {class: "muted"}, crew.title) : item.crew ? el("span", {class: "muted mono"}, item.crew) : null, acts.filter(Boolean).length ? el("span", {class: "acts"}, acts) : null),
         bar(item.progress, unitOf(item.kind)));
       if (!kids.length) return row;
       const box = el("details", {open: !folded.has(item.number)}, row, el("div", {class: "children"}, kids.map((kid) => node(kid, level + 1))));
@@ -351,7 +485,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 
     $("pulls").replaceChildren(pulls.length ? el("div", {class: "list"}, pulls.map((pr) => el("div", {class: "row", style: "border-left-color:var(--line)"},
       el("span", {class: "mono"}, "#" + pr.number), el("p", {}, link(pr.url, pr.title), el("br"), el("span", {class: "muted mono"}, "into " + pr.base)),
-      el("span", {style: "display:grid;gap:4px;justify-items:end"}, waiting.some((item) => item.kind === "merge" && item.pull === pr.number) ? pill("Waits for your yes", "warn") : null, pill(pr.draft ? "Draft" : "Ready", pr.draft ? "plain" : "accent"), pill(...CHECKS[pr.checks] || [pr.checks, ""]))))) : empty("No open pull requests."));
+      el("span", {style: "display:grid;gap:4px;justify-items:end"}, held.has(pr.number) ? pill("On hold", "plain") : asked.has(pr.number) ? pill("Waits for your yes", "warn") : null, pill(pr.draft ? "Draft" : "Ready", pr.draft ? "plain" : "accent"), pill(...CHECKS[pr.checks] || [pr.checks, ""]),
+        live() && asked.has(pr.number) ? mergeActs(pr) : null)))) : empty("No open pull requests."));
 
     const planning = doc.planning || [];
     $("planning").replaceChildren(planning.length ? el("div", {class: "list"}, planning.map((item) => el("div", {class: "row", style: "border-left-color:var(--accent)"},
@@ -362,17 +497,41 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     $("merged").replaceChildren(merged.length ? el("div", {class: "table-wrap"}, el("table", {}, el("tbody", {}, merged.map((pr) => el("tr", {},
       el("td", {class: "mono muted"}, time(pr.merged_at)), el("td", {class: "title"}, link(pr.url, "#" + pr.number), " ", pr.title), el("td", {class: "mono muted"}, "into " + pr.base)))))) : empty("No merges yet."));
 
-    $("footer").textContent = "Read-only view of " + (doc.repository || "the repository") + " from GitHub and the pool's sessions. Orchi refreshes it when something changes for you; ask Orchi to refresh it, or for anything else.";
+    $("footer").textContent = "The Orchi pool of " + (doc.repository || "the repository") + ", from GitHub and the pool's sessions. Orchi refreshes it when something changes for you. "
+      + (live() ? "Each button sends your request to Orchi, and the app asks you to confirm it." : "Open this page beside Orchi's conversation in the Claude app to answer, merge, and take work from here.");
   }
 
-  // Keep "x min ago" current between snapshots.
-  setInterval(() => { if (last) render(last); }, 60000);
+  // Render again, keeping the answer box the user is typing in focused, with its caret.
+  function rerender() {
+    if (!last) return;
+    const active = document.activeElement, data = active && active.dataset ? active.dataset : {};
+    const caret = data.draft ? [active.selectionStart, active.selectionEnd] : null;
+    render(last);
+    // Answers whose question has left the page are dropped.
+    const shown = new Set([...document.querySelectorAll("textarea[data-draft]")].map((box) => box.dataset.draft));
+    for (const key of drafts.keys()) if (!shown.has(key)) drafts.delete(key);
+    const again = data.draft ? document.querySelector(`textarea[data-draft="${CSS.escape(data.draft)}"]`)
+      : data.key ? document.querySelector(`button[data-key="${CSS.escape(data.key)}"]`) : null;
+    if (again) { again.focus(); if (caret) again.setSelectionRange(...caret); }
+  }
+  // Keep "x min ago" current between snapshots, and the buttons in step with whether a conversation can take a request.
+  setInterval(async () => {
+    if (room) { const before = canSend; canSend = await checkSend(); if (before !== canSend) return rerender(); }
+    if (last && !(document.activeElement && document.activeElement.dataset && document.activeElement.dataset.draft)) rerender();
+  }, 60000);
+
+  (async () => {
+    room = await (window.claude && window.claude.use ? window.claude.use("room") : null);
+    if (!room) return;
+    canSend = await checkSend();
+    rerender();
+  })();
 
   (async () => {
     const db = await (window.claude && window.claude.use ? window.claude.use("db") : null);
     if (!db) { $("meta").replaceChildren(pill("Live data is unavailable in this view", "warn")); return; }
     const listen = () => db.doc("snapshot/current").onSnapshot(
-      (snap) => { if (snap.exists) render(snap.data()); },
+      (snap) => { if (snap.exists) { last = snap.data(); rerender(); } },
       (error) => { if (error.code === "unavailable") setTimeout(listen, 5000); else $("meta").replaceChildren(pill("Live data stopped: " + error.code, "warn")); });
     listen();
   })();
