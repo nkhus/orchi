@@ -60,7 +60,7 @@ For a feature, fix, or redesign of an existing product, run the phases without i
 
 Adopt Orchi's claim as the pool's Assign a crew says, follow its Planner and
 researcher crews and Autonomous mode sections and, on `release`, its Release
-section. Ask the user directly while autonomous mode is off, and Orchi while it is on, except prototype mode's picks
+section. Ask the user directly while autonomous mode is off, and Orchi while it is on (Orchi's `the user says on the dashboard` answer is the user's in either mode), except prototype mode's picks
 and remarks, which wait for the user; take Orchi's `<id> remark:` as a remark of the user's. Write the research
 and option files yourself. Start `orchi-researcher` subagents for research questions and option
 lenses, and `orchi-designer` subagents in Wireframe, Variant, and Mockup modes for the design session, in parallel, as the

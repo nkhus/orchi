@@ -166,7 +166,8 @@ def test_a_quiet_crew_on_its_work_or_an_hours_long_background_run_needs_a_look(t
         looks = [(item['kind'], item['crew'], item['unanswered']) for item in document['attention']]
         assert looks == [('stalled', 'crew-3', False), ('long run', 'crew-6', False)]
         assert document['attention'][1]['text'] == 'visual suite, slot 0'
-        assert dashboard.summary(document) == '📊 15:04 · 4 active · 2 wait for you · 4 PRs · 2 need a look'
+        # In autonomous mode Orchi merges ready PRs itself, so without notes none waits for the user's yes.
+        assert dashboard.summary(document) == '📊 15:04 · 4 active · 1 wait for you · 4 PRs · 2 need a look'
         crews[2]['question'] = 'Which scale?'
         assert [item['kind'] for item in check(crews, NOW)['attention']] == ['stalled', 'question', 'long run']
         assert [item['kind'] for item in check(crews, NOW, mode='off')['attention']] == ['stalled', 'long run']
@@ -228,3 +229,18 @@ def test_a_background_run_whose_processes_ended_without_a_wake_needs_a_look(tmp_
     assert [(item['kind'], item['crew'], item['text']) for item in document['attention']] == [
         ('run ended', 'crew-6', 'full suites (pid 555)')]
     assert dashboard.summary(document).startswith('📊 15:04 · 2 active')
+
+
+def test_orchis_notes_give_the_page_its_questions_and_deferred_issues(tmp_path):
+    notes = tmp_path / 'notes.md'
+    notes.write_text('# Orchi notes\n\n## Standing decisions\n- 2026-11-09 Yandex set aside\n- #32 deferred by the user on 2026-11-10\n'
+                     '- #88 on hold by the user on 2026-11-10\n\n## Questions for the user\n2. Keep the old export? (crew-1, since 10:40)\n'
+                     '3) Ship on Friday?\n   1. an indented option, not a question\n- 4. Merge PR #88? Feed fixes\n'
+                     '## Answered questions\n5. Old, answered\n', encoding='utf-8')
+    found = dashboard.notes(str(notes))
+    assert found['questions'] == [{'number': 2, 'text': 'Keep the old export? (crew-1, since 10:40)'},
+                                  {'number': 3, 'text': 'Ship on Friday?'},
+                                  {'number': 4, 'text': 'Merge PR #88? Feed fixes'}]
+    assert found['merges'] == [88] and found['deferred'] == [32] and found['held'] == [88]
+    nothing = {'questions': [], 'merges': [], 'deferred': [], 'held': []}
+    assert dashboard.notes(str(tmp_path / 'missing.md')) == nothing and dashboard.notes(None) == nothing
