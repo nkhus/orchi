@@ -134,6 +134,7 @@ details[open] > summary .twisty { transform: rotate(90deg); }
 footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
 /* Actions: each button sends one request to Orchi, which the app asks the user to confirm. */
 .acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.crew-work .acts, .row p .acts { display: inline-flex; margin-left: 8px; vertical-align: middle; }
 .act { appearance: none; font: 600 13px/1.2 var(--body); padding: 6px 12px; min-height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; white-space: nowrap; }
 .act:hover { border-color: var(--accent); color: var(--accent); }
 .act.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
@@ -327,6 +328,11 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   const crewActs = (crew, look) => el("div", {class: "acts"},
     act(look ? "Wake it" : "What's up?", "status-" + crew.name, () => request("status", {crew: crew.name, issue: crew.issue || null},
       "Status of " + crew.name, `Ask ${crew.name} what it does and what it waits for, and tell me in two lines.`)));
+  // Any Issue on the page can be explained: Orchi has it read from GitHub and tells the user about it in plain words.
+  // A planning item's kind is a queue state (`needs-planning`, `Exploration`), so it is named as an Issue.
+  const issueRef = (item) => (["Initiative", "Epic", "Task"].includes(item.kind) ? item.kind : "Issue") + " #" + item.number;
+  const explainAct = (item) => act("Explain", "explain-" + item.number, () => request("explain", {issue: item.number}, "Explain " + issueRef(item),
+    `Explain ${issueRef(item)} to me in plain words: what it is for, what is done, what is left, and what waits for me.`), {title: "Orchi tells you about it in the conversation"});
   const hereNote = () => el("div", {class: "here"}, "Answer it in the crew's own conversation: only there does it count.");
   const mergeActs = (pr) => el("div", {class: "acts"},
     act("Merge", "merge-" + pr.number, () => request("merge", {pull: pr.number}, "Merge PR #" + pr.number, `Yes, merge PR #${pr.number} once its checks pass.`), {primary: true}),
@@ -423,7 +429,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         el("div", {class: "crew-head"}, el("div", {class: "crew-title"}, crew.title, el("small", {}, [crew.role, crew.name].filter(Boolean).join(" · "))),
           el("div", {class: "pills"}, crew.remote ? pill("Remote Control on", "bad", "A session served over Remote Control cannot be cleared") : null, look ? pill("Needs a look", "bad") : null, pill(stateText, tone))),
         path.length ? el("div", {class: "path", "aria-label": "Part of"}, path.flatMap((item, i) => [i ? el("span", {class: "sep"}, "›") : null, el("span", {}, item.kind + " ", link(item.url, "#" + item.number), " " + item.title)])) : null,
-        issue ? el("div", {class: "crew-work"}, kind(issue), link(issue.url, "#" + issue.number), " ", issue.title) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
+        issue ? el("div", {class: "crew-work"}, kind(issue), link(issue.url, "#" + issue.number), " ", issue.title, live() ? el("span", {class: "acts"}, explainAct(issue)) : null) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
         crew.stage && state !== "free" ? el("div", {class: "stage" + (idle ? " last" : "")}, idle ? "Last step: " + crew.stage : crew.stage) : null,
         look ? el("div", {class: "look-note"}, lookText(look)) : null,
         state === "background" ? el("div", {class: "stage"}, "Running in the background: " + crew.background + (runSince(crew) ? " · since " + time(runSince(crew)) + " (" + ago(runSince(crew)) + ")" : "")) : null,
@@ -459,13 +465,13 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       const held = deferred.has(item.number), open = !item.crew && item.status !== "claimed";
       const ref = item.kind + " #" + item.number;
       // Work no crew holds can be taken, planned, or deferred from here; Orchi checks it as for any request.
-      const acts = live() && open ? (held
+      const acts = !live() ? [] : [...(open ? (held
         ? [act("Resume", "resume-" + item.number, () => request("resume", {issue: item.number}, "Resume " + ref, `Take ${ref} back into the queue.`))]
         : [item.status === "ready" ? (space
             ? act("Take", "take-" + item.number, () => request("take", {issue: item.number, busy: busy.length, limit}, "Take " + ref, `Give ${ref} to a crew now.`), {primary: true, title: free.length ? free[0].name + " is free" : `${busy.length} of ${limit} crews busy`})
             : act("Queue", "take-" + item.number, () => request("take", {issue: item.number, busy: busy.length, limit}, "Queue " + ref, `Queue ${ref} for the next crew that frees up; start no new crew for it.`), {title: "The pool is full"})) : null,
           act("Plan", "plan-" + item.number, () => request("plan", {issue: item.number}, "Plan " + ref, `Have a planner plan ${ref}.`)),
-          act("Defer", "defer-" + item.number, () => request("defer", {issue: item.number}, "Defer " + ref, `Defer ${ref}: give it to no crew until I say so.`))]) : [];
+          act("Defer", "defer-" + item.number, () => request("defer", {issue: item.number}, "Defer " + ref, `Defer ${ref}: give it to no crew until I say so.`))]) : []), explainAct(item)];
       const row = el(kids.length ? "summary" : "div", {class: "node lvl-" + level},
         el("p", {}, kids.length ? el("span", {class: "twisty", "aria-hidden": "true"}, "▸") : null, kind(item), link(item.url, "#" + item.number), " ", item.title),
         el("span", {class: "side"}, held ? pill("Deferred", "plain") : pill(text, tone), crew ? el("span", {class: "muted"}, crew.title) : item.crew ? el("span", {class: "muted mono"}, item.crew) : null, acts.filter(Boolean).length ? el("span", {class: "acts"}, acts) : null),
@@ -490,7 +496,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 
     const planning = doc.planning || [];
     $("planning").replaceChildren(planning.length ? el("div", {class: "list"}, planning.map((item) => el("div", {class: "row", style: "border-left-color:var(--accent)"},
-      el("span", {class: "mono"}, "#" + item.number), el("p", {}, link(item.url, item.title), el("br"), el("span", {class: "muted"}, item.kind === "Exploration" ? "Being explored" : "Needs planning")),
+      el("span", {class: "mono"}, "#" + item.number), el("p", {}, link(item.url, item.title), el("br"), el("span", {class: "muted"}, item.kind === "Exploration" ? "Being explored" : "Needs planning"), live() ? el("span", {class: "acts"}, explainAct(item)) : null),
       el("span", {class: "muted", style: "font-size:13px"}, item.crew || "Waiting for a crew")))) : empty("Nothing waits for planning."));
 
     const merged = doc.merged || [];

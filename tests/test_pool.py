@@ -398,3 +398,16 @@ def test_the_dashboard_sends_confirmed_requests_to_orchi_within_the_pools_load()
     # Orchi's notes feed the page: numbered questions and deferred Issues, which no crew gets.
     assert "`#<n> deferred by the user on <date>`" in pool and "none deferred in your notes" in entry
     assert "--notes <dir>/../orchi/notes.md" in skill
+
+
+def test_every_issue_on_the_dashboard_can_be_explained_in_plain_words():
+    pool, skill = prose("orchi-core/references/pool.md"), prose("orchi-dashboard/SKILL.md")
+    template = (SKILLS / "orchi-dashboard/assets/dashboard.html").read_text()
+    # The page offers Explain on every Issue: backlog nodes, crew cards, and the planning queue.
+    assert 'request("explain", {issue: item.number}' in template
+    assert template.count("explainAct(") == 3 and ": []), explainAct(item)];" in template
+    assert "`Explain` on every Issue" in skill
+    # Orchi answers through a background subagent, in plain words, and changes nothing.
+    assert "| `explain` (`issue`) | Starts one general-purpose subagent with the model `sonnet`, in the background" in pool
+    assert "in at most 8 short lines of plain words with no code, file paths, or jargon" in pool
+    assert "It changes nothing and messages no crew." in pool
