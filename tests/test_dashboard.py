@@ -238,9 +238,11 @@ def test_orchis_notes_give_the_page_its_questions_and_deferred_issues(tmp_path):
                      '3) Ship on Friday?\n   1. an indented option, not a question\n- 4. Merge PR #88? Feed fixes\n'
                      '## Answered questions\n5. Old, answered\n', encoding='utf-8')
     found = dashboard.notes(str(notes))
-    assert found['questions'] == [{'number': 2, 'text': 'Keep the old export? (crew-1, since 10:40)'},
-                                  {'number': 3, 'text': 'Ship on Friday?'},
-                                  {'number': 4, 'text': 'Merge PR #88? Feed fixes'}]
+    assert found['questions'] == [
+        {'number': 2, 'text': 'Keep the old export? (crew-1, since 10:40)', 'context': None, 'options': []},
+        {'number': 3, 'text': 'Ship on Friday?', 'context': None,
+         'options': [{'label': 'an indented option, not a question', 'consequence': None, 'recommended': False}]},
+        {'number': 4, 'text': 'Merge PR #88? Feed fixes', 'context': None, 'options': []}]
     assert found['merges'] == [88] and found['deferred'] == [32] and found['held'] == [88]
     nothing = {'questions': [], 'merges': [], 'deferred': [], 'held': []}
     assert dashboard.notes(str(tmp_path / 'missing.md')) == nothing and dashboard.notes(None) == nothing
@@ -345,3 +347,72 @@ def test_a_failing_ps_leaves_the_refresh_as_before(tmp_path, monkeypatch, capsys
     capsys.readouterr()
     crew = json.loads((tmp_path / 'snapshot.json').read_text())['crews'][0]
     assert (code, calls, crew['state']) == (0, ['ps'], 'idle') and 'running' not in crew
+
+
+def test_the_board_puts_each_card_in_a_column_from_the_real_state(tmp_path):
+    code, document = run(tmp_path, [{'name': 'crew-2', 'title': '[dev-lead] pay', 'state': 'working'}])
+    columns = document['columns']
+    # PR 10 into main waits for the user's yes, so its Epic waits for review, and so does its Initiative; Task 92 is
+    # claimed, 93 waits in the backlog, closed Task 90 is done, and the Exploration a crew holds is in progress.
+    assert {key: columns[key] for key in ('1', '2', '3', '5', '90', '92', '93')} == {
+        '1': 'review', '2': 'review', '3': 'backlog', '5': 'progress', '90': 'done', '92': 'progress', '93': 'backlog'}
+    assert document['closed'] == [{'number': 90, 'kind': 'Task', 'title': '[E2] Task 90', 'url': 'https://example.invalid/90',
+                                   'parent': 2}]
+    assert not any(key.startswith('pr-') for key in columns)
+    # A question from the crew on Epic 2 puts it, and its Initiative, in Questions for you; the move is recorded.
+    ask = ('Ready to ship? Two questions.\nQuestion: Stream the file or email a link? (user)\nContext: Large orders take a while.\n'
+           '1. Stream it: no mail setup, works offline (recommended)\n2. Email a link: needs a mail service\n'
+           'Question: Sign in to the stand (user, here)\n')
+    code, document = run(tmp_path, [{'name': 'crew-2', 'title': '[dev-lead] pay', 'state': 'waiting',
+                                     'question': 'Stream or email?', 'ask': ask}])
+    assert (document['columns']['2'], document['columns']['1']) == ('questions', 'questions')
+    assert [(move['from'], move['to'], move['back']) for move in document['history']['2']] == [('review', 'questions', False)]
+    assert {move['card'] for move in document['digest']['moved']} == {'1', '2'}
+    # A stall check in between records no new move, and the next refresh still tells the moves since the last summary.
+    code, document = run(tmp_path, [{'name': 'crew-2', 'title': '[dev-lead] pay', 'state': 'waiting',
+                                     'question': 'Stream or email?', 'ask': ask}])
+    assert {move['card'] for move in document['digest']['moved']} == {'1', '2'} and 'columns' in json.loads(
+        (tmp_path / 'board.json').read_text())
+    crew = document['crews'][0]
+    assert 'ask' not in crew and crew['questions'] == [
+        {'text': 'Stream the file or email a link? (user)', 'context': 'Large orders take a while.', 'here': False,
+         'options': [{'label': 'Stream it', 'consequence': 'no mail setup, works offline', 'recommended': True},
+                     {'label': 'Email a link', 'consequence': 'needs a mail service', 'recommended': False}]},
+        {'text': 'Sign in to the stand (user, here)', 'context': None, 'options': [], 'here': True}]
+    # A crew that asked in another form keeps its one-line question.
+    assert dashboard.questions(None, 'Keep the old export?') == [
+        {'text': 'Keep the old export?', 'context': None, 'options': [], 'here': False}]
+
+
+def test_the_refresh_adds_its_summary_and_it_stays_until_the_next_one(tmp_path):
+    code, document = run(tmp_path, [])
+    (tmp_path / 'summary.json').write_text(json.dumps([
+        {'lead': 'Payments are close.', 'text': 'The Epic waits for your yes on PR 10.'}, {'text': 'no lead'}, 'junk']))
+    out = str(tmp_path / 'snapshot.json')
+    assert dashboard.main(['--summary', str(tmp_path / 'summary.json'), '--out', out], run=runner, now=NOW) == 0
+    document = json.loads((tmp_path / 'snapshot.json').read_text())
+    assert document['summary'] == [{'lead': 'Payments are close.', 'text': 'The Epic waits for your yes on PR 10.'}]
+    assert document['summary_at'] == '2026-10-27T15:04:00+00:00' and document['columns']['2'] == 'review'
+    # The next refresh keeps it, and so does a failed one.
+    code, document = run(tmp_path, [])
+    assert document['summary'][0]['lead'] == 'Payments are close.'
+    code, document = run(tmp_path, [], fail='gh: not logged in')
+    assert code == 2 and document['summary'][0]['lead'] == 'Payments are close.'
+    (tmp_path / 'summary.json').write_text('{"lead": "not a list"}')
+    assert dashboard.main(['--summary', str(tmp_path / 'summary.json'), '--out', out], run=runner, now=NOW) == 2
+
+
+def test_orchis_questions_and_deferrals_move_cards_and_a_pr_without_an_issue_gets_its_own():
+    def item(number, parent=None, status='todo', crew=None):
+        return {'number': number, 'kind': 'Task', 'title': f'T{number}', 'parent': parent, 'status': status, 'crew': crew}
+    document = {'work': [item(1), item(2), item(3, status='claimed'), item(4), item(5, crew='crew-1'), item(6)],
+                'planning': [], 'closed': [{'number': 60, 'kind': 'Task', 'title': 'T60', 'parent': 6}], 'crews': [],
+                'pulls': [{'number': 40, 'title': 'Fix', 'closes': [3], 'draft': False},
+                          {'number': 41, 'title': 'Docs', 'closes': [], 'draft': False}],
+                'waiting': [{'kind': 'merge', 'pull': 41, 'text': 'Docs'}], 'deferred': [2, 4, 5],
+                'questions': [{'number': 1, 'text': 'Keep #1 as it is, or split it?'},
+                              {'number': 2, 'text': 'Merge PR #40? Fix'}, {'number': 3, 'text': 'Drop #4?'}]}
+    # A deferred item a crew still holds stays in progress; an open parent whose children are all closed is in its
+    # final check.
+    assert dashboard.board(document) == {'1': 'questions', '2': 'backlog', '3': 'review', '4': 'questions',
+                                         '5': 'progress', '6': 'progress', '60': 'done', 'pr-41': 'review'}

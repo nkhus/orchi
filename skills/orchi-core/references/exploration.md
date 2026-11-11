@@ -184,7 +184,8 @@ products found, and take the variants' directions and sample data from it.
    design session's Structure step does, who uses the product and for which
    jobs, the screen map, and each key screen's brief, adding the data it
    shows. Ask for the sites it should feel like and propose five to seven, as
-   its Style step says. Ask every question with the host's question tool, its
+   its Style step says. Ask every question with the host's question tool (in an
+   Orchi crew, the [pool reference](pool.md#messages)'s question block), its
    recommended answer first, and answer yourself what the request settles.
    Done when the screen map and the key screens' briefs are agreed.
 2. **Variants.** Ask how many variants to build (three unless the user says

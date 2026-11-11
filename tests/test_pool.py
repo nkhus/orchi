@@ -217,14 +217,16 @@ def test_orchi_keeps_the_dashboard_itself_and_a_haiku_subagent_refreshes_it():
     assert "a page Orchi keeps itself" in pool and "no session of its own holds it" in pool + skill
     assert "It publishes the [dashboard](#dashboard) when there is none" in pool
     assert "When the user asks for the dashboard, publish it as the pool reference's Dashboard says" in entry
-    assert "refresh the dashboard and answer in at most 15 lines" in entry and "refreshed when it changed for the user, and write nothing when nothing did" in entry
-    assert "to its busy crews and refreshes the dashboard when it changes" in pool
+    assert "the stall check (pool reference, Stalls) and answer in at most 15 lines" in entry
+    assert "which changes when the user refreshes it, and write nothing when nothing did" in entry
+    assert "to its busy crews when it changes" in pool and "refreshes the dashboard when it changes" not in pool
     assert "Orchi sends every crew one self-contained message" in pool
     assert "it publishes it again from the new version to the same link, and archives a `dashboard` session" in pool
-    assert "Orchi waits for it only before answering about status" in pool and "Wait for it only before answering" in skill
+    assert "before it answers the user about status, and with every dashboard refresh" in pool and "Wait for it only before answering" in skill
     assert "or an earlier version's `dashboard` session" in entry
-    # Refreshed on events and requests, never on a timer, by a background Haiku subagent.
-    assert "and never on a timer" in pool and "never schedule a timer" in skill and "Cron" not in skill
+    # Refreshed only when the user asks, never on a change or a timer, by a background Haiku subagent.
+    assert "The page changes only when the user asks" in pool and "never on its own, on a change, or on a timer" in pool
+    assert "never on a change or a timer" in skill and "Cron" not in skill
     assert "one general-purpose subagent on Haiku, started in the background" in pool
     assert "Invoke the orchi-dashboard skill with: collect --page <url> --mode" in pool + skill
     assert "subagent with the model `haiku`, in the background" in skill
@@ -243,12 +245,12 @@ def test_orchi_keeps_the_dashboard_itself_and_a_haiku_subagent_refreshes_it():
     # One list ordered by state; an idle crew says it runs nothing; Remote Control is marked; two tabs.
     assert 'idle: ["Idle · doing nothing", "idle"]' in template and '"Nothing is running"' in template
     assert '"Last step: "' in template and 'pill("Remote Control on", "bad"' in template
-    assert 'id="tab-crews"' in template and 'id="tab-backlog"' in template
-    assert "An idle crew is not running, asks nothing, and has no busy worker" in skill
+    assert 'id="tab-crews"' in template and 'id="tab-board"' in template
+    assert "An idle crew runs nothing, and its card says so" in pool
     # A crew at work shows an estimate with its basis: the share closed, else its stage, else its role; never 100%.
     assert "function estimate(crew, issue)" in template and "estBar(estimate(crew, issue))" in template
     assert '"by stage: "' in template and '"by role: planning"' in template and "final check" in template
-    assert "it never reads 100%" in skill
+    assert "it never reads 100%" in pool
     # A crew that named a background run shows it; a stalled one comes first and needs a look.
     assert 'background: ["Background run", "ok"]' in template and 'pill("Needs a look", "bad")' in template
     assert '"Running in the background: "' in template and 'id="count-look"' in template
@@ -347,7 +349,7 @@ def test_orchi_keeps_notes_short_messages_and_a_plain_status():
     assert "## Orchi's notes" in (SKILLS / "orchi-core/references/pool.md").read_text()
     assert "`.orchi-tmp/orchi/notes.md`" in pool and "never raises a topic set aside until the user does" in pool
     assert "Read your notes (pool reference, Orchi's notes)" in entry and "in `.orchi-tmp/`; plan" in entry
-    assert "Asked how things go, in any words, refresh the dashboard and answer in at most 15 lines" in entry
+    assert "Asked how things go, in any words, run the stall check (pool reference, Stalls) and answer in at most 15 lines" in entry
     assert "Talk to the user in their language and plain words" in entry
     assert "Orchi sends a crew at most one message per wake" in pool and "goes into a comment on the Issue" in pool
     assert "about ten in a row with no message from the user" in pool
@@ -385,7 +387,8 @@ def test_the_dashboard_sends_confirmed_requests_to_orchi_within_the_pools_load()
     # Answers reach a crew in either mode, but never for a question that counts only in the crew.
     assert "`<id> answer: the user says on the dashboard <reply>`" in pool
     assert "A crew takes an answer from Orchi only while autonomous mode is on, or one the user gave on the dashboard" in pool
-    assert "/\\(user, here\\)/.test(crew.question) ? hereNote()" in template and "/\\(user, here\\)/.test(item.text) ? hereNote()" in template
+    assert "if (question.here) return el(\"div\", {class: \"q\"}, parts, hereNote());" in template
+    assert "here: /\\(user, here\\)/.test(item.text)" in template
     assert "for a `(user, here)` question it relays nothing" in pool and "keeping a `(user)` or `(user, here)` mark as written" in skill
     # Merge and Hold show only on PRs Orchi's notes ask about, and a held PR merges in neither mode.
     assert "`<n>. Merge PR #<pull>? <what it brings>`" in pool and "Merges only a PR whose crew reported `PR ready`" in pool
@@ -403,11 +406,35 @@ def test_the_dashboard_sends_confirmed_requests_to_orchi_within_the_pools_load()
 def test_every_issue_on_the_dashboard_can_be_explained_in_plain_words():
     pool, skill = prose("orchi-core/references/pool.md"), prose("orchi-dashboard/SKILL.md")
     template = (SKILLS / "orchi-dashboard/assets/dashboard.html").read_text()
-    # The page offers Explain on every Issue: backlog nodes, crew cards, and the planning queue.
+    # The page offers Explain on every Issue's page on the board.
     assert 'request("explain", {issue: item.number}' in template
-    assert template.count("explainAct(") == 3 and ": []), explainAct(item)];" in template
+    assert ": []), explainAct(item)].filter(Boolean);" in template and "workActs(item)" in template
     assert "`Explain` on every Issue" in skill
     # Orchi answers through a background subagent, in plain words, and changes nothing.
     assert "| `explain` (`issue`) | Starts one general-purpose subagent with the model `sonnet`, in the background" in pool
     assert "in at most 8 short lines of plain words with no code, file paths, or jargon" in pool
     assert "It changes nothing and messages no crew." in pool
+
+
+def test_the_dashboard_is_a_board_refreshed_only_when_the_user_asks():
+    pool, skill, entry = prose("orchi-core/references/pool.md"), prose("orchi-dashboard/SKILL.md"), prose("orchi/SKILL.md")
+    planning, exploration = prose("orchi-core/references/planning.md"), prose("orchi-core/references/exploration.md")
+    template = (SKILLS / "orchi-dashboard/assets/dashboard.html").read_text()
+    # Only the user refreshes the page; the stall check leaves it as it is.
+    assert "Orchi refreshes it after publishing it, on the page's `Refresh`, and when the user asks it to in words" in pool
+    assert "which leaves the page as it is" in pool + skill and "changes when the user refreshes it" in entry
+    assert 'act("Refresh", "refresh"' in template and "{primary: true, title: \"Orchi reads the pool and GitHub again\"}" in template
+    # Crews ask with a question block the dashboard shows with its options; Orchi's notes keep them.
+    assert "A crew asks the user with a question block in its text, never with the host's question tool" in pool
+    assert "1. <option>: <what it leads to> (recommended)" in pool and "`- <option>: <what it leads to> (recommended)`" in pool
+    assert "asks with the question block of the [pool reference](pool.md#messages) instead" in planning
+    assert "(in an Orchi crew, the [pool reference](pool.md#messages)'s question block)" in exploration
+    assert "`ask`: the text from its first `Question:` line to its end, copied exactly" in skill
+    # The summary is written by the refresh in the user's language, from the snapshot's facts.
+    assert "--language <the user's language>" in pool + skill and "answers `How are things going?`" in skill
+    assert "dashboard.py --summary <dir>/summary.json --out <dir>/snapshot.json" in skill
+    # The board: six columns from the real state, levels, item pages; requests carry an option or changes.
+    for column in ("Needs planning", "Backlog", "In progress", "Questions for you", "Your review", "Done"):
+        assert column in pool and f'"{column}"' in template
+    assert "| `hold` (`pull`, `changes`) |" in pool and 'request("hold", {pull: pr.number, changes: text}' in template
+    assert "| `answer` (`crew`, `question`, `option`, `text`) |" in pool and "option, text: said(option, note)" in template

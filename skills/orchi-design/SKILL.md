@@ -61,8 +61,8 @@ autonomous mode; you write no product code yourself.
    choice to the brief (`## Direction`: the variant, its engine, what the user said), commit both on the Epic branch,
    and record in the Epic who chose what and when. Do the same for a generated asset the user approves.
 
-Ask with the host's question tool. Before stopping for an answer, write the open question into the Epic, so a lost
-session loses nothing.
+Ask with the host's question tool, or in a pool crew with the pool reference's question block. Before stopping for an
+answer, write the open question into the Epic, so a lost session loses nothing.
 
 ## 3. Plan the builds
 

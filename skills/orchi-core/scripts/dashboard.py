@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Read-only snapshot of an Orchi pool for its dashboard: the work tree, PRs, recent merges, and the crews."""
+"""Read-only snapshot of an Orchi pool for its dashboard: the work tree as a board, PRs, recent merges, the crews and
+their questions, and what moved since the last refresh."""
 from __future__ import annotations
 
 import argparse
@@ -19,7 +20,8 @@ query($owner: String!, $name: String!) {
   repository(owner: $owner, name: $name) {
     defaultBranchRef { name }
     initiatives: issues(first: 50, states: OPEN, labels: ["Initiative"], orderBy: {field: CREATED_AT, direction: ASC}) {
-      nodes { number title url labels(first: 20) { nodes { name } } subIssues(first: 100) { totalCount nodes { state } } }
+      nodes { number title url labels(first: 20) { nodes { name } }
+              subIssues(first: 100) { totalCount nodes { number title url state } } }
     }
     epics: issues(first: 100, states: OPEN, labels: ["Epic"]) {
       nodes { number subIssues(first: 100) { nodes { number title url state labels(first: 20) { nodes { name } } } } }
@@ -59,6 +61,16 @@ QUESTION = re.compile(r'^(?:[-*] )?(\d+)[.)]\s+(.+?)\s*$')
 MERGE = re.compile(r'^Merge PR #(\d+)\b')
 DEFERRED = re.compile(r'#(\d+)\s+deferred\b', re.IGNORECASE)
 HELD = re.compile(r'#(\d+)\s+on hold\b', re.IGNORECASE)
+# A question block, as a crew ends its turn with it or Orchi keeps it in its notes: `Question: <text>`, an optional
+# `Context: <text>`, and its options, `1. <option>: <what it leads to> (recommended)`.
+ASK = re.compile(r'^\s*Question\s*:\s*(.+?)\s*$', re.IGNORECASE)
+CONTEXT = re.compile(r'^\s*Context\s*:\s*(.+?)\s*$', re.IGNORECASE)
+OPTION = re.compile(r'^\s*(?:[-*]|\d+[.)])\s+(.+?)\s*$')
+RECOMMENDED = re.compile(r'\s*\((?:recommended|rec\.)\)\s*', re.IGNORECASE)
+REFERENCE = re.compile(r'#(\d+)\b')
+# The board's columns, in the order a parent takes the first its own state or its children reach.
+COLUMNS = ('questions', 'review', 'progress', 'planning', 'backlog', 'done')
+HISTORY = 10
 
 
 def running(pid: int) -> bool:
@@ -100,17 +112,25 @@ def notes(path: str | None) -> dict:
             lines = handle.read().splitlines()
     except (OSError, TypeError, ValueError):
         return found
-    section = ''
+    section, current = '', None
     for line in lines:
         heading = HEADING.match(line)
         if heading:
-            section = heading.group(1).strip().lower()
+            section, current = heading.group(1).strip().lower(), None
         elif section == 'questions for the user' and (question := QUESTION.match(line)):
             number, text = int(question.group(1)), question.group(2)
+            current = None
             if all(item['number'] != number for item in found['questions']):
-                found['questions'].append({'number': number, 'text': text})
+                current = {'number': number, 'text': text, 'context': None, 'options': []}
+                found['questions'].append(current)
                 if merge := MERGE.match(text):
                     found['merges'].append(int(merge.group(1)))
+        elif section == 'questions for the user' and current and line[:1].isspace():
+            # An indented line under a question: its context or one of its options.
+            if context := CONTEXT.match(line):
+                current['context'] = context.group(1)
+            elif option := OPTION.match(line):
+                current['options'].append(choice(option.group(1)))
         elif section == 'standing decisions':
             for key, pattern in (('deferred', DEFERRED), ('held', HELD)):
                 found[key] += [int(n) for n in pattern.findall(line) if int(n) not in found[key]]
@@ -173,7 +193,18 @@ def collect(repo: str, run: status.Runner = status.gh) -> dict:
                'base': node['baseRefName']} for node in data['merged']['nodes']]
     for item in work + planning:
         item['waits_for'] = waits.get(item['number'])
-    return {'default_branch': default, 'work': work, 'planning': planning, 'pulls': pulls, 'merged': merged}
+    # Closed Epics of the open Initiatives and closed Tasks of the open Epics: the board's Done column.
+    closed, shown = [], {item['number'] for item in work}
+    for node, kind, source in ([(node, 'Epic', node) for node in data['initiatives']['nodes']]
+                               + [(node, 'Task', node) for node in data['epics']['nodes']]):
+        if node['number'] not in shown:
+            continue
+        for child in source['subIssues']['nodes']:
+            if child.get('state') == 'CLOSED' and child.get('number') and child['number'] not in shown:
+                closed.append({'number': child['number'], 'kind': kind, 'title': child.get('title') or '',
+                               'url': child.get('url'), 'parent': node['number']})
+    return {'default_branch': default, 'work': work, 'planning': planning, 'pulls': pulls, 'merged': merged,
+            'closed': closed}
 
 
 def lineage(work: list[dict], number: int | None) -> list[int]:
@@ -184,6 +215,33 @@ def lineage(work: list[dict], number: int | None) -> list[int]:
         number = parents[number]
         chain.insert(0, number)
     return chain
+
+
+def choice(text: str) -> dict:
+    """One option of a question: `<label>: <what it leads to>`, marked recommended by `(recommended)`."""
+    recommended = bool(RECOMMENDED.search(text))
+    text = RECOMMENDED.sub(' ', text).strip()
+    label, _, consequence = text.partition(': ')
+    return {'label': label.strip(), 'consequence': consequence.strip() or None, 'recommended': recommended}
+
+
+def questions(block: str | None, fallback: str | None = None) -> list[dict]:
+    """The questions in a crew's question block: each `Question:` line with the `Context:` and options after it. A
+    crew that asked in another form gets its one-line question, without options."""
+    found, current = [], None
+    for line in (block or '').splitlines():
+        if ask := ASK.match(line):
+            current = {'text': ask.group(1), 'context': None, 'options': []}
+            found.append(current)
+        elif current and (context := CONTEXT.match(line)):
+            current['context'] = context.group(1)
+        elif current and (option := OPTION.match(line)):
+            current['options'].append(choice(option.group(1)))
+    if not found and fallback:
+        found = [{'text': fallback, 'context': None, 'options': []}]
+    for item in found:
+        item['here'] = '(user, here)' in item['text']
+    return found[:6]
 
 
 def directories(pids: list[str]) -> dict[str, str]:
@@ -270,7 +328,9 @@ def snapshot(repo: str, github: dict, crews: list[dict], mode: str, now: datetim
         issue = crew.get('issue') or claims.get(crew['name'])
         state = crew.get('state') or ('free' if role(title) is None else 'idle')
         entry = {**crew, 'title': title, 'role': role(title), 'issue': issue, 'state': state,
-                 'path': lineage(github['work'], issue)}
+                 'path': lineage(github['work'], issue),
+                 'questions': questions(crew.get('ask'), crew.get('question')) if state == 'waiting' else []}
+        entry.pop('ask', None)
         counts = (running or {}).get(crew['name'])
         if counts:
             entry['running'] = counts
@@ -292,6 +352,120 @@ def waiting(document: dict) -> list[dict]:
               if (pull['number'] in asked if asked is not None else document.get('mode') == 'off' and pull['into_default']
                   and not pull['draft'] and pull['checks'] in {'passing', 'none'})]
     return items
+
+
+def board(document: dict) -> dict:
+    """Each item's column on the board, from the real state; `pr-<n>` for a PR that closes no Issue shown.
+
+    A Task, or any item without children, takes the first that holds: closed (`done`); a question for the user on it,
+    from its crew or Orchi's notes (`questions`); a PR that waits for the user's yes (`review`); a PR, a claim, or a
+    crew on it (`progress`); deferred (`backlog`); in the planning queue (`planning`); otherwise `backlog`. An Epic or
+    Initiative takes the first column in `COLUMNS` that it or its children reach; one still open whose children are all
+    closed is in its final check (`progress`).
+    """
+    work, planning, closed = document['work'], document['planning'], document.get('closed') or []
+    asked = {item['pull'] for item in document.get('waiting') or [] if item['kind'] == 'merge'}
+    review, pulled = set(), set()
+    for pull in document['pulls']:
+        pulled.update(pull['closes'])
+        if pull['number'] in asked:
+            review.update(pull['closes'])
+    asks = {crew['issue'] for crew in document['crews'] if crew['state'] == 'waiting' and crew.get('issue')}
+    for question in document.get('questions') or []:
+        merge = MERGE.match(question['text'])
+        if merge:
+            review.update(next((pull['closes'] for pull in document['pulls'] if pull['number'] == int(merge[1])), []))
+        else:
+            asks.update(int(n) for n in REFERENCE.findall(question['text']))
+    deferred, queued = set(document.get('deferred') or []), {item['number'] for item in planning}
+
+    def own(item: dict) -> str:
+        number = item['number']
+        if item.get('status') == 'closed':
+            return 'done'
+        if number in asks:
+            return 'questions'
+        if number in review:
+            return 'review'
+        if number in pulled or item.get('status') == 'claimed' or item.get('crew'):
+            return 'progress'
+        if number in deferred:
+            return 'backlog'
+        return 'planning' if number in queued else 'backlog'
+
+    items = work + planning + [{**item, 'status': 'closed'} for item in closed]
+    children = {}
+    for item in items:
+        children.setdefault(item.get('parent'), []).append(item)
+    columns: dict[str, str] = {}
+
+    def place(item: dict, seen: frozenset) -> str:
+        key = str(item['number'])
+        if key in columns:
+            return columns[key]
+        kids = [place(child, seen | {item['number']}) for child in children.get(item['number'], [])
+                if child['number'] not in seen]
+        reached = [own(item)] + kids
+        if item.get('status') != 'closed':
+            reached = [column for column in reached if column != 'done']
+            if kids and all(column == 'done' for column in kids):
+                reached.append('progress')
+        columns[key] = min(reached, key=COLUMNS.index)
+        return columns[key]
+
+    for item in items:
+        place(item, frozenset())
+    shown = set(columns)
+    for pull in document['pulls']:
+        if not any(str(number) in shown for number in pull['closes']):
+            columns[f"pr-{pull['number']}"] = 'review' if pull['number'] in asked else 'progress'
+    return columns
+
+
+def moves(document: dict, previous: dict, now: datetime) -> list[dict]:
+    """Each card's history, with a move for each card that changed column since the previous run (a page refresh or a
+    stall check): at most `HISTORY` moves per card shown, newest last, a move from `review` back to `progress` marked
+    `back`. Returns the moves since the last summary, which the next summary tells."""
+    before, after = previous.get('columns') or {}, document['columns']
+    history = {key: list(value) for key, value in (previous.get('history') or {}).items() if key in after}
+    for key, column in after.items():
+        if key in before and before[key] != column:
+            move = {'from': before[key], 'to': column, 'at': now.isoformat(timespec='seconds'),
+                    'back': before[key] == 'review' and column == 'progress'}
+            history[key] = (history.get(key, []) + [move])[-HISTORY:]
+    document['history'] = history
+    told = moment(document.get('summary_at')) or now - timedelta(days=1)
+    return sorted(({'card': key, **move} for key, entries in history.items() for move in entries
+                   if (moment(move['at']) or now) > told), key=lambda move: move['at'])
+
+
+def digest(document: dict, moved: list[dict], now: datetime) -> dict:
+    """The facts the refresh writes its summary from: moves since the last refresh, today's merges, the cards per
+    column, what waits for the user, and the crews that need a look."""
+    titles = {str(item['number']): item.get('title') or '' for item in document['work'] + document['planning']
+              + (document.get('closed') or [])}
+    titles.update({f"pr-{pull['number']}": pull['title'] for pull in document['pulls']})
+    def today(pull: dict) -> bool:
+        merged = moment(pull.get('merged_at'))
+        return bool(merged) and merged.astimezone(now.tzinfo).date() == now.date()
+
+    return {'moved': [{**move, 'title': titles.get(move['card'], '')} for move in moved],
+            'merged_today': [pull['title'] for pull in document['merged'] if today(pull)],
+            'columns': {column: sum(value == column for value in document['columns'].values()) for column in COLUMNS},
+            'waiting': len(document['waiting']), 'attention': [item['crew'] for item in document['attention']]}
+
+
+def paragraphs(path: str) -> list[dict]:
+    """The summary the refresh wrote: a JSON list of `{"lead", "text"}`, at most six, each part trimmed."""
+    with open(path, encoding='utf-8') as handle:
+        data = json.load(handle)
+    if not isinstance(data, list):
+        raise ValueError('the summary is not a list')
+    found = []
+    for item in data[:6]:
+        if isinstance(item, dict) and isinstance(item.get('lead'), str) and isinstance(item.get('text', ''), str):
+            found.append({'lead': item['lead'].strip()[:200], 'text': str(item.get('text') or '').strip()[:700]})
+    return found
 
 
 def moment(value) -> datetime | None:
@@ -378,12 +552,15 @@ def summary(document: dict) -> str:
 def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: datetime | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', help='OWNER/NAME; defaults to the current repository')
-    parser.add_argument('--crews', required=True, help='JSON file with the crews read from the host')
-    parser.add_argument('--mode', required=True, choices=('on', 'off'), help='Whether autonomous mode is on')
+    parser.add_argument('--crews', help='JSON file with the crews read from the host')
+    parser.add_argument('--mode', choices=('on', 'off'), help='Whether autonomous mode is on')
+    parser.add_argument('--summary', help='Add this summary (a JSON list of {"lead", "text"}) to the snapshot in --out')
     parser.add_argument('--out', required=True, help='Where to write the snapshot JSON')
     parser.add_argument('--notes', help="Orchi's notes file, for its questions to the user and the deferred Issues")
     parser.add_argument('--limit', type=int, default=3, help='The pool size: how many crews may hold work at once')
     args = parser.parse_args(argv)
+    if not args.summary and not (args.crews and args.mode):
+        parser.error('--crews and --mode are required unless --summary is given')
     now = now or datetime.now().astimezone()
     try:
         with open(args.out, encoding='utf-8') as handle:
@@ -391,6 +568,17 @@ def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: dat
         previous = previous if isinstance(previous, dict) else {}
     except (OSError, ValueError):
         previous = {}
+    if args.summary:
+        try:
+            previous['summary'] = paragraphs(args.summary)
+        except (OSError, ValueError) as error:
+            print(f'Orchi dashboard error: summary: {error}', file=sys.stderr)
+            return 2
+        previous['summary_at'] = now.isoformat(timespec='seconds')
+        with open(args.out, 'w', encoding='utf-8') as handle:
+            json.dump(previous, handle, ensure_ascii=False, indent=1)
+        print(summary(previous) if previous.get('crews') is not None else 'summary added')
+        return 0
     try:
         with open(args.crews, encoding='utf-8') as handle:
             crews = json.load(handle)
@@ -401,7 +589,8 @@ def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: dat
         # The failure and its time, merged into the stored snapshot so the page keeps the last good state; the stall
         # check's memory is carried over for the next refresh.
         document = {'updated': now.isoformat(timespec='seconds'), 'error': detail,
-                    'attention': previous.get('attention') or [], 'background_since': previous.get('background_since') or {}}
+                    'attention': previous.get('attention') or [], 'background_since': previous.get('background_since') or {},
+                    **{key: previous[key] for key in ('summary', 'summary_at') if key in previous}}
         print(f'Orchi dashboard error: {detail}', file=sys.stderr)
     else:
         if args.notes:
@@ -409,6 +598,23 @@ def main(argv: list[str] | None = None, run: status.Runner = status.gh, now: dat
         document['limit'] = args.limit
         document['waiting'] = waiting(document)
         document['attention'] = attention(document, now, previous)
+        # The summary stays until the refresh writes the next one; it says when it was written.
+        for key in ('summary', 'summary_at'):
+            if key in previous:
+                document[key] = previous[key]
+        # The board's last columns and its history live beside the snapshot, so that a failed run, whose snapshot
+        # goes onto the page's older data, never carries them, and a stall check between two refreshes loses none.
+        state = os.path.join(os.path.dirname(os.path.abspath(args.out)), 'board.json')
+        try:
+            with open(state, encoding='utf-8') as handle:
+                kept = json.load(handle)
+            kept = kept if isinstance(kept, dict) else {}
+        except (OSError, ValueError):
+            kept = {key: previous.get(key) for key in ('columns', 'history')}
+        document['columns'] = board(document)
+        document['digest'] = digest(document, moves(document, kept, now), now)
+        with open(state, 'w', encoding='utf-8') as handle:
+            json.dump({'columns': document['columns'], 'history': document['history']}, handle, ensure_ascii=False)
     with open(args.out, 'w', encoding='utf-8') as handle:
         json.dump(document, handle, ensure_ascii=False, indent=1)
     print(summary(document))
