@@ -685,10 +685,13 @@ nothing else.
 | `mode` (`to`) | Switches autonomous mode as when the user tells it. |
 | `take` (`issue`) | Takes it as the user asking to take that Issue, within the pool's load: a free pool crew takes it; else, while fewer crews hold work than the pool size, a crew started on demand; else Orchi comments `Queued from the dashboard: waits for a free crew`, and Reconcile gives it the first free pool crew, or a crew started on demand in a turn the user started once fewer crews hold work than the pool size. |
 | `plan` (`issue`) | Gives it a planner as Assign a crew says, under the same load rule. |
+| `explain` (`issue`) | Starts one general-purpose subagent with the model `sonnet`, in the background, to read the Issue on GitHub (its body and decision log, its parent, its children and their states, and the PRs that close it, with their checks), told which crew holds it and its role (GitHub does not say), and reply in the user's language, in at most 8 short lines of plain words with no code, file paths, or jargon: what it is for, what is done, what is left, who works on it now, and what waits for the user. Orchi gives the user that reply as it is. It changes nothing and messages no crew. |
 | `defer`, `resume` (`issue`) | Adds or removes the standing decision `#<n> deferred by the user on <date>`. |
 
-The page offers to take only `ready` work no crew holds, and says `Take` while a
-crew is free or fewer crews hold work than the pool size, and `Queue` otherwise.
+Every Issue on the page, in the backlog, the planning queue, or a crew's card,
+has `Explain`. The page offers to take only `ready` work no crew holds, and says
+`Take` while a crew is free or fewer crews hold work than the pool size, and
+`Queue` otherwise.
 The pool's size is the load limit; the page never estimates the machine's load.
 
 ## Update Orchi

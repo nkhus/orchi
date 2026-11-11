@@ -1,6 +1,6 @@
 ---
 name: orchi-dashboard
-description: Keep an Orchi pool's dashboard - a page of every crew, ordered by state (needing a look, waiting for the user, working, in a background run, idle and doing nothing, free), with what it does now and the Initiative and Epic of its work, and the backlog as a tree of Initiatives, Epics, and Tasks with their progress, PRs, and the planning queue - published by Orchi and refreshed by a Haiku subagent from GitHub and the host's session list; beside Orchi's conversation, its buttons send the user's confirmed requests to Orchi (answer, merge or hold, status, refresh, mode, take or queue by the pool's load, plan, defer). The refresh changes nothing. Invoke only when Orchi's instructions or a dashboard subagent's task asks for orchi-dashboard by name.
+description: Keep an Orchi pool's dashboard - a page of every crew, ordered by state (needing a look, waiting for the user, working, in a background run, idle and doing nothing, free), with what it does now and the Initiative and Epic of its work, and the backlog as a tree of Initiatives, Epics, and Tasks with their progress, PRs, and the planning queue - published by Orchi and refreshed by a Haiku subagent from GitHub and the host's session list; beside Orchi's conversation, its buttons send the user's confirmed requests to Orchi (answer, merge or hold, status, refresh, mode, take or queue by the pool's load, plan, defer, explain an Issue). The refresh changes nothing. Invoke only when Orchi's instructions or a dashboard subagent's task asks for orchi-dashboard by name.
 argument-hint: "publish | refresh | collect [--page <url>] --mode <on or off> --limit <n> --dir <path>"
 user-invocable: false
 ---
@@ -91,10 +91,10 @@ estimate of how far its work is, with its basis: the share of children closed, e
 reads 100%. The page links Issues and PRs, never sessions: it runs sandboxed, and the sandbox blocks links into the
 Claude app. Orchi's numbered questions for the user, from its notes, come first.
 
-Opened beside Orchi's conversation in the Claude app, the page shows buttons, and each sends Orchi one request, which
-the app asks the user to confirm: an answer to a crew's question (none for a `(user, here)` question, which counts only
-in the crew) or to one of Orchi's; `Merge` or `Hold` on a PR that waits for the user's yes; `What's up?` on a crew
-(`Wake it` when it needs a look); `Refresh` and the mode switch; and `Take`, `Plan`, `Defer`, or `Resume` on work no
-crew holds. The Backlog says how many crews are busy against the pool size (`--limit`), and `Take` shows while a crew is
-free or fewer crews are busy than that; otherwise it reads `Queue`. `Merge` and `Hold` show only on PRs Orchi's notes
-ask the user about (`Merge PR #<n>?`). Elsewhere the page shows no buttons.
+Beside Orchi's conversation in the Claude app, the page shows buttons, and each sends Orchi one request, which the app
+asks the user to confirm: an answer to a crew's question (none for a `(user, here)` question, which counts only in the
+crew) or to one of Orchi's; `Merge` or `Hold` on a PR that waits for the user's yes; `What's up?` on a crew (`Wake it`
+when it needs a look); `Refresh` and the mode switch; `Explain` on every Issue; and `Take`, `Plan`, `Defer`, or `Resume`
+on work no crew holds. The Backlog says how many crews are busy against the pool size (`--limit`), and `Take` shows
+while a crew is free or fewer crews are busy than that; otherwise it reads `Queue`. `Merge` and `Hold` show only on PRs
+Orchi's notes ask the user about (`Merge PR #<n>?`). Elsewhere the page shows no buttons.
