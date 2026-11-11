@@ -164,6 +164,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 .card .act[data-key^="nav-card-"] { all: unset; cursor: pointer; font: 600 14px/1.35 var(--body); color: var(--ink); overflow-wrap: anywhere; }
 .card .act[data-key^="nav-card-"]:hover { color: var(--accent); }
 .card .act[data-key^="nav-card-"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.card-acts .act { min-height: 28px; padding: 4px 10px; font-size: 12.5px; }
 .card-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font-size: 12.5px; }
 .backmark { color: var(--warn); font-weight: 700; }
 .item-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
@@ -175,6 +176,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 .history ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
 @media (max-width: 560px) { .answer { grid-template-columns: minmax(0, 1fr); } }
 /* On a phone the columns stack, each as wide as the page, so none hides off screen. */
+@media (max-width: 560px) { .strip { grid-template-columns: 1fr 1fr; } .stat:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 @media (max-width: 560px) { .tabs { flex-wrap: wrap; } .tab { padding: 10px 8px; gap: 5px; } }
 @media (max-width: 640px) { .kanban { grid-auto-flow: row; grid-auto-columns: auto; overflow-x: visible; } }
 @media (prefers-reduced-motion: no-preference) { .bar .fill { transition: width 0.4s ease; } }
@@ -519,7 +521,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
           el("div", {class: "pills"}, crew.remote ? pill("Remote Control on", "bad", "A session served over Remote Control cannot be cleared") : null, look ? pill("Needs a look", "bad") : null,
             questions.length ? pill(questions.length + (questions.length === 1 ? " question" : " questions"), "warn") : null, pill(stateText, tone))),
         path.length ? el("div", {class: "path", "aria-label": "Part of"}, path.flatMap((item, i) => [i ? el("span", {class: "sep"}, "›") : null, el("span", {}, item.kind + " ", link(item.url, "#" + item.number), " " + item.title)])) : null,
-        issue ? el("div", {class: "crew-work"}, kind(issue), link(issue.url, "#" + issue.number), " ", issue.title, el("span", {class: "acts"}, nav("On the board", "item-" + issue.number, openItem(issue.number), {top: true}))) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
+        issue ? el("div", {class: "crew-work"}, kind(issue), link(issue.url, "#" + issue.number), " ", issue.title, el("span", {class: "acts"}, nav("On the board", "item-" + issue.number, openItem(issue.number), {top: true}), live() ? explainAct(issue) : null)) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
         crew.stage && state !== "free" ? el("div", {class: "stage" + (idle ? " last" : "")}, idle ? "Last step: " + crew.stage : crew.stage) : null,
         look ? el("div", {class: "look-note"}, lookText(look)) : null,
         state === "background" ? el("div", {class: "stage"}, "Running in the background: " + crew.background + (runSince(crew) ? " · since " + time(runSince(crew)) + " (" + ago(runSince(crew)) + ")" : "")) : null,
@@ -611,7 +613,9 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         el("div", {class: "card-head"}, kind(item), el("span", {class: "mono muted"}, item.kind === "PR" ? "#" + item.pr.number : "#" + item.number), back ? el("span", {class: "backmark", title: "Came back from review"}, "↩") : null),
         nav(item.title || "Untitled", "card-" + key, go, {title: kids.length ? "Open its board" : "Open its page"}),
         el("div", {class: "card-meta"}, deferred.has(item.number) ? pill("Deferred", "plain") : null, holder ? el("span", {class: "muted"}, holder.title) : null,
-          pr ? (pr.merged ? pill("Merged " + time(pr.merged_at), "ok") : pill(...CHECKS[pr.checks] || [pr.checks, ""])) : null, kids.length ? el("span", {class: "muted"}, `${done} of ${kids.length} done`) : null));
+          pr ? (pr.merged ? pill("Merged " + time(pr.merged_at), "ok") : pill(...CHECKS[pr.checks] || [pr.checks, ""])) : null, kids.length ? el("span", {class: "muted"}, `${done} of ${kids.length} done`) : null),
+        // Every Initiative, Epic, and Task card can be explained in plain words without opening it.
+        live() && item.kind !== "PR" ? el("div", {class: "acts card-acts"}, explainAct(item)) : null);
     };
     const DONE_SHOWN = 8;
     $("kanban").replaceChildren(...COLS.map(([column, name, tone]) => {

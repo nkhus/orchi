@@ -409,6 +409,8 @@ def test_every_issue_on_the_dashboard_can_be_explained_in_plain_words():
     # The page offers Explain on every Issue's page on the board.
     assert 'request("explain", {issue: item.number}' in template
     assert ": []), explainAct(item)].filter(Boolean);" in template and "workActs(item)" in template
+    assert 'el("div", {class: "acts card-acts"}, explainAct(item))' in template and "live() ? explainAct(issue) : null" in template
+    assert "Every Initiative, Epic, and Task on the page has `Explain`" in pool
     assert "`Explain` on every Issue" in skill
     # Orchi answers through a background subagent, in plain words, and changes nothing.
     assert "| `explain` (`issue`) | Starts one general-purpose subagent with the model `sonnet`, in the background" in pool
