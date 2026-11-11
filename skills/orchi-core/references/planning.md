@@ -50,7 +50,8 @@ continues that agent with the answers.
 - **Make each question easy to answer.** Give one or two sentences of context,
   two to four concrete options with their consequences, and your recommendation
   first, worded so that "yes" accepts it; always allow a free answer. Use the assistant's structured question
-  tool when it has one.
+  tool when it has one; a crew of an Orchi pool asks with the question block
+  of the [pool reference](pool.md#messages) instead.
 - **Ask in rounds along dependencies.** A round holds open questions whose
   prerequisites are settled, most consequential first, a few at a time; a
   question that depends on another open question waits for a later round.

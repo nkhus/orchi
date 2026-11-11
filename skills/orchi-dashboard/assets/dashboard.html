@@ -3,7 +3,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a control-room board. Summary strip, then two tabs: Crews (one list, ordered by state) and Backlog (the tree, PRs, planning, history). */
+/* Layout: a control-room board. Summary strip, then two tabs: Crews (what waits, the summary, every crew, a crew's page)
+   and Board (the work as a kanban, one level at a time, and an item's page). */
 :root {
   --bg: #f3f4f1; --panel: #ffffff; --ink: #1b1f1c; --muted: #5d665f; --line: #d9ddd5;
   --accent: #2f5d50; --accent-soft: #e2ece7;
@@ -23,6 +24,7 @@
   --accent: #8fc7b3; --accent-soft: #20302a;
   --ok: #74c58c; --ok-soft: #1c2e22; --warn: #e6b05c; --warn-soft: #33281a; --bad: #ef8a7f; --bad-soft: #3a211e;
   --idle: #6f7871; --track: #262b28; color-scheme: dark }
+[hidden] { display: none !important; }
 body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
 .page { max-width: 1180px; margin: 0 auto; padding-block: 28px 48px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -53,9 +55,6 @@ h2 { font: 600 13px/1.3 var(--body); letter-spacing: 0.08em; text-transform: upp
 .stat span { font-size: 13px; color: var(--muted); }
 .stat.hot b { color: var(--warn); }
 .stat.bad b { color: var(--bad); }
-.list { display: grid; gap: 8px; }
-.row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 10px; padding: 12px 16px; }
-.row p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .crews { display: grid; gap: 10px; }
 .crew { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
 .crew.working { border-left-color: var(--ok); }
@@ -85,56 +84,34 @@ h2 { font: 600 13px/1.3 var(--body); letter-spacing: 0.08em; text-transform: upp
 .workers i { width: 9px; height: 9px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--idle); }
 .workers i.busy { background: var(--accent); box-shadow: none; }
 .workers span { margin-left: 4px; }
-.table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-tr:last-child td { border-bottom: 0; }
-td.title { min-width: 220px; }
-td .bar { min-width: 120px; }
-.tree { display: grid; gap: 12px; }
-.group { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 16px; }
 details > summary { list-style: none; cursor: pointer; }
 details > summary::-webkit-details-marker { display: none; }
 details > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
-.node { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 10px 0; }
-.node + .node, .node + details, details + .node, details + details { border-top: 1px solid var(--line); }
-.node p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.node .side { display: flex; gap: 8px; align-items: center; justify-content: end; flex-wrap: wrap; font-size: 13px; }
-.node .bar { grid-column: 1 / -1; max-width: 360px; }
-.twisty { display: inline-block; width: 14px; color: var(--muted); transition: transform 0.15s ease; }
-details[open] > summary .twisty { transform: rotate(90deg); }
-.lvl-0 > p { font: 600 16px/1.35 var(--display); }
-.lvl-1 > p { font-weight: 600; }
-.lvl-2 > p { font-size: 14px; }
-.children { margin: 0 0 8px 6px; padding-left: 16px; border-left: 2px solid var(--line); }
 .kind { display: inline-block; font: 600 11px/1.6 var(--body); letter-spacing: 0.06em; text-transform: uppercase; padding: 0 7px; border-radius: 5px; margin-right: 6px; vertical-align: 2px; }
 .kind.Initiative { background: var(--accent); color: var(--panel); }
 .kind.Epic { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--accent); }
 .kind.Task { background: var(--track); color: var(--muted); }
-.loose { font: 600 12px/1.3 var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 0; }
-.loose + .node { border-top: 0; }
 .path { display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: center; font-size: 12.5px; color: var(--muted); }
 .path .sep { opacity: 0.6; }
 .now { display: grid; gap: 4px; font-size: 13.5px; }
 .now b { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 28px; }
 .tabbed { display: grid; gap: 22px; }
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
 .tab { appearance: none; background: none; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; padding: 10px 16px; font: 600 15px/1.2 var(--body); color: var(--muted); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
 .tab:hover { color: var(--ink); }
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 6px; }
-.tab .count { font: 500 12px/1.6 var(--mono); font-variant-numeric: tabular-nums; background: var(--track); color: var(--muted); border-radius: 999px; padding: 0 8px; }
+.tab .count { white-space: nowrap; font: 500 12px/1.6 var(--mono); font-variant-numeric: tabular-nums; background: var(--track); color: var(--muted); border-radius: 999px; padding: 0 8px; }
 .tab .count.hot { background: var(--warn-soft); color: var(--warn); }
 .tab .count.bad { background: var(--bad-soft); color: var(--bad); }
 .panel { display: grid; gap: 28px; align-content: start; }
+#panel-board { gap: 14px; }
 .panel[hidden] { display: none; }
 .empty { padding: 14px 16px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 14px; }
 footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
 /* Actions: each button sends one request to Orchi, which the app asks the user to confirm. */
 .acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.crew-work .acts, .row p .acts { display: inline-flex; margin-left: 8px; vertical-align: middle; }
+.crew-work .acts { display: inline-flex; margin-left: 8px; vertical-align: middle; }
 .act { appearance: none; font: 600 13px/1.2 var(--body); padding: 6px 12px; min-height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; white-space: nowrap; }
 .act:hover { border-color: var(--accent); color: var(--accent); }
 .act.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
@@ -152,8 +129,56 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
 .ask p { margin: 0; overflow-wrap: anywhere; }
 #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); width: max-content; max-width: min(92vw, 520px); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); z-index: 10; }
 #toast[hidden] { display: none; }
+.kind.PR { box-shadow: inset 0 0 0 1.5px var(--line); color: var(--muted); }
+.kind.needs-planning, .kind.Exploration { background: var(--warn-soft); color: var(--warn); }
+.lead { margin: 0; font: 600 clamp(18px, 2.4vw, 22px)/1.35 var(--display); text-wrap: balance; }
+.summary { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; max-width: 72ch; }
+.summary p { margin: 0; overflow-wrap: anywhere; }
+.summary .today { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+.sub { display: grid; gap: 18px; align-content: start; }
+.act.back { border-color: transparent; background: transparent; padding-inline: 4px; color: var(--muted); justify-self: start; }
+.q { display: grid; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 10px; padding: 12px 16px; }
+.q.pr { border-left-color: var(--accent); }
+.q p { margin: 0; overflow-wrap: anywhere; }
+.qtext { font-weight: 600; }
+.ctx { font-size: 13.5px; color: var(--muted); }
+.opts { display: grid; gap: 6px; }
+.opt { appearance: none; text-align: left; display: grid; gap: 2px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: 14px/1.35 var(--body); cursor: pointer; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+.opt:disabled { cursor: default; color: var(--ink); }
+.opt small { font-size: 13px; color: var(--muted); }
+.opt .rec { font: 600 11px/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.review { display: grid; gap: 8px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 2px 4px; align-items: center; }
+.crumbs .sep { color: var(--muted); opacity: 0.7; }
+.scope { margin: 0; font-size: 14.5px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.kanban { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(170px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
+.col { display: grid; gap: 8px; align-content: start; min-width: 0; padding: 10px; border-radius: 12px; border-top: 3px solid var(--line); background: color-mix(in srgb, var(--track) 60%, transparent); scroll-snap-align: start; }
+.col.hot { border-top-color: var(--warn); background: color-mix(in srgb, var(--warn-soft) 70%, transparent); }
+.col h3 { margin: 0 0 2px; display: flex; justify-content: space-between; gap: 8px; font: 600 12px/1.4 var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.col .none { margin: 0; font-size: 13px; color: var(--muted); }
+.card { display: grid; gap: 6px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.card-head { display: flex; gap: 6px; align-items: center; }
+.card .act[data-key^="nav-card-"] { all: unset; cursor: pointer; font: 600 14px/1.35 var(--body); color: var(--ink); overflow-wrap: anywhere; }
+.card .act[data-key^="nav-card-"]:hover { color: var(--accent); }
+.card .act[data-key^="nav-card-"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.card-acts .act { min-height: 28px; padding: 4px 10px; font-size: 12.5px; }
+.card-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font-size: 12.5px; }
+.backmark { color: var(--warn); font-weight: 700; }
+.item-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.item-head h3 { flex-basis: 100%; margin: 0; font: 700 clamp(20px, 3vw, 26px)/1.2 var(--display); overflow-wrap: anywhere; }
+.sub .pills { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sub .pills .bar { min-width: 200px; }
+.crew-line { margin: 0 0 8px; overflow-wrap: anywhere; }
+.history summary { font-weight: 600; color: var(--muted); }
+.history ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
 @media (max-width: 560px) { .answer { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 560px) { .node { grid-template-columns: minmax(0, 1fr); } .node .side { justify-content: start; } .children { margin-left: 2px; padding-left: 10px; } }
+/* On a phone the columns stack, each as wide as the page, so none hides off screen. */
+@media (max-width: 560px) { .strip { grid-template-columns: 1fr 1fr; } .stat:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .tabs { flex-wrap: wrap; } .tab { padding: 10px 8px; gap: 5px; } }
+@media (max-width: 640px) { .kanban { grid-auto-flow: row; grid-auto-columns: auto; overflow-x: visible; } }
 @media (prefers-reduced-motion: no-preference) { .bar .fill { transition: width 0.4s ease; } }
 </style>
 
@@ -169,26 +194,28 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     <div class="stat"><b>—</b><span>Open PRs</span></div>
     <div class="stat"><b>—</b><span>Ready to take</span></div>
   </div>
-  <div class="tabbed">
+  <div class="tabbed" id="tabbed">
     <div class="tabs" role="tablist" aria-label="Dashboard sections">
       <button class="tab" type="button" role="tab" id="tab-crews" aria-controls="panel-crews" aria-selected="true">Crews <span class="count" id="count-crews">—</span><span class="count hot" id="count-wait" hidden></span><span class="count bad" id="count-look" hidden></span></button>
-      <button class="tab" type="button" role="tab" id="tab-backlog" aria-controls="panel-backlog" aria-selected="false" tabindex="-1">Backlog <span class="count" id="count-backlog">—</span></button>
+      <button class="tab" type="button" role="tab" id="tab-board" aria-controls="panel-board" aria-selected="false" tabindex="-1">Board <span class="count" id="count-board">—</span><span class="count hot" id="count-you" hidden></span></button>
     </div>
     <div class="panel" id="panel-crews" role="tabpanel" aria-labelledby="tab-crews">
+      <section id="lead-section"><p class="lead" id="lead">Waiting for the first refresh.</p></section>
       <section id="asks-section" hidden><h2>Orchi's questions for you</h2><div class="asks" id="asks"></div></section>
-      <section><h2>Crews</h2><div class="crews" id="crews"><div class="empty">Orchi fills this in on its first refresh. Every crew appears here, ordered by state, with what it does now.</div></div></section>
+      <section id="summary-section"><h2>How things are going</h2><div class="summary" id="summary"><div class="empty">Orchi writes this when it refreshes the page.</div></div></section>
+      <section id="crews-section"><h2>Crews</h2><div class="crews" id="crews"><div class="empty">Orchi fills this in on its first refresh. Every crew appears here, ordered by state, with what it does now.</div></div></section>
+      <div class="sub" id="crew-page" hidden></div>
     </div>
-    <div class="panel" id="panel-backlog" role="tabpanel" aria-labelledby="tab-backlog" hidden>
-      <section><h2>Backlog</h2><p class="load" id="load" hidden></p><div id="work"><div class="empty">Open Initiatives, their Epics, and their Tasks appear here as a tree with their progress.</div></div></section>
-      <div class="cols">
-        <section><h2>Pull requests</h2><div id="pulls"><div class="empty">No data yet.</div></div></section>
-        <section><h2>Planning queue</h2><div id="planning"><div class="empty">No data yet.</div></div></section>
-      </div>
-      <section><h2>Recently merged</h2><div id="merged"><div class="empty">No data yet.</div></div></section>
+    <div class="panel" id="panel-board" role="tabpanel" aria-labelledby="tab-board" hidden>
+      <p class="load" id="load" hidden></p>
+      <nav class="crumbs" id="crumbs" aria-label="Board level"></nav>
+      <p class="scope" id="scope"></p>
+      <div class="kanban" id="kanban"><div class="empty">Initiatives, Epics, Tasks, and PRs appear here in columns by where they stand.</div></div>
+      <div class="sub" id="item-page" hidden></div>
     </div>
   </div>
   <div id="toast" role="status" aria-live="polite" hidden></div>
-  <footer id="footer">Read-only view of the Orchi pool from GitHub and the pool's sessions. Orchi refreshes it when something changes for you; ask Orchi to refresh it, or for anything else.</footer>
+  <footer id="footer">The Orchi pool from GitHub and the pool's sessions. The page changes when you press Refresh beside Orchi's conversation, or ask Orchi to refresh it.</footer>
 </div>
 
 <script>
@@ -233,7 +260,6 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     "question": (item) => `Its question to Orchi has waited ${ago(item.since).replace(" ago", "")}.`,
     "run ended": (item) => `Its background run has ended, but nothing woke the crew; it has been quiet for ${ago(item.quiet).replace(" ago", "")}.`};
   const lookText = (item) => (LOOK[item.kind] || (() => item.kind))(item) + (item.unanswered ? " It did not answer Orchi's status check; Orchi tells you." : " Orchi asks it for its status.");
-  const STATUS = {claimed: ["In progress", "accent"], ready: ["Ready", "ok"], check: ["Check blockers", "warn"], blocked: ["Blocked", ""], todo: ["To do", "plain"]};
   const CHECKS = {passing: ["Checks pass", "ok"], failing: ["Checks fail", "bad"], running: ["Checks running", "warn"], none: ["No checks", ""]};
   const unitOf = (kind) => kind === "Initiative" ? "Epics" : "Tasks";
   // How far a crew's work is, as an estimate. Stage keywords also match Russian stages, written as \u escapes. An Epic or Initiative with open children: the share closed. Otherwise
@@ -260,9 +286,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       el("div", {class: "fill", style: "width:" + (est ? est.share : 0) + "%"})),
     el("small", {}, el("span", {class: "num"}, est ? "~" + est.share + "%" : "—"), est ? " estimated · " + est.basis : " no estimate yet"));
   const empty = (text) => el("div", {class: "empty"}, text);
-  const kind = (item) => el("span", {class: "kind " + item.kind}, item.kind);
-  // Initiatives and Epics the user folded stay folded across refreshes while the page is open.
-  const folded = new Set();
+  const KINDS = {"needs-planning": "Planning"};
+  const kind = (item) => el("span", {class: "kind " + String(item.kind).replace(/[^A-Za-z-]/g, "")}, KINDS[item.kind] || item.kind);
 
   // Requests to Orchi. The page hands each one to the conversation beside it (Orchi's, when the user opened the page
   // from Orchi's link) on the user's click, and the app asks the user to confirm it; the page never starts a turn
@@ -292,6 +317,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   // One request: `action` and its fields are what Orchi acts on; `request` says it in a sentence.
   const request = (action, fields, label, sentence) => ({label, orchi_dashboard: "request", action, request: sentence, ...fields});
   function send(key, data) {
+    if (!live()) { note(FAILED.claude_unavailable); rerender(); return; }
     if (new TextEncoder().encode(JSON.stringify(data)).length > LIMIT) { note("Too long to send: shorten the answer."); return; }
     let pending;
     try {
@@ -316,15 +342,6 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     });
     return button;
   }
-  // A box for the user's answer, kept across refreshes while its question is on the page.
-  function answerBox(key, label, build) {
-    const box = el("textarea", {rows: "2", maxlength: "1000", "data-draft": key, "aria-label": label, placeholder: "Your answer"});
-    box.value = drafts.get(key) || "";
-    box.addEventListener("input", () => drafts.set(key, box.value));
-    const text = () => clean(box.value).trim();
-    return el("div", {class: "answer"}, box, act("Send answer", key, () => text() ? build(text()) : null,
-      {primary: true, empty: () => box.focus()}));
-  }
   const crewActs = (crew, look) => el("div", {class: "acts"},
     act(look ? "Wake it" : "What's up?", "status-" + crew.name, () => request("status", {crew: crew.name, issue: crew.issue || null},
       "Status of " + crew.name, `Ask ${crew.name} what it does and what it waits for, and tell me in two lines.`)));
@@ -339,7 +356,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     act("Hold", "hold-" + pr.number, () => request("hold", {pull: pr.number}, "Hold PR #" + pr.number, `Do not merge PR #${pr.number} yet; ask me what to change.`)));
 
   // Tabs switch on the page only; a reload opens Crews again.
-  const TABS = ["crews", "backlog"];
+  const TABS = ["crews", "board"];
   function selectTab(name, focus) {
     for (const t of TABS) {
       const on = t === name;
@@ -350,7 +367,11 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     if (focus) $("tab-" + name).focus();
   }
   for (const t of TABS) {
-    $("tab-" + t).addEventListener("click", () => selectTab(t));
+    // A tab clicked while open goes back to its start: every crew, or all the work.
+    $("tab-" + t).addEventListener("click", () => {
+      if ($("tab-" + t).getAttribute("aria-selected") === "true") { if (t === "crews") view.crew = null; else { view.item = null; view.level = null; } }
+      selectTab(t); rerender();
+    });
     $("tab-" + t).addEventListener("keydown", (event) => {
       const at = TABS.indexOf(t);
       const next = event.key === "ArrowRight" ? TABS[(at + 1) % TABS.length] : event.key === "ArrowLeft" ? TABS[(at + TABS.length - 1) % TABS.length]
@@ -359,35 +380,72 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     });
   }
 
+  // Where the user is on the page: a tab, and in it a crew's page, a level of the board, or an item's page.
+  const view = {crew: null, level: null, item: null};
+  const choices = new Map();
+  const nav = (text, key, go, options = {}) => {
+    const button = el("button", {type: "button", class: "act" + (options.primary ? " primary" : "") + (options.back ? " back" : ""), "data-key": "nav-" + key, title: options.title}, text);
+    button.addEventListener("click", (event) => { event.preventDefault(); event.stopPropagation(); go(); rerender(); if (options.top) $("tabbed").scrollIntoView({block: "start"}); });
+    return button;
+  };
+  const openCrew = (name) => () => { view.crew = name; selectTab("crews"); };
+  const openItem = (key) => () => { view.item = String(key); selectTab("board"); };
+  const COLS = [["planning", "Needs planning"], ["backlog", "Backlog"], ["progress", "In progress"], ["questions", "Questions for you", "hot"], ["review", "Your review", "hot"], ["done", "Done"]];
+  const COLUMN = Object.fromEntries(COLS.map(([key, name]) => [key, name]));
+
+  // One question with its context and options; the recommended option is chosen until the user picks another.
+  // `build(option, note)` returns the request; a `(user, here)` question counts only in the crew's own conversation.
+  function questionCard(question, key, build, head) {
+    const options = question.options || [];
+    const recommended = options.findIndex((option) => option.recommended);
+    const chosen = choices.has(key) ? choices.get(key) : options.length ? recommended : -1;
+    const parts = [el("p", {class: "qtext"}, head || null, question.text), question.context ? el("p", {class: "ctx"}, question.context) : null];
+    if (question.here) return el("div", {class: "q"}, parts, hereNote());
+    const pick = options.length ? el("div", {class: "opts", role: "group", "aria-label": "Options"}, options.map((option, i) => {
+      const button = el("button", {type: "button", class: "opt", "aria-pressed": String(i === chosen), disabled: !live(), "data-key": "opt-" + key + "-" + i},
+        el("span", {}, el("b", {}, option.label), option.recommended ? el("span", {class: "rec"}, " · recommended") : null),
+        option.consequence ? el("small", {}, option.consequence) : null);
+      button.addEventListener("click", (event) => { event.preventDefault(); choices.set(key, i === chosen ? -1 : i); rerender(); });
+      return button;
+    })) : null;
+    if (!live()) return el("div", {class: "q"}, parts, pick);
+    const box = el("textarea", {rows: "2", maxlength: "1000", "data-draft": key, "aria-label": "Note", placeholder: options.length ? "Add a note (optional)" : "Your answer"});
+    box.value = drafts.get(key) || "";
+    box.addEventListener("input", () => drafts.set(key, box.value));
+    const send = act("Send answer", key, () => {
+      const note = clean(box.value).trim(), option = chosen >= 0 ? options[chosen] : null;
+      if (!option && !note) return null;
+      return build(option ? clean(option.label).slice(0, 200) : null, note);
+    }, {primary: true, empty: () => box.focus()});
+    return el("div", {class: "q"}, parts, pick, el("div", {class: "answer"}, box, send));
+  }
+  const said = (option, note) => [option ? "I choose: " + option + "." : null, note || null].filter(Boolean).join(" ");
+  const crewQuestion = (crew, question) => questionCard(question, "answer-" + crew.name + "-" + mark(question.text), (option, note) =>
+    request("answer", {crew: crew.name, issue: crew.issue || null, question: clean(question.text).slice(0, 300), option, text: said(option, note)},
+      "Answer for " + crew.name, `Pass my answer in text on to ${crew.name}.`));
+
   let last = null;
   function render(doc) {
     last = doc;
     const work = doc.work || [], pulls = doc.pulls || [], crews = doc.crews || [], waiting = doc.waiting || [];
-    const byNumber = new Map([...work, ...(doc.planning || [])].map((item) => [item.number, item]));
+    const planning = doc.planning || [], closed = (doc.closed || []).map((item) => ({...item, status: "closed"}));
+    const items = [...work, ...planning, ...closed];
+    const byNumber = new Map(items.map((item) => [item.number, item]));
+    const columns = doc.columns || {}, history = doc.history || {};
     const repoName = String(doc.repository || "").split("/").pop() || "Orchi";
     $("repo").textContent = repoName;
     document.title = repoName + " pool";
 
-    const meta = [pill("Updated " + time(doc.updated) + " · " + ago(doc.updated), "plain")];
+    // The page changes only when the user asks for a refresh, so it says how old it is.
+    const stale = Date.now() - new Date(doc.updated) > 30 * 60000;
+    const meta = [pill("Updated " + time(doc.updated) + " · " + ago(doc.updated), stale ? "warn" : "plain", stale ? "Press Refresh to see the pool as it is now" : null)];
     if (doc.mode) meta.push(pill("Autonomous mode " + doc.mode, doc.mode === "on" ? "accent" : "plain"));
     if (live()) {
-      meta.push(act("Refresh", "refresh", () => request("refresh", {}, "Refresh the dashboard", "Refresh the dashboard.")));
+      meta.push(act("Refresh", "refresh", () => request("refresh", {}, "Refresh the dashboard", "Refresh the dashboard."), {primary: true, title: "Orchi reads the pool and GitHub again"}));
       if (doc.mode) { const to = doc.mode === "on" ? "off" : "on";
         meta.push(act("Autonomous mode " + to, "mode-" + to, () => request("mode", {to}, "Autonomous mode " + to, `Turn autonomous mode ${to}.`))); }
     }
     $("meta").replaceChildren(...meta);
-
-    // Orchi's numbered questions for the user, from its notes; with buttons, each takes an answer here.
-    const questions = doc.questions || [];
-    $("asks-section").hidden = questions.length === 0;
-    const byPull = new Map(pulls.map((pr) => [pr.number, pr]));
-    $("asks").replaceChildren(...questions.map((item) => {
-      const merge = /^Merge PR #(\d+)/.exec(item.text), pr = merge && byPull.get(Number(merge[1]));
-      return el("div", {class: "ask"}, el("p", {}, el("b", {class: "mono"}, item.number + ". "), item.text),
-        !live() ? null : pr ? mergeActs(pr) : /\(user, here\)/.test(item.text) ? hereNote()
-          : answerBox("question-" + item.number + "-" + mark(item.text), "Answer to question " + item.number, (text) => request("note_answer", {question: item.number, text},
-            "Answer to question " + item.number, `My answer to your question ${item.number} is in text.`)));
-    }));
 
     const banner = $("banner");
     if (doc.error) { banner.className = "banner"; banner.textContent = "The last refresh failed: " + doc.error + ". The page shows the refresh before it."; banner.hidden = false; }
@@ -402,109 +460,204 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     const asking = crews.filter((crew) => crew.state === "waiting").length;
     // PRs that wait for the user's yes: those Orchi's notes ask about; Merge and Hold show only on them.
     const asked = new Set(waiting.filter((item) => item.kind === "merge").map((item) => item.pull)), held = new Set(doc.held || []);
+    const deferred = new Set(doc.deferred || []);
     $("count-crews").textContent = crews.length;
     $("count-wait").textContent = asking + " wait";
     $("count-wait").hidden = asking === 0;
     $("count-look").textContent = looks.length + " look";
     $("count-look").hidden = looks.length === 0;
-    $("count-backlog").textContent = work.length;
+    const forYou = Object.values(columns).filter((column) => column === "questions" || column === "review").length;
+    $("count-board").textContent = Object.values(columns).filter((column) => column !== "done").length;
+    $("count-you").textContent = forYou + " for you";
+    $("count-you").hidden = forYou === 0;
 
-    // One list of every crew: those that need a look, those waiting for the user, then working, background, idle, free.
+    // The pool size is the most crews that hold work at once; with a free pool crew or room below the size, work starts now.
+    const free = crews.filter((crew) => stateOf(crew) === "free"), busy = crews.filter((crew) => crew.role && stateOf(crew) !== "free");
+    const limit = Number(doc.limit) || 3, space = free.length > 0 || busy.length < limit;
     const lookOf = (crew) => looks.find((item) => item.crew === crew.name);
     const runSince = (crew) => ((doc.background_since || {})[crew.name] || {}).since || crew.last_activity;
-    const rank = (crew) => lookOf(crew) ? 0 : RANK.indexOf(stateOf(crew)) + 1 || 9;
-    const ordered = [...crews].sort((a, b) => rank(a) - rank(b) || String(a.name).localeCompare(String(b.name), undefined, {numeric: true}));
-    $("crews").replaceChildren(...(ordered.length ? ordered.map((crew) => {
+    const holderOf = (number) => crews.find((crew) => crew.issue === number && crew.role);
+    const pullsOf = (number) => pulls.filter((pr) => (pr.closes || []).includes(number));
+    const childrenOf = (number) => items.filter((item) => item.parent === number);
+
+    // Work no crew holds can be taken, planned, or deferred; Orchi checks it as for any request.
+    const workActs = (item) => {
+      const ref = issueRef(item), open = !item.crew && item.status !== "claimed" && item.status !== "closed";
+      if (!live()) return [];
+      // A deferred item can be resumed whoever holds it; only work no crew holds can be taken, planned, or deferred.
+      return [...(deferred.has(item.number) && item.status !== "closed"
+        ? [act("Resume", "resume-" + item.number, () => request("resume", {issue: item.number}, "Resume " + ref, `Take ${ref} back into the queue.`))]
+        : open ? [item.status === "ready" ? (space
+            ? act("Take", "take-" + item.number, () => request("take", {issue: item.number, busy: busy.length, limit}, "Take " + ref, `Give ${ref} to a crew now.`), {primary: true, title: free.length ? free[0].name + " is free" : `${busy.length} of ${limit} crews busy`})
+            : act("Queue", "take-" + item.number, () => request("take", {issue: item.number, busy: busy.length, limit}, "Queue " + ref, `Queue ${ref} for the next crew that frees up; start no new crew for it.`), {title: "The pool is full"})) : null,
+          act("Plan", "plan-" + item.number, () => request("plan", {issue: item.number}, "Plan " + ref, `Have a planner plan ${ref}.`)),
+          act("Defer", "defer-" + item.number, () => request("defer", {issue: item.number}, "Defer " + ref, `Defer ${ref}: give it to no crew until I say so.`))] : []), explainAct(item)].filter(Boolean);
+    };
+    // A PR that waits for the user's yes: merge it, hold it, or hold it and say what to change.
+    const reviewActs = (pr) => {
+      const key = "changes-" + pr.number, box = el("textarea", {rows: "2", maxlength: "1000", "data-draft": key, "aria-label": "What to change", placeholder: "What should change? (to request changes)"});
+      box.value = drafts.get(key) || "";
+      box.addEventListener("input", () => drafts.set(key, box.value));
+      return el("div", {class: "review"}, mergeActs(pr), el("div", {class: "answer"}, box, act("Request changes", key, () => {
+        const text = clean(box.value).trim();
+        return text ? request("hold", {pull: pr.number, changes: text}, "Request changes on PR #" + pr.number, `Do not merge PR #${pr.number}; have the crew change what I wrote.`) : null;
+      }, {empty: () => box.focus()})));
+    };
+
+    // ---- Crews tab: what waits for the user, Orchi's questions, the summary, and every crew; or one crew's page.
+    const crewCard = (crew, full) => {
       const state = stateOf(crew);
       const [stateText, tone] = crew.state === "idle" && state === "working" ? ["Workers busy", "ok"] : STATES[state] || [crew.state, ""];
       const issue = byNumber.get(crew.issue);
-      const pr = crew.issue ? pulls.find((p) => (p.closes || []).includes(crew.issue)) : null;
+      const pr = crew.issue ? pullsOf(crew.issue)[0] : null;
       const path = (crew.path || []).map((n) => byNumber.get(n)).filter(Boolean);
       const under = (item) => { for (let n = item.parent; n; n = (byNumber.get(n) || {}).parent) if (n === crew.issue) return true; return false; };
       const now = issue ? work.filter((item) => item.status === "claimed" && under(item)) : [];
       const workers = crew.workers || {};
       const dots = Array.from({length: Number(workers.total) || 0}, (_, i) => el("i", {class: i < (Number(workers.busy) || 0) ? "busy" : ""}));
-      const idle = state === "idle", look = lookOf(crew);
+      const idle = state === "idle", look = lookOf(crew), questions = crew.questions || [];
       return el("article", {class: "crew " + state + (look ? " look" : "")},
         el("div", {class: "crew-head"}, el("div", {class: "crew-title"}, crew.title, el("small", {}, [crew.role, crew.name].filter(Boolean).join(" · "))),
-          el("div", {class: "pills"}, crew.remote ? pill("Remote Control on", "bad", "A session served over Remote Control cannot be cleared") : null, look ? pill("Needs a look", "bad") : null, pill(stateText, tone))),
+          el("div", {class: "pills"}, crew.remote ? pill("Remote Control on", "bad", "A session served over Remote Control cannot be cleared") : null, look ? pill("Needs a look", "bad") : null,
+            questions.length ? pill(questions.length + (questions.length === 1 ? " question" : " questions"), "warn") : null, pill(stateText, tone))),
         path.length ? el("div", {class: "path", "aria-label": "Part of"}, path.flatMap((item, i) => [i ? el("span", {class: "sep"}, "›") : null, el("span", {}, item.kind + " ", link(item.url, "#" + item.number), " " + item.title)])) : null,
-        issue ? el("div", {class: "crew-work"}, kind(issue), link(issue.url, "#" + issue.number), " ", issue.title, live() ? el("span", {class: "acts"}, explainAct(issue)) : null) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
+        issue ? el("div", {class: "crew-work"}, kind(issue), link(issue.url, "#" + issue.number), " ", issue.title, el("span", {class: "acts"}, nav("On the board", "item-" + issue.number, openItem(issue.number), {top: true}), live() ? explainAct(issue) : null)) : crew.state === "free" ? el("div", {class: "crew-work muted"}, "Ready for the next request.") : null,
         crew.stage && state !== "free" ? el("div", {class: "stage" + (idle ? " last" : "")}, idle ? "Last step: " + crew.stage : crew.stage) : null,
         look ? el("div", {class: "look-note"}, lookText(look)) : null,
         state === "background" ? el("div", {class: "stage"}, "Running in the background: " + crew.background + (runSince(crew) ? " · since " + time(runSince(crew)) + " (" + ago(runSince(crew)) + ")" : "")) : null,
         idle ? el("div", {class: "muted", style: "font-size:13px"}, "Nothing is running" + (crew.last_activity ? " since " + time(crew.last_activity) + " (" + ago(crew.last_activity) + ")" : "") + ".") : null,
         issue && crew.state !== "free" ? estBar(estimate(crew, issue)) : null,
-        now.length ? el("div", {class: "now"}, el("b", {}, "In progress now"), now.slice(0, 3).map((item) => el("div", {}, kind(item), link(item.url, "#" + item.number), " ", item.title, item.parent !== crew.issue && byNumber.get(item.parent) ? el("span", {class: "muted"}, " · in " + byNumber.get(item.parent).kind + " #" + item.parent) : null)), now.length > 3 ? el("span", {class: "muted"}, `and ${now.length - 3} more`) : null) : null,
-        crew.question && crew.state === "waiting" ? el("div", {class: "question"}, crew.question) : null,
-        // A question marked `(user, here)` counts only when typed in the crew's own conversation, so it takes no answer here.
-        live() && crew.question && crew.state === "waiting" ? (/\(user, here\)/.test(crew.question) ? hereNote()
-          : answerBox("answer-" + crew.name + "-" + mark(crew.question), "Answer to " + crew.name, (text) => request("answer", {crew: crew.name, issue: crew.issue || null, question: clean(crew.question).slice(0, 300), text},
-            "Answer for " + crew.name, `Pass my answer in text on to ${crew.name}.`))) : null,
+        now.length ? el("div", {class: "now"}, el("b", {}, "In progress now"), now.slice(0, full ? 20 : 3).map((item) => el("div", {}, kind(item), link(item.url, "#" + item.number), " ", item.title, item.parent !== crew.issue && byNumber.get(item.parent) ? el("span", {class: "muted"}, " · in " + byNumber.get(item.parent).kind + " #" + item.parent) : null)), !full && now.length > 3 ? el("span", {class: "muted"}, `and ${now.length - 3} more`) : null) : null,
+        !full && questions.length ? el("div", {class: "question"}, questions[0].text, questions.length > 1 ? el("span", {class: "muted"}, ` · and ${questions.length - 1} more`) : null) : null,
         pr ? el("div", {style: "display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13.5px"}, link(pr.url, "PR #" + pr.number), pill(pr.draft ? "Draft" : "Ready", pr.draft ? "plain" : "accent"), pill(...CHECKS[pr.checks] || [pr.checks, ""])) : null,
-        live() && pr && asked.has(pr.number) ? mergeActs(pr) : null,
-        live() && crew.role ? crewActs(crew, look) : null,
+        full && live() && pr && asked.has(pr.number) ? reviewActs(pr) : null,
+        el("div", {class: "acts"}, !full && crew.role ? nav(questions.length ? "Answer" : "Open", "crew-" + crew.name, openCrew(crew.name), {primary: questions.length > 0 && live(), top: true}) : null,
+          live() && crew.role ? crewActs(crew, look).firstChild : null),
         dots.length ? el("div", {class: "workers", "aria-label": `${workers.busy || 0} of ${workers.total} workers busy`}, dots, el("span", {}, `${workers.busy || 0}/${workers.total} workers busy`)) : null);
-    }) : [empty("No crews found in the pool's sidebar group.")]));
+    };
+    const crew = view.crew && crews.find((c) => c.name === view.crew);
+    if (view.crew && !crew) view.crew = null;
+    for (const id of ["lead-section", "asks-section", "summary-section", "crews-section"]) $(id).hidden = Boolean(crew);
+    $("crew-page").hidden = !crew;
+    if (crew) {
+      const questions = crew.questions || [];
+      $("crew-page").replaceChildren(nav("← All crews", "crews", () => { view.crew = null; }, {back: true}), crewCard(crew, true),
+        el("section", {}, el("h2", {}, questions.length ? "Its questions for you" : "Questions"),
+          questions.length ? el("div", {class: "asks"}, questions.map((question) => crewQuestion(crew, question))) : empty("It asks you nothing now.")));
+    }
 
-    const deferred = new Set(doc.deferred || []);
-    // The pool size is the most crews that hold work at once; with a free pool crew or room below the size, work starts now.
-    const free = crews.filter((crew) => stateOf(crew) === "free"), busy = crews.filter((crew) => crew.role && stateOf(crew) !== "free");
-    const limit = Number(doc.limit) || 3, space = free.length > 0 || busy.length < limit;
+    // One sentence on what waits for the user.
+    const merges = waiting.filter((item) => item.kind === "merge").length, notes = doc.questions || [];
+    const crewAsks = crews.reduce((n, c) => n + (c.state === "waiting" ? Math.max(1, (c.questions || []).length) : 0), 0);
+    const askCount = crewAsks + notes.filter((q) => !/^Merge PR #/.test(q.text)).length;
+    const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+    $("lead").textContent = askCount || merges ? [askCount ? plural(askCount, "question", "questions") : null, merges ? plural(merges, "merge", "merges") : null].filter(Boolean).join(" and ") + (askCount + merges === 1 ? " waits" : " wait") + " for you." + (looks.length ? " " + plural(looks.length, "crew needs", "crews need") + " a look." : "")
+      : "Nothing waits for you." + (looks.length ? " " + plural(looks.length, "crew needs", "crews need") + " a look." : "");
+
+    // Orchi's numbered questions, from its notes.
+    $("asks-section").hidden = Boolean(crew) || notes.length === 0;
+    const byPull = new Map(pulls.map((pr) => [pr.number, pr]));
+    $("asks").replaceChildren(...notes.map((item) => {
+      const merge = /^Merge PR #(\d+)/.exec(item.text), pr = merge && byPull.get(Number(merge[1]));
+      const head = el("b", {class: "mono"}, item.number + ". ");
+      if (pr) return el("div", {class: "q"}, el("p", {class: "qtext"}, head, item.text), live() ? reviewActs(pr) : null);
+      return questionCard({...item, here: /\(user, here\)/.test(item.text)}, "question-" + item.number + "-" + mark(item.text), (option, note) =>
+        request("note_answer", {question: item.number, option, text: said(option, note)}, "Answer to question " + item.number, `My answer to your question ${item.number} is in text.`), head);
+    }));
+
+    // How things are going, as the last refresh wrote it, and what moved today.
+    const summary = doc.summary || [];
+    const today = new Date().toDateString();
+    const movedToday = Object.entries(history).flatMap(([key, moves]) => moves.filter((move) => new Date(move.at).toDateString() === today).map((move) => ({key, ...move})));
+    const mergedToday = (doc.merged || []).filter((pr) => new Date(pr.merged_at).toDateString() === today);
+    const todayLine = [mergedToday.length ? plural(mergedToday.length, "PR merged", "PRs merged") : null,
+      movedToday.length ? plural(movedToday.length, "card moved", "cards moved") : null,
+      movedToday.some((move) => move.back) ? plural(movedToday.filter((move) => move.back).length, "came back from review", "came back from review") : null].filter(Boolean).join(" · ");
+    $("summary").replaceChildren(...(summary.length ? summary.map((part) => el("p", {}, el("b", {}, part.lead), part.text ? " " + part.text : null)) : [empty("Orchi writes this when it refreshes the page.")]),
+      el("p", {class: "today"}, "Today: " + (todayLine || "nothing moved yet") + (doc.summary_at ? " · written " + time(doc.summary_at) : "")));
+
+    const ordered = [...crews].sort((a, b) => ((lookOf(a) ? 0 : RANK.indexOf(stateOf(a)) + 1 || 9) - (lookOf(b) ? 0 : RANK.indexOf(stateOf(b)) + 1 || 9)) || String(a.name).localeCompare(String(b.name), undefined, {numeric: true}));
+    $("crews").replaceChildren(...(ordered.length ? ordered.map((c) => crewCard(c, false)) : [empty("No crews found in the pool's sidebar group.")]));
+
+    // ---- Board tab: one level of the work as a kanban, or one item's page.
     $("load").hidden = false;
     $("load").replaceChildren(el("b", {}, `${busy.length} of ${limit} crews busy`), " · ",
-      free.length ? `${free.length} free (${free.map((crew) => crew.name).join(", ")}): work you take starts now.`
+      free.length ? `${free.length} free (${free.map((c) => c.name).join(", ")}): work you take starts now.`
         : space ? "room for one more crew: work you take starts a new one." : "the pool is full: work you take waits for the next crew that frees up.");
-    const order = {claimed: 0, ready: 1, check: 2, blocked: 3, todo: 4};
-    const sorted = (items) => items.sort((a, b) => (order[a.status] - order[b.status]) || a.number - b.number);
-    const childrenOf = (item) => sorted(work.filter((w) => w.parent === item.number));
-    const node = (item, level) => {
-      const [text, tone] = STATUS[item.status] || [item.status, ""];
-      const crew = crews.find((c) => c.name === item.crew);
-      const kids = childrenOf(item);
-      const held = deferred.has(item.number), open = !item.crew && item.status !== "claimed";
-      const ref = item.kind + " #" + item.number;
-      // Work no crew holds can be taken, planned, or deferred from here; Orchi checks it as for any request.
-      const acts = !live() ? [] : [...(open ? (held
-        ? [act("Resume", "resume-" + item.number, () => request("resume", {issue: item.number}, "Resume " + ref, `Take ${ref} back into the queue.`))]
-        : [item.status === "ready" ? (space
-            ? act("Take", "take-" + item.number, () => request("take", {issue: item.number, busy: busy.length, limit}, "Take " + ref, `Give ${ref} to a crew now.`), {primary: true, title: free.length ? free[0].name + " is free" : `${busy.length} of ${limit} crews busy`})
-            : act("Queue", "take-" + item.number, () => request("take", {issue: item.number, busy: busy.length, limit}, "Queue " + ref, `Queue ${ref} for the next crew that frees up; start no new crew for it.`), {title: "The pool is full"})) : null,
-          act("Plan", "plan-" + item.number, () => request("plan", {issue: item.number}, "Plan " + ref, `Have a planner plan ${ref}.`)),
-          act("Defer", "defer-" + item.number, () => request("defer", {issue: item.number}, "Defer " + ref, `Defer ${ref}: give it to no crew until I say so.`))]) : []), explainAct(item)];
-      const row = el(kids.length ? "summary" : "div", {class: "node lvl-" + level},
-        el("p", {}, kids.length ? el("span", {class: "twisty", "aria-hidden": "true"}, "▸") : null, kind(item), link(item.url, "#" + item.number), " ", item.title),
-        el("span", {class: "side"}, held ? pill("Deferred", "plain") : pill(text, tone), crew ? el("span", {class: "muted"}, crew.title) : item.crew ? el("span", {class: "muted mono"}, item.crew) : null, acts.filter(Boolean).length ? el("span", {class: "acts"}, acts) : null),
-        bar(item.progress, unitOf(item.kind)));
-      if (!kids.length) return row;
-      const box = el("details", {open: !folded.has(item.number)}, row, el("div", {class: "children"}, kids.map((kid) => node(kid, level + 1))));
-      box.addEventListener("toggle", () => { box.open ? folded.delete(item.number) : folded.add(item.number); });
-      return box;
+    if (view.level !== null && !byNumber.has(view.level)) view.level = null;
+    const prCards = pulls.filter((pr) => columns["pr-" + pr.number]).map((pr) => ({number: "pr-" + pr.number, kind: "PR", title: pr.title, url: pr.url, pr}));
+    // Recent merges close the top level's Done column.
+    const mergedCards = (doc.merged || []).map((pr) => ({number: "merged-" + pr.number, kind: "PR", title: pr.title, url: pr.url, status: "closed", pr: {...pr, merged: true}}));
+    const level = view.level === null
+      ? [...items.filter((item) => !item.parent || !byNumber.has(item.parent)), ...prCards, ...mergedCards]
+      : childrenOf(view.level);
+    const crumbs = [];
+    for (let n = view.level; n !== null && byNumber.has(n); n = byNumber.get(n).parent || null) crumbs.unshift(byNumber.get(n));
+    $("crumbs").hidden = view.level === null && view.item === null;
+    $("crumbs").replaceChildren(nav("All work", "level-top", () => { view.level = null; view.item = null; }, {back: view.level !== null || view.item !== null}),
+      ...crumbs.flatMap((item) => [el("span", {class: "sep"}, "›"), nav(issueRef(item) + " " + item.title, "level-" + item.number, () => { view.level = item.number; view.item = null; }, {back: true})]));
+    const columnOf = (item) => columns[String(item.number)] || (item.status === "closed" ? "done" : "backlog");
+    const count = (column) => level.filter((item) => columnOf(item) === column).length;
+    const parent = view.level !== null && byNumber.get(view.level);
+    const scopeText = (parent ? issueRef(parent) + " " + parent.title + ": " : "All work: ")
+      + `${level.length - count("done")} open, ${count("done")} done` + (count("questions") + count("review") ? `; ${count("questions") + count("review")} wait for you` : "") + ".";
+    $("scope").replaceChildren(...[scopeText, parent ? el("span", {class: "acts"}, nav("Details", "item-" + parent.number, openItem(parent.number))) : null].filter(Boolean));
+    const card = (item) => {
+      const key = String(item.number), kids = item.kind === "PR" ? [] : childrenOf(item.number);
+      const done = kids.filter((kid) => columnOf(kid) === "done").length;
+      const holder = item.kind === "PR" ? null : holderOf(item.number) || crews.find((c) => c.name === item.crew);
+      const pr = item.pr || (item.kind === "PR" ? null : pullsOf(item.number)[0]);
+      const back = (history[key] || []).some((move) => move.back);
+      const go = kids.length ? () => { view.level = item.number; view.item = null; } : openItem(key);
+      return el("article", {class: "card"},
+        el("div", {class: "card-head"}, kind(item), el("span", {class: "mono muted"}, item.kind === "PR" ? "#" + item.pr.number : "#" + item.number), back ? el("span", {class: "backmark", title: "Came back from review"}, "↩") : null),
+        nav(item.title || "Untitled", "card-" + key, go, {title: kids.length ? "Open its board" : "Open its page"}),
+        el("div", {class: "card-meta"}, deferred.has(item.number) ? pill("Deferred", "plain") : null, holder ? el("span", {class: "muted"}, holder.title) : null,
+          pr ? (pr.merged ? pill("Merged " + time(pr.merged_at), "ok") : pill(...CHECKS[pr.checks] || [pr.checks, ""])) : null, kids.length ? el("span", {class: "muted"}, `${done} of ${kids.length} done`) : null),
+        // Every Initiative, Epic, and Task card can be explained in plain words without opening it.
+        live() && item.kind !== "PR" ? el("div", {class: "acts card-acts"}, explainAct(item)) : null);
     };
-    // Initiatives, then Epics outside any Initiative, each in its own card; Tasks outside any Epic share one card.
-    const tops = work.filter((item) => !item.parent || !byNumber.has(item.parent));
-    const level = {Initiative: 0, Epic: 1, Task: 2};
-    const cards = ["Initiative", "Epic"].flatMap((k) => sorted(tops.filter((item) => item.kind === k)).map((item) => el("div", {class: "group"}, node(item, level[k]))));
-    const loose = sorted(tops.filter((item) => item.kind === "Task"));
-    if (loose.length) cards.push(el("div", {class: "group"}, el("h3", {class: "loose"}, "Tasks outside any Epic"), loose.map((item) => node(item, 2))));
-    $("work").replaceChildren(cards.length ? el("div", {class: "tree"}, cards) : empty("No open Initiatives, Epics, or Tasks."));
+    const DONE_SHOWN = 8;
+    $("kanban").replaceChildren(...COLS.map(([column, name, tone]) => {
+      let cards = level.filter((item) => columnOf(item) === column).sort((a, b) => String(a.number).localeCompare(String(b.number), undefined, {numeric: true}));
+      const more = column === "done" && cards.length > DONE_SHOWN ? cards.length - DONE_SHOWN : 0;
+      if (more) cards = cards.slice(-DONE_SHOWN);
+      return el("section", {class: "col " + (tone || ""), "aria-label": name},
+        el("h3", {}, name, el("span", {class: "mono"}, String(cards.length + more))),
+        cards.length ? cards.map(card) : el("p", {class: "none"}, "—"), more ? el("p", {class: "none"}, `and ${more} earlier`) : null);
+    }));
 
-    $("pulls").replaceChildren(pulls.length ? el("div", {class: "list"}, pulls.map((pr) => el("div", {class: "row", style: "border-left-color:var(--line)"},
-      el("span", {class: "mono"}, "#" + pr.number), el("p", {}, link(pr.url, pr.title), el("br"), el("span", {class: "muted mono"}, "into " + pr.base)),
-      el("span", {style: "display:grid;gap:4px;justify-items:end"}, held.has(pr.number) ? pill("On hold", "plain") : asked.has(pr.number) ? pill("Waits for your yes", "warn") : null, pill(pr.draft ? "Draft" : "Ready", pr.draft ? "plain" : "accent"), pill(...CHECKS[pr.checks] || [pr.checks, ""]),
-        live() && asked.has(pr.number) ? mergeActs(pr) : null)))) : empty("No open pull requests."));
+    // An item's page: what the user decides there, the crew on it, its PR, and its history.
+    const item = view.item && (/^(pr|merged)-/.test(view.item) ? [...prCards, ...mergedCards].find((c) => c.number === view.item) : byNumber.get(Number(view.item)));
+    if (view.item && !item) view.item = null;
+    for (const id of ["load", "scope", "kanban"]) $(id).hidden = Boolean(item);
+    $("item-page").hidden = !item;
+    if (item) {
+      const key = String(item.number), isPr = item.kind === "PR";
+      const holder = isPr ? null : holderOf(item.number) || crews.find((c) => c.name === item.crew);
+      const prs = isPr ? [item.pr] : pullsOf(item.number);
+      const kids = isPr ? [] : childrenOf(item.number);
+      const moves = history[key] || [];
+      const tone = {questions: "warn", review: "warn", progress: "accent", done: "ok"}[columnOf(item)] || "plain";
+      $("item-page").replaceChildren(...[
+        el("div", {class: "item-head"}, kind(item), link(item.url, isPr ? "PR #" + item.pr.number : "#" + item.number), el("h3", {}, item.title || "Untitled")),
+        el("div", {class: "pills"}, pill(COLUMN[columnOf(item)], tone), deferred.has(item.number) ? pill("Deferred", "plain") : null, item.progress ? bar(item.progress, unitOf(item.kind)) : null),
+        kids.length ? el("div", {class: "acts"}, nav(`Open its board (${kids.length})`, "level-" + item.number, () => { view.level = item.number; view.item = null; }, {primary: true})) : null,
+        holder ? el("section", {}, el("h2", {}, "Crew on it"), el("p", {class: "crew-line"}, el("b", {}, holder.title), holder.stage ? " · " + holder.stage : null, " ", nav("Open the crew", "crew-" + holder.name, openCrew(holder.name), {top: true})),
+          (holder.questions || []).length ? el("div", {class: "asks"}, holder.questions.map((question) => crewQuestion(holder, question))) : null) : null,
+        prs.length ? el("section", {}, el("h2", {}, prs.length === 1 ? "Pull request" : "Pull requests"), prs.map((pr) => el("div", {class: "q pr"},
+          el("p", {class: "qtext"}, link(pr.url, "PR #" + pr.number), " ", pr.title),
+          el("div", {class: "pills"}, pr.merged ? pill("Merged " + time(pr.merged_at) + " into " + pr.base, "ok") : [held.has(pr.number) ? pill("On hold", "plain") : asked.has(pr.number) ? pill("Waits for your yes", "warn") : null, pill(pr.draft ? "Draft" : "Ready", pr.draft ? "plain" : "accent"), pill(...CHECKS[pr.checks] || [pr.checks, ""])],
+            safeUrl(pr.url) ? link(pr.url + "/files", "See the changes") : null),
+          live() && asked.has(pr.number) ? reviewActs(pr) : null))) : null,
+        !isPr && live() ? el("section", {}, el("h2", {}, "Ask Orchi"), el("div", {class: "acts"}, workActs(item))) : null,
+        el("details", {class: "history"}, el("summary", {}, `History (${moves.length})`),
+          moves.length ? el("ol", {}, [...moves].reverse().map((move) => el("li", {}, el("span", {class: "mono muted"}, time(move.at) + " " + new Date(move.at).toLocaleDateString([], {day: "numeric", month: "short"})), " ",
+            COLUMN[move.from] || move.from, " → ", COLUMN[move.to] || move.to, move.back ? el("span", {class: "backmark"}, " ↩ back from review") : null))) : el("p", {class: "none"}, "No moves seen yet."))].filter(Boolean));
+    }
 
-    const planning = doc.planning || [];
-    $("planning").replaceChildren(planning.length ? el("div", {class: "list"}, planning.map((item) => el("div", {class: "row", style: "border-left-color:var(--accent)"},
-      el("span", {class: "mono"}, "#" + item.number), el("p", {}, link(item.url, item.title), el("br"), el("span", {class: "muted"}, item.kind === "Exploration" ? "Being explored" : "Needs planning"), live() ? el("span", {class: "acts"}, explainAct(item)) : null),
-      el("span", {class: "muted", style: "font-size:13px"}, item.crew || "Waiting for a crew")))) : empty("Nothing waits for planning."));
-
-    const merged = doc.merged || [];
-    $("merged").replaceChildren(merged.length ? el("div", {class: "table-wrap"}, el("table", {}, el("tbody", {}, merged.map((pr) => el("tr", {},
-      el("td", {class: "mono muted"}, time(pr.merged_at)), el("td", {class: "title"}, link(pr.url, "#" + pr.number), " ", pr.title), el("td", {class: "mono muted"}, "into " + pr.base)))))) : empty("No merges yet."));
-
-    $("footer").textContent = "The Orchi pool of " + (doc.repository || "the repository") + ", from GitHub and the pool's sessions. Orchi refreshes it when something changes for you. "
-      + (live() ? "Each button sends your request to Orchi, and the app asks you to confirm it." : "Open this page beside Orchi's conversation in the Claude app to answer, merge, and take work from here.");
+    $("footer").textContent = "The Orchi pool of " + (doc.repository || "the repository") + ", from GitHub and the pool's sessions. The page changes when you press Refresh. "
+      + (live() ? "Each button sends your request to Orchi, and the app asks you to confirm it." : "Open this page beside Orchi's conversation in the Claude app to refresh it, answer, merge, and take work from here.");
   }
 
   // Render again, keeping the answer box the user is typing in focused, with its caret.
@@ -516,8 +669,10 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     // Answers whose question has left the page are dropped.
     const shown = new Set([...document.querySelectorAll("textarea[data-draft]")].map((box) => box.dataset.draft));
     for (const key of drafts.keys()) if (!shown.has(key)) drafts.delete(key);
-    const again = data.draft ? document.querySelector(`textarea[data-draft="${CSS.escape(data.draft)}"]`)
-      : data.key ? document.querySelector(`button[data-key="${CSS.escape(data.key)}"]`) : null;
+    // Both tabs and their pages are drawn, so the same key may stand in a hidden copy; only a visible one takes focus.
+    const visible = (selector) => [...document.querySelectorAll(selector)].find((node) => node.getClientRects().length > 0) || null;
+    const again = data.draft ? visible(`textarea[data-draft="${CSS.escape(data.draft)}"]`)
+      : data.key ? visible(`button[data-key="${CSS.escape(data.key)}"]`) : null;
     if (again) { again.focus(); if (caret) again.setSelectionRange(...caret); }
   }
   // Keep "x min ago" current between snapshots, and the buttons in step with whether a conversation can take a request.

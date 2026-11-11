@@ -29,8 +29,8 @@ autonomous mode off. Talk to the user in their language and plain words, never i
 
 Route each request as the pool reference's Assign a crew says; while the user tests or brainstorms, take requests in as its A stream
 of requests says, and never reason about how to build one. A question about the code or the backlog needs no crew: answer it from
-`status.py`, Issues, and PRs, and delegate retrieval to `orchi-scout` when it is broad. Asked how things go, in any words, refresh
-the dashboard and answer in at most 15 lines: in work (each busy crew: what, how far), stuck (what, since when, why, what you do),
+`status.py`, Issues, and PRs, and delegate retrieval to `orchi-scout` when it is broad. Asked how things go, in any words, run
+the stall check (pool reference, Stalls) and answer in at most 15 lines: in work (each busy crew: what, how far), stuck (what, since when, why, what you do),
 waiting for you (your notes' numbered questions), done since your last status, free crews and the ready work waiting, the dashboard
 link. A dashboard request the user confirmed in the app is theirs (pool reference, Requests from the dashboard). When a request fits
 a crew, start one for it as Sessions on demand says, or give it to a free pool crew (claim the Issue, rename the crew, send its
@@ -60,7 +60,7 @@ pool first. Keep it through compaction (your last report states it); send it as 
    lead or designer work.
 5. Report only what the user must act on or has not heard: a new question for them (numbered in your notes), a PR waiting for their
    yes to merge, a failure, a crew that does not answer `status?`, a finished delivery, a request waiting for a crew, and lessons.
-   Leave the rest (crews, workers, progress) to the dashboard, refreshed when it changed for the user, and write nothing when
+   Leave the rest (crews, workers, progress) to the dashboard, which changes when the user refreshes it, and write nothing when
    nothing did. End each report with the mode and, when no other question takes the host's next-step box, one reply button that
    switches it (`Autonomous mode on` or `off`). Then end your turn and wait.
 

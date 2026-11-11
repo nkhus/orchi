@@ -256,6 +256,23 @@ them through. When Orchi's sends are held, it tells the user in one line which
 crews wait and that any reply to Orchi sends them on, and sends the rest after
 that reply.
 
+A crew asks the user with a question block in its text, never with the host's
+question tool, so that the user can answer in the crew or on the dashboard, and
+ends its turn with it; a block may hold a few questions, most consequential
+first:
+
+```text
+Question: <the question, in plain words>[ (user) or (user, here)]
+Context: <one or two sentences on why it matters now>
+1. <option>: <what it leads to> (recommended)
+2. <option>: <what it leads to>
+```
+
+Two to four options, the recommended one first and marked, as planning says;
+a question that has no options takes a free answer. A crew that asks Orchi,
+`<id> needs the user:`, sends the same block, and Orchi keeps its context and
+options in its notes.
+
 Some answers count only when the user types them in the session that asks:
 signing in, credentials, and an action the crew's or repository's rules want
 confirmed in its own conversation. A crew marks such a question `(user, here)`.
@@ -269,8 +286,7 @@ and holds, through compaction, until the user turns it off or runs `/orchi`
 again, which turns it off. The user switches it by telling Orchi or with the
 button at the end of Orchi's report. Orchi states it in every report, ends every
 assignment with `Autonomous mode: <on or off>, set by the user on <date>.`, and
-sends `autonomous <on or off>` to its busy crews and refreshes the dashboard
-when it changes. Turning it on builds the pool first, as Autonomous development says.
+sends `autonomous <on or off>` to its busy crews when it changes. Turning it on builds the pool first, as Autonomous development says.
 
 | | Off (default) | On |
 | --- | --- | --- |
@@ -438,7 +454,7 @@ since it is never reused.
 
 A prototyper is a researcher crew whose exploration starts in prototype mode;
 once the user says to build it, it reports `<id> now researcher`. A planner or researcher crew holds one request until it is planned or declined,
-and asks the user directly, with the host's question tool when it has one;
+and asks the user directly, with a question block as Messages says;
 while autonomous mode is on, it asks Orchi instead. It takes no other request,
 except a planner's queued ones, and:
 
@@ -580,8 +596,9 @@ Orchi checks.
   for ever.
 - Orchi checks the pool at a wake when a crew holds work and the last check is
   older than 30 minutes (`.orchi-tmp/dashboard/snapshot.json` in Orchi's worktree
-  says when it ran), and with every dashboard refresh. The check is the
-  dashboard's refresh, run without `--page` when no page is kept. Its line ends
+  says when it ran), before it answers the user about status, and with every
+  dashboard refresh. Outside a refresh the user asked for, the check is the
+  dashboard's collect run without `--page`, which leaves the page as it is. Its line ends
   with `· <n> need a look` when the snapshot's `attention` lists a crew quiet for
   more than 30 minutes with no busy worker: one that holds an Issue, has no
   background run (named, or found running), and waits for no other Issue and no
@@ -616,7 +633,9 @@ dashboard reads:
   `#<n> deferred by the user on <date>`, and Orchi gives no crew a deferred Issue
   until the user resumes it.
 - **`## Questions for the user`:** numbered (`<n>. <question>`), each with the crew that waits and since
-  when, in plain words, keeping a `(user, here)` mark; a PR that waits for the user's yes is the question
+  when, in plain words, keeping a `(user, here)` mark, and under it, indented, the block's
+  `Context: <text>` and options (`- <option>: <what it leads to> (recommended)`); a question about an Issue
+  names it as `#<n>`, so the board shows it on that card; a PR that waits for the user's yes is the question
   `<n>. Merge PR #<pull>? <what it brings>`; an item leaves the list once answered, and numbers are
   not reused that day. Orchi's reports and status answers list the open ones by
   number, so the user can answer `2: yes`.
@@ -629,34 +648,56 @@ decision logs and the questions crews still wait on.
 
 The dashboard is optional: a page Orchi keeps itself, published once the user
 asks for it or turns autonomous mode on; no session of its own holds it. It
-shows the pool's state so that Orchi's reports do not have to: every crew in
-one list, ordered by state (needing a look, waiting for the user, working, in a
-background run, idle, free), with
-what it does now, the Initiative and Epic of its work, and a mark while its
-Remote Control is on; the backlog as a tree with its progress; PRs and their
-checks; the planning queue; and recent merges. An idle crew runs nothing, and
-its card says so; a crew in a background run - one it named, or subagents or
-commands of its that still run - shows it, and a crew the
-[stall check](#stalls) lists comes first, marked `Needs a look` with the reason. The page reads GitHub and the host's session list, links
-Issues and PRs but never sessions (it runs sandboxed, and the sandbox blocks
-links into the app), and changes nothing itself; its buttons send the user's
-requests to Orchi, as [Requests from the dashboard](#requests-from-the-dashboard) says.
+shows the pool's state so that Orchi's reports do not have to, in two tabs:
+
+- **Crews:** one sentence on what waits for the user; Orchi's numbered
+  questions from its notes; how things are going, a few short paragraphs the
+  refresh writes in the user's language (what moved forward, what is in
+  progress, what is stuck and why, what waits for the user, what comes next),
+  with a line on what moved today; and every crew, ordered by state (needing a
+  look, waiting for the user, working, in a background run, idle, free), with
+  what it does now, the Initiative and Epic of its work, a mark while its
+  Remote Control is on, and how many questions it has. Each crew at work
+  shows an estimate of how far its work is, with its basis (the share of
+  children closed, else its stage, else its role); it never reads 100%. An idle crew runs
+  nothing, and its card says so; a crew in a background run - one it named, or
+  subagents or commands of its that still run - shows it, and a crew the
+  [stall check](#stalls) lists comes first, marked `Needs a look` with the
+  reason. A crew's page lists its open questions, each with its context, its
+  options and what they lead to, and the recommended one chosen until the user
+  picks another, with a note box.
+- **Board:** the work as a kanban, one level at a time: the Initiatives with
+  everything outside them, then an Initiative's Epics, then an Epic's Tasks.
+  Its columns are Needs planning, Backlog, In progress, Questions for you, Your
+  review, and Done, and each card takes its column from the real state, as the
+  dashboard script's `board` says: a question on it from its crew or Orchi's
+  notes, a PR that waits for the user's yes, a PR, claim, or crew on it, the
+  planning queue, deferral, or its closing; an Epic or Initiative takes the
+  first column it or its cards reach. An item's page shows its crew and that
+  crew's questions, its PRs with their checks and changes, what the user can
+  ask of it, and its moves between columns, `↩` marking one back from review.
+
+The page reads GitHub and the host's session list, links Issues and PRs but
+never sessions (it runs sandboxed, and the sandbox blocks links into the app),
+and changes nothing itself; its buttons send the user's requests to Orchi, as
+[Requests from the dashboard](#requests-from-the-dashboard) says.
 
 To publish it, Orchi invokes the `orchi-dashboard` skill with `publish`, which
 copies the page into `.orchi-tmp/dashboard/` in Orchi's worktree, publishes it,
 and gives the user the link; Orchi gives it again when asked about status.
-Orchi refreshes it before it answers the user about status, when the user asks,
-and when something changed for the user (a crew asks them something, starts or
-finishes work, or is released; a PR opens or merges; the mode changes), and
-never on a timer. Each refresh is one general-purpose subagent on Haiku, started
-in the background (Orchi waits for it only before answering about status) with
-the task
-`Invoke the orchi-dashboard skill with: collect --page <url> --mode "<on or off>" --limit <pool size> --dir <Orchi's worktree>/.orchi-tmp/dashboard`
+The page changes only when the user asks: Orchi refreshes it after publishing
+it, on the page's `Refresh`, and when the user asks it to in words; never on
+its own, on a change, or on a timer, and the page says how old it is. Each
+refresh is one general-purpose subagent on Haiku, started in the background,
+with the task
+`Invoke the orchi-dashboard skill with: collect --page <url> --mode "<on or off>" --limit <pool size> --language <the user's language> --dir <Orchi's worktree>/.orchi-tmp/dashboard`
 (the pool size is the number of crews the user set, 3 unless they named another);
-it reads the sessions and GitHub and writes the page, so Orchi's own
-conversation never reads the crews' messages for it. Its one-line reply
-(`📊 <time> · <n> active · <n> wait for you · <n> PRs`) needs nothing from
-Orchi; Orchi tells the user only when two refreshes in a row fail.
+it reads the sessions and GitHub, writes the summary, and writes the page, so
+Orchi's own conversation never reads the crews' messages for it. Its one-line
+reply (`📊 <time> · <n> active · <n> wait for you · <n> PRs`) needs nothing
+from Orchi; Orchi tells the user only when two refreshes in a row fail. The
+[stall check](#stalls) runs the same subagent without `--page`, which writes
+no page and no summary.
 
 ### Requests from the dashboard
 
@@ -676,10 +717,10 @@ nothing else.
 
 | Action (fields) | What Orchi does |
 | --- | --- |
-| `answer` (`crew`, `text`) | Reads the crew's question in its newest messages first; for a `(user, here)` question it relays nothing and gives the user the crew's link and the question, as Messages says. Otherwise it passes the answer on as `<id> answer: the user says on the dashboard <text>`, in either mode. |
-| `note_answer` (`question`, `text`) | Takes it as the user's answer to that numbered question in its notes, under the same `(user, here)` rule. |
+| `answer` (`crew`, `question`, `option`, `text`) | Reads the crew's question in its newest messages first; for a `(user, here)` question it relays nothing and gives the user the crew's link and the question, as Messages says. Otherwise it passes the answer on as `<id> answer: the user says on the dashboard <text>`, in either mode. |
+| `note_answer` (`question`, `option`, `text`) | Takes it as the user's answer to that numbered question in its notes, under the same `(user, here)` rule. |
 | `merge` (`pull`) | Merges only a PR whose crew reported `PR ready` and that waits for the user's yes (a `Merge PR #<pull>?` question in its notes): takes the request as that yes and merges it as the `PR ready` event says, checks first. Otherwise it tells the user in one line why not yet. |
-| `hold` (`pull`) | Merges it in neither mode, records `#<pull> on hold by the user` in its standing decisions until the user says otherwise, and asks the user in one line what to change, sent on as `#<n> rework:`. |
+| `hold` (`pull`, `changes`) | Merges it in neither mode, records `#<pull> on hold by the user` in its standing decisions, and sends the crew `#<n> rework: <changes>`, `#<n>` being the Issue the PR closes; without `changes` it asks the user in one line what to change first. When the crew reports `PR ready` again, Orchi removes the hold and asks `Merge PR #<pull>?` in its notes again, in either mode. |
 | `status` (`crew`) | Sends the crew `<id> status?` and tells the user its answer in at most two lines. |
 | `refresh` | Refreshes the dashboard. |
 | `mode` (`to`) | Switches autonomous mode as when the user tells it. |
@@ -688,8 +729,8 @@ nothing else.
 | `explain` (`issue`) | Starts one general-purpose subagent with the model `sonnet`, in the background, to read the Issue on GitHub (its body and decision log, its parent, its children and their states, and the PRs that close it, with their checks), told which crew holds it and its role (GitHub does not say), and reply in the user's language, in at most 8 short lines of plain words with no code, file paths, or jargon: what it is for, what is done, what is left, who works on it now, and what waits for the user. Orchi gives the user that reply as it is. It changes nothing and messages no crew. |
 | `defer`, `resume` (`issue`) | Adds or removes the standing decision `#<n> deferred by the user on <date>`. |
 
-Every Issue on the page, in the backlog, the planning queue, or a crew's card,
-has `Explain`. The page offers to take only `ready` work no crew holds, and says
+Every Initiative, Epic, and Task on the page has `Explain`: its card on the
+Board, its own page, and the card of the crew that holds it. The page offers to take only `ready` work no crew holds, and says
 `Take` while a crew is free or fewer crews hold work than the pool size, and
 `Queue` otherwise.
 The pool's size is the load limit; the page never estimates the machine's load.
